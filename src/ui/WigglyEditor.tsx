@@ -318,7 +318,6 @@ export function WigglyEditor() {
               { id: "dots", label: "ドット" },
               { id: "dotsDense", label: "密ドット" },
               { id: "stripesThin", label: "細縦線" },
-              { id: "stripesBold", label: "太縦線" },
               { id: "horizontal", label: "横線" },
               { id: "checker", label: "市松" },
               { id: "checkerDense", label: "密市松" },
