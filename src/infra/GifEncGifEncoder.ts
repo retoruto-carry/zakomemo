@@ -15,16 +15,30 @@ export class GifEncGifEncoder implements GifEncoder {
 
   addFrame(imageData: ImageData): void {
     const { data, width, height } = imageData;
-    const palette = quantize(data, 256, {
-      format: "rgba4444",
-      oneBitAlpha: true,
+
+    // Flatten alpha onto white背景で色ズレを防ぐ
+    const flattened = new Uint8Array(data.length);
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i] ?? 0;
+      const g = data[i + 1] ?? 0;
+      const b = data[i + 2] ?? 0;
+      const a = data[i + 3] ?? 255;
+      const alpha = a / 255;
+      flattened[i] = Math.round(r * alpha + 255 * (1 - alpha));
+      flattened[i + 1] = Math.round(g * alpha + 255 * (1 - alpha));
+      flattened[i + 2] = Math.round(b * alpha + 255 * (1 - alpha));
+      flattened[i + 3] = 255;
+    }
+
+    const palette = quantize(flattened, 256, {
+      format: "rgb565",
     });
-    const index = applyPalette(data, palette, "rgba4444");
+    const index = applyPalette(flattened, palette, "rgb565");
 
     this.encoder.writeFrame(index, width, height, {
       palette,
       delay: this.delayMs,
-      transparent: true,
+      transparent: false,
     });
   }
 
