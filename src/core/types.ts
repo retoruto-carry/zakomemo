@@ -4,7 +4,6 @@ export type BrushPatternId =
   | "dots"
   | "dotsDense"
   | "stripesThin"
-  | "stripesBold"
   | "horizontal"
   | "checker"
   | "checkerDense";

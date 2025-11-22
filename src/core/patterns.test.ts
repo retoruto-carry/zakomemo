@@ -11,7 +11,6 @@ describe("patterns", () => {
     const ids: BrushPatternId[] = [
       "dotsDense",
       "stripesThin",
-      "stripesBold",
       "horizontal",
       "checker",
       "checkerDense",
