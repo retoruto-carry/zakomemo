@@ -340,27 +340,35 @@ export function WigglyEditor() {
       </div>
 
       <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div className="overflow-hidden rounded-xl border border-slate-100 bg-slate-100 p-3 flex justify-center relative">
-          <canvas
-            ref={canvasRef}
-            width={initialDrawing.width}
-            height={initialDrawing.height}
-            className="block rounded-lg border border-slate-200 shadow-sm"
-            style={{ touchAction: "none", backgroundColor: "#ffffff" }}
-          />
-          {tool === "eraser" && eraserPos && (
-            <div
-              className="pointer-events-none absolute rounded-full border border-rose-500/60"
-              style={{
-                width: Math.max(width * 2, 18),
-                height: Math.max(width * 2, 18),
-                left: eraserPos.x,
-                top: eraserPos.y,
-                transform: "translate(-50%, -50%)",
-                boxShadow: "0 0 0 1px rgba(255,255,255,0.9)",
-              }}
+        <div className="overflow-hidden rounded-xl border border-slate-100 bg-slate-100 p-3 flex justify-center">
+          <div
+            className="relative"
+            style={{
+              width: initialDrawing.width,
+              height: initialDrawing.height,
+            }}
+          >
+            <canvas
+              ref={canvasRef}
+              width={initialDrawing.width}
+              height={initialDrawing.height}
+              className="block rounded-lg border border-slate-200 shadow-sm"
+              style={{ touchAction: "none", backgroundColor: "#ffffff" }}
             />
-          )}
+            {tool === "eraser" && eraserPos && (
+              <div
+                className="pointer-events-none absolute rounded-full border border-black/70"
+                style={{
+                  width: Math.max(width * 2, 18),
+                  height: Math.max(width * 2, 18),
+                  left: eraserPos.x,
+                  top: eraserPos.y,
+                  transform: "translate(-50%, -50%)",
+                  boxShadow: "0 0 0 1px rgba(255,255,255,0.9)",
+                }}
+              />
+            )}
+          </div>
         </div>
         <div className="mt-2 text-xs text-slate-500">
           スマホでは2本指タップで Undo。パターンは紙に印刷された模様のように固定されます。
