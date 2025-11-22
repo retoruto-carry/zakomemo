@@ -16,6 +16,8 @@ import type {
   StrokeSound,
   TimeProvider,
 } from "./ports";
+import type { EraserVariant, PenVariant } from "./variants";
+import { defaultEraserWidth, defaultPenWidth, resolveWidthVariant } from "./variants";
 
 export type Tool = "pen" | "pattern" | "eraser";
 
@@ -38,7 +40,9 @@ export class WigglyEngine {
 
   private currentTool: Tool = "pen";
   private pendingColor = "#000000";
-  private pendingWidth = 4;
+  private pendingWidth = defaultPenWidth.normal;
+  private penVariant: PenVariant = "normal";
+  private eraserVariant: EraserVariant = "eraserCircle";
   private pendingPattern: BrushSettings["patternId"] = "dots";
 
   private currentStrokeId: string | null = null;
@@ -76,6 +80,16 @@ export class WigglyEngine {
     this.pendingWidth = width;
   }
 
+  setPenVariant(variant: PenVariant): void {
+    this.penVariant = variant;
+    this.pendingWidth = defaultPenWidth[variant];
+  }
+
+  setEraserVariant(variant: EraserVariant): void {
+    this.eraserVariant = variant;
+    this.pendingWidth = defaultEraserWidth[variant];
+  }
+
   setPattern(patternId: BrushSettings["patternId"]): void {
     this.pendingPattern = patternId;
   }
@@ -88,6 +102,8 @@ export class WigglyEngine {
 
     const strokeKind: StrokeKind = this.currentTool === "eraser" ? "erase" : "draw";
     const brushKind = this.currentTool === "pattern" ? "pattern" : "solid";
+    const variant: PenVariant | EraserVariant =
+      strokeKind === "erase" ? this.eraserVariant : this.penVariant;
 
     const updated = startStroke(
       drawing,
@@ -99,6 +115,7 @@ export class WigglyEngine {
         width: this.pendingWidth,
         opacity: 1,
         patternId: brushKind === "pattern" ? this.pendingPattern : undefined,
+        variant,
       },
       { x, y, t: now - this.startedAt }
     );
@@ -133,6 +150,16 @@ export class WigglyEngine {
     const dist = Math.hypot(dx, dy);
     if (dist < 1.5) return;
 
+    const variant: PenVariant | EraserVariant =
+      lastStroke.kind === "erase" ? this.eraserVariant : this.penVariant;
+    const adjustedWidth = resolveWidthVariant(
+      this.pendingWidth,
+      variant,
+      dist,
+      now - this.strokeStartTime,
+      lastStroke.kind
+    );
+
     this.strokeLength += dist;
     const dt = now - this.strokeStartTime;
     const speed = dt > 0 ? this.strokeLength / dt : 0;
@@ -143,7 +170,11 @@ export class WigglyEngine {
       t: now - this.startedAt,
     });
 
-    this.history = { ...this.history, present: updated };
+    const strokesWithWidth = updated.strokes.map((s) =>
+      s.id === this.currentStrokeId ? { ...s, brush: { ...s.brush, width: adjustedWidth } } : s
+    );
+
+    this.history = { ...this.history, present: { ...updated, strokes: strokesWithWidth } };
 
     this.sound?.onStrokeUpdate({
       tool: this.currentTool,

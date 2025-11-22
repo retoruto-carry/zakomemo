@@ -4,9 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import { createWigglyEngine } from "@/app/createWigglyEngine";
 import type { BrushPatternId, Drawing } from "@/core/types";
 import type { Tool, WigglyEngine } from "@/engine/WigglyEngine";
+import type { EraserVariant, PenVariant } from "@/engine/variants";
 import { exportDrawingAsGif } from "@/engine/exportGif";
 import { CanvasRenderer } from "@/infra/CanvasRenderer";
 import { GifEncGifEncoder } from "@/infra/GifEncGifEncoder";
+import { penVariants, eraserVariants } from "./variants";
 
 const initialDrawing: Drawing = {
   width: 480,
@@ -33,6 +35,8 @@ export function WigglyEditor() {
   const [tool, setTool] = useState<Tool>("pen");
   const [color, setColor] = useState("#0b0b0b");
   const [width, setWidth] = useState(4);
+  const [penVariant, setPenVariant] = useState<PenVariant>("normal");
+  const [eraserVariant, setEraserVariant] = useState<EraserVariant>("eraserCircle");
   const [patternId, setPatternId] = useState<BrushPatternId>("dots");
   const [isExporting, setIsExporting] = useState(false);
   const [exportUrl, setExportUrl] = useState<string | null>(null);
@@ -172,6 +176,14 @@ export function WigglyEditor() {
   }, [patternId]);
 
   useEffect(() => {
+    engineRef.current?.setPenVariant(penVariant);
+  }, [penVariant]);
+
+  useEffect(() => {
+    engineRef.current?.setEraserVariant(eraserVariant);
+  }, [eraserVariant]);
+
+  useEffect(() => {
     const handleKey = (ev: KeyboardEvent) => {
       const engine = engineRef.current;
       if (!engine) return;
@@ -231,6 +243,11 @@ export function WigglyEditor() {
 
   const setToolAndState = (next: Tool) => {
     setTool(next);
+    if (next === "pen") {
+      setWidth(4);
+    } else if (next === "eraser") {
+      setWidth(12);
+    }
   };
 
   return (
@@ -297,18 +314,50 @@ export function WigglyEditor() {
             />
           ))}
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs uppercase tracking-wide text-slate-500">Width</span>
-          <input
-            type="range"
-            min={1}
-            max={16}
-            value={width}
-            onChange={(e) => setWidth(Number(e.target.value))}
-            className="h-2 w-40 accent-slate-900"
-          />
-          <span className="text-xs text-slate-700 w-8 text-right">{width}px</span>
-        </div>
+        {tool === "pen" && (
+          <div className="flex items-center gap-2">
+            <span className="text-xs uppercase tracking-wide text-slate-500">
+              Pen Type
+            </span>
+            <div className="flex flex-wrap gap-2">
+              {penVariants.map((p) => (
+                <button
+                  key={p.id}
+                  onClick={() => setPenVariant(p.id)}
+                  className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
+                    penVariant === p.id
+                      ? "border-slate-900 bg-slate-900 text-white"
+                      : "border-slate-200 bg-white text-slate-800 hover:border-slate-400"
+                  }`}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        {tool === "eraser" && (
+          <div className="flex items-center gap-2">
+            <span className="text-xs uppercase tracking-wide text-slate-500">
+              Eraser
+            </span>
+            <div className="flex flex-wrap gap-2">
+              {eraserVariants.map((v) => (
+                <button
+                  key={v.id}
+                  onClick={() => setEraserVariant(v.id)}
+                  className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
+                    eraserVariant === v.id
+                      ? "border-slate-900 bg-slate-900 text-white"
+                      : "border-slate-200 bg-white text-slate-800 hover:border-slate-400"
+                  }`}
+                >
+                  {v.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
         <div className="flex items-center gap-2">
           <span className="text-xs uppercase tracking-wide text-slate-500">
             Pattern

@@ -7,12 +7,21 @@ export type BrushPatternId =
   | "vertical"
   | "checker";
 
+export type BrushVariant =
+  | "normal"
+  | "pressure"
+  | "noise"
+  | "eraserCircle"
+  | "eraserSquare"
+  | "eraserLine";
+
 export type BrushSettings = {
   kind: BrushKind;
   color: string;
   width: number;
   opacity: number;
   patternId?: BrushPatternId;
+  variant?: BrushVariant;
 };
 
 export type StrokeKind = "draw" | "erase";
