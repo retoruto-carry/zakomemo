@@ -10,6 +10,17 @@ import { CanvasRenderer } from "@/infra/CanvasRenderer";
 import { GifEncGifEncoder } from "@/infra/GifEncGifEncoder";
 import { eraserVariants, penVariants } from "./variants";
 
+const ERASER_GUIDE = {
+  minSize: 12,
+  squareRadius: 2,
+  line: {
+    widthMult: 3,
+    heightMult: 1.1,
+    minWidth: 24,
+    minHeight: 12,
+  },
+} as const;
+
 const initialDrawing: Drawing = {
   width: 480,
   height: 320,
@@ -447,17 +458,25 @@ export function WigglyEditor() {
                 style={{
                   width:
                     eraserVariant === "eraserLine"
-                      ? Math.max(width * 3, 24)
-                      : Math.max(width, 12),
+                      ? Math.max(
+                          width * ERASER_GUIDE.line.widthMult,
+                          ERASER_GUIDE.line.minWidth,
+                        )
+                      : Math.max(width, ERASER_GUIDE.minSize),
                   height:
                     eraserVariant === "eraserLine"
-                      ? Math.max(width * 1.1, 12)
-                      : Math.max(width, 12),
+                      ? Math.max(
+                          width * ERASER_GUIDE.line.heightMult,
+                          ERASER_GUIDE.line.minHeight,
+                        )
+                      : Math.max(width, ERASER_GUIDE.minSize),
                   left: eraserPos.x,
                   top: eraserPos.y,
                   transform: "translate(-50%, -50%)",
                   borderRadius:
-                    eraserVariant === "eraserSquare" ? "2px" : "9999px",
+                    eraserVariant === "eraserSquare"
+                      ? `${ERASER_GUIDE.squareRadius}px`
+                      : "9999px",
                   boxShadow: "0 0 0 1px rgba(255,255,255,0.9)",
                 }}
               />
