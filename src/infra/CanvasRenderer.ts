@@ -38,7 +38,7 @@ export class CanvasRenderer implements DrawingRenderer {
     jitteredPoints: { x: number; y: number }[],
     timeMs: number,
   ): void {
-    if (jitteredPoints.length < 2) return;
+    if (jitteredPoints.length === 0) return;
     const ctx = this.ctx;
 
     ctx.save();
@@ -81,12 +81,42 @@ export class CanvasRenderer implements DrawingRenderer {
       }
     }
 
-    ctx.beginPath();
-    jitteredPoints.forEach((p, i) => {
-      if (i === 0) ctx.moveTo(p.x, p.y);
-      else ctx.lineTo(p.x, p.y);
-    });
-    ctx.stroke();
+    // 1点だけのときは点として描画
+    if (jitteredPoints.length === 1) {
+      const p = jitteredPoints[0];
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, ctx.lineWidth / 2, 0, Math.PI * 2);
+      if (stroke.kind === "erase") {
+        ctx.fillStyle = "rgba(0,0,0,1)";
+      } else if (
+        ctx.strokeStyle instanceof CanvasGradient ||
+        ctx.strokeStyle instanceof CanvasPattern
+      ) {
+        ctx.fillStyle = ctx.strokeStyle as string;
+      } else {
+        ctx.fillStyle = ctx.strokeStyle as string;
+      }
+      ctx.fill();
+      ctx.restore();
+      return;
+    }
+
+    if (stroke.kind === "erase" && variant === "eraserLine") {
+      const halfLen = stroke.brush.width;
+      ctx.beginPath();
+      jitteredPoints.forEach((p) => {
+        ctx.moveTo(p.x - halfLen, p.y);
+        ctx.lineTo(p.x + halfLen, p.y);
+      });
+      ctx.stroke();
+    } else {
+      ctx.beginPath();
+      jitteredPoints.forEach((p, i) => {
+        if (i === 0) ctx.moveTo(p.x, p.y);
+        else ctx.lineTo(p.x, p.y);
+      });
+      ctx.stroke();
+    }
     ctx.restore();
   }
 
