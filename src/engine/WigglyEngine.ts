@@ -48,6 +48,8 @@ export class WigglyEngine {
 
   private loopId: number | null = null;
   private startedAt: number;
+  private lastRenderAt = 0;
+  private minFrameIntervalMs = 1000 / 45; // 約45fps目安で間引き
 
   constructor(options: EngineOptions) {
     this.history = createHistory(options.initialDrawing);
@@ -198,7 +200,16 @@ export class WigglyEngine {
     const now = this.time.now();
     const elapsed = now - this.startedAt;
 
-    renderDrawingAtTime(this.history.present, this.renderer, this.jitterConfig, elapsed);
+    if (now - this.lastRenderAt >= this.minFrameIntervalMs) {
+      renderDrawingAtTime(
+        this.history.present,
+        this.renderer,
+        this.jitterConfig,
+        elapsed
+      );
+      this.lastRenderAt = now;
+    }
+
     this.loopId = this.raf.request(this.loop);
   }
 

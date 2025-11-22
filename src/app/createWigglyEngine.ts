@@ -47,6 +47,6 @@ export function createWigglyEngine(
     time,
     raf,
     sound,
-    jitterConfig: { amplitude: 1.5, frequency: 0.01 },
+    jitterConfig: { amplitude: 1.2, frequency: 0.008 },
   });
 }

@@ -7,6 +7,11 @@ import { parseColorToRgb } from "./colorUtil";
 export class CanvasRenderer implements DrawingRenderer {
   private lastWidth = 0;
   private lastHeight = 0;
+  private patternCache = new Map<
+    string,
+    { bucket: number; pattern: CanvasPattern }
+  >();
+  private patternCacheMs = 80; // ゆらぎを間引きしてパフォーマンスを稼ぐ
 
   constructor(
     private ctx: CanvasRenderingContext2D,
@@ -75,6 +80,13 @@ export class CanvasRenderer implements DrawingRenderer {
     color: string,
     timeMs: number
   ): CanvasPattern {
+    const cacheKey = patternId;
+    const bucket = Math.floor(timeMs / this.patternCacheMs);
+    const cached = this.patternCache.get(cacheKey);
+    if (cached && cached.bucket === bucket) {
+      return cached.pattern;
+    }
+
     const def = getPatternDefinition(patternId as any);
     const tile = wigglePatternTile(def.tile, timeMs, this.wiggleConfig);
 
@@ -103,6 +115,8 @@ export class CanvasRenderer implements DrawingRenderer {
     if (!pattern) {
       throw new Error("Failed to create canvas pattern");
     }
+
+    this.patternCache.set(cacheKey, { bucket, pattern });
     return pattern;
   }
 }
