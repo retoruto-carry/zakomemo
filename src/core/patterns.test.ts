@@ -13,7 +13,6 @@ describe("patterns", () => {
       "stripesThin",
       "horizontal",
       "checker",
-      "checkerDense",
     ];
     ids.forEach((id) => {
       const def = getPatternDefinition(id);

@@ -91,23 +91,6 @@ export const PATTERNS: PatternDefinition[] = [
       ],
     },
   },
-  {
-    id: "checkerDense",
-    tile: {
-      width: 8,
-      height: 8,
-      alpha: [
-        1, 0, 1, 0, 1, 0, 1, 0,
-        0, 1, 0, 1, 0, 1, 0, 1,
-        1, 0, 1, 0, 1, 0, 1, 0,
-        0, 1, 0, 1, 0, 1, 0, 1,
-        1, 0, 1, 0, 1, 0, 1, 0,
-        0, 1, 0, 1, 0, 1, 0, 1,
-        1, 0, 1, 0, 1, 0, 1, 0,
-        0, 1, 0, 1, 0, 1, 0, 1,
-      ],
-    },
-  },
 ];
 
 export function getPatternDefinition(id: BrushPatternId): PatternDefinition {

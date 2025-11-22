@@ -5,8 +5,7 @@ export type BrushPatternId =
   | "dotsDense"
   | "stripesThin"
   | "horizontal"
-  | "checker"
-  | "checkerDense";
+  | "checker";
 
 export type BrushSettings = {
   kind: BrushKind;
