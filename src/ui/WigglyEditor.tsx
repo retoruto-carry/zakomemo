@@ -300,11 +300,15 @@ export function WigglyEditor() {
           <span className="text-xs uppercase tracking-wide text-slate-500">
             Pattern
           </span>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {([
               { id: "dots", label: "ドット" },
-              { id: "stripes", label: "ストライプ" },
-              { id: "checker", label: "チェッカー" },
+              { id: "dotsDense", label: "密ドット" },
+              { id: "stripesThin", label: "細縦線" },
+              { id: "stripesBold", label: "太縦線" },
+              { id: "horizontal", label: "横線" },
+              { id: "checker", label: "市松" },
+              { id: "checkerDense", label: "密市松" },
             ] satisfies { id: BrushPatternId; label: string }[]).map((p) => (
               <button
                 key={p.id}
@@ -323,13 +327,13 @@ export function WigglyEditor() {
       </div>
 
       <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div className="overflow-hidden rounded-xl border border-slate-100 bg-gradient-to-br from-slate-50 to-sky-50">
+        <div className="overflow-hidden rounded-xl border border-slate-100 bg-slate-100 p-3 flex justify-center">
           <canvas
             ref={canvasRef}
             width={initialDrawing.width}
             height={initialDrawing.height}
-            className="block"
-            style={{ touchAction: "none" }}
+            className="block rounded-lg border border-slate-200 shadow-sm"
+            style={{ touchAction: "none", backgroundColor: "#ffffff" }}
           />
         </div>
         <div className="mt-2 text-xs text-slate-500">

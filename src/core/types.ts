@@ -1,6 +1,13 @@
 export type BrushKind = "solid" | "pattern";
 
-export type BrushPatternId = "dots" | "stripes" | "checker";
+export type BrushPatternId =
+  | "dots"
+  | "dotsDense"
+  | "stripesThin"
+  | "stripesBold"
+  | "horizontal"
+  | "checker"
+  | "checkerDense";
 
 export type BrushSettings = {
   kind: BrushKind;

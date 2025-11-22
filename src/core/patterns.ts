@@ -16,16 +16,60 @@ export const PATTERNS: PatternDefinition[] = [
     },
   },
   {
-    id: "stripes",
+    id: "dotsDense",
     tile: {
       width: 4,
       height: 4,
-      // vertical stripes
       alpha: [
         1, 0, 1, 0, //
+        0, 1, 0, 1, //
         1, 0, 1, 0, //
-        1, 0, 1, 0, //
-        1, 0, 1, 0,
+        0, 1, 0, 1,
+      ],
+    },
+  },
+  {
+    id: "stripesThin",
+    tile: {
+      width: 6,
+      height: 6,
+      alpha: [
+        1, 0, 0, 1, 0, 0,
+        1, 0, 0, 1, 0, 0,
+        1, 0, 0, 1, 0, 0,
+        1, 0, 0, 1, 0, 0,
+        1, 0, 0, 1, 0, 0,
+        1, 0, 0, 1, 0, 0,
+      ],
+    },
+  },
+  {
+    id: "stripesBold",
+    tile: {
+      width: 6,
+      height: 6,
+      alpha: [
+        1, 1, 1, 0, 0, 0,
+        1, 1, 1, 0, 0, 0,
+        1, 1, 1, 0, 0, 0,
+        1, 1, 1, 0, 0, 0,
+        1, 1, 1, 0, 0, 0,
+        1, 1, 1, 0, 0, 0,
+      ],
+    },
+  },
+  {
+    id: "horizontal",
+    tile: {
+      width: 6,
+      height: 6,
+      alpha: [
+        1, 1, 1, 1, 1, 1,
+        0, 0, 0, 0, 0, 0,
+        1, 1, 1, 1, 1, 1,
+        0, 0, 0, 0, 0, 0,
+        1, 1, 1, 1, 1, 1,
+        0, 0, 0, 0, 0, 0,
       ],
     },
   },
@@ -39,6 +83,21 @@ export const PATTERNS: PatternDefinition[] = [
         0, 1, 0, 1, //
         1, 0, 1, 0, //
         0, 1, 0, 1,
+      ],
+    },
+  },
+  {
+    id: "checkerDense",
+    tile: {
+      width: 6,
+      height: 6,
+      alpha: [
+        1, 1, 0, 1, 1, 0,
+        1, 1, 0, 1, 1, 0,
+        0, 0, 1, 0, 0, 1,
+        1, 1, 0, 1, 1, 0,
+        1, 1, 0, 1, 1, 0,
+        0, 0, 1, 0, 0, 1,
       ],
     },
   },

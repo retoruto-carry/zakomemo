@@ -7,11 +7,19 @@ describe("patterns", () => {
     expect(dots.tile.alpha.length).toBe(dots.tile.width * dots.tile.height);
   });
 
-  test("patterns include stripes and checker", () => {
-    const stripes = getPatternDefinition("stripes");
-    const checker = getPatternDefinition("checker");
-    expect(stripes.tile.width * stripes.tile.height).toBe(stripes.tile.alpha.length);
-    expect(checker.tile.alpha[0]).toBeDefined();
+  test("patterns include multiple variants", () => {
+    const ids: BrushPatternId[] = [
+      "dotsDense",
+      "stripesThin",
+      "stripesBold",
+      "horizontal",
+      "checker",
+      "checkerDense",
+    ];
+    ids.forEach((id) => {
+      const def = getPatternDefinition(id);
+      expect(def.tile.alpha.length).toBe(def.tile.width * def.tile.height);
+    });
   });
 
   test("getPatternDefinition throws on unknown id", () => {

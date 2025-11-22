@@ -16,7 +16,13 @@ export class CanvasRenderer implements DrawingRenderer {
   clear(width: number, height: number): void {
     this.lastWidth = width;
     this.lastHeight = height;
-    this.ctx.clearRect(0, 0, width, height);
+    const ctx = this.ctx;
+    ctx.clearRect(0, 0, width, height);
+    ctx.save();
+    ctx.globalCompositeOperation = "source-over";
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, width, height);
+    ctx.restore();
   }
 
   renderStroke(
