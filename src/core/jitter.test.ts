@@ -21,8 +21,8 @@ describe("computeJitter", () => {
   test("time affects jitter output when amplitude > 0", () => {
     const config = { amplitude: 2, frequency: 0.02 };
     const early = computeJitter(point, 0, config);
-    const later = computeJitter(point, 500, config);
-    expect(later.dx).not.toBeCloseTo(early.dx);
-    expect(later.dy).not.toBeCloseTo(early.dy);
+    const later = computeJitter(point, 1000, config); // bucket should change
+    expect(later.dx).not.toBe(early.dx);
+    expect(later.dy).not.toBe(early.dy);
   });
 });

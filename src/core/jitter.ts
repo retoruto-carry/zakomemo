@@ -10,16 +10,26 @@ export type JitterOffset = {
   dy: number;
 };
 
+function hashNoise(a: number, b: number, c: number): number {
+  // Simple deterministic hash -> 0..1
+  const n = Math.sin(a * 12.9898 + b * 78.233 + c * 37.719) * 43758.5453;
+  return n - Math.floor(n);
+}
+
 export function computeJitter(
   point: Point,
   timeMs: number,
   config: JitterConfig
 ): JitterOffset {
-  const t = (point.t + timeMs) * config.frequency;
+  // Quantize時間ベースの揺れでジャギー感を出す
+  const bucket = Math.floor((point.t + timeMs) * config.frequency);
   const amplitude = config.amplitude;
 
+  const noiseX = hashNoise(point.x, point.y, bucket);
+  const noiseY = hashNoise(point.y, point.x, bucket + 1);
+
   return {
-    dx: Math.sin(t * 2.3) * amplitude,
-    dy: Math.cos(t * 1.7) * amplitude,
+    dx: (noiseX * 2 - 1) * amplitude,
+    dy: (noiseY * 2 - 1) * amplitude,
   };
 }
