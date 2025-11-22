@@ -445,11 +445,19 @@ export function WigglyEditor() {
               <div
                 className="pointer-events-none absolute rounded-full border border-black/70"
                 style={{
-                  width: Math.max(width * 2, 18),
-                  height: Math.max(width * 2, 18),
+                  width:
+                    eraserVariant === "eraserLine"
+                      ? Math.max(width * 3, 24)
+                      : Math.max(width * 2, 18),
+                  height:
+                    eraserVariant === "eraserLine"
+                      ? Math.max(width * 1.2, 12)
+                      : Math.max(width * 2, 18),
                   left: eraserPos.x,
                   top: eraserPos.y,
                   transform: "translate(-50%, -50%)",
+                  borderRadius:
+                    eraserVariant === "eraserSquare" ? "4px" : "9999px",
                   boxShadow: "0 0 0 1px rgba(255,255,255,0.9)",
                 }}
               />

@@ -3,7 +3,7 @@ import {
   wigglePatternTile,
 } from "../core/patternDeform";
 import { getPatternDefinition } from "../core/patterns";
-import type { BrushPatternId, Stroke } from "../core/types";
+import type { BrushPatternId, BrushVariant, Stroke } from "../core/types";
 import type { DrawingRenderer } from "../engine/ports";
 import { parseColorToRgb } from "./colorUtil";
 
@@ -42,8 +42,24 @@ export class CanvasRenderer implements DrawingRenderer {
     const ctx = this.ctx;
 
     ctx.save();
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
+
+    const variant = stroke.brush.variant as BrushVariant | undefined;
+    if (stroke.kind === "erase") {
+      if (variant === "eraserSquare") {
+        ctx.lineCap = "butt";
+        ctx.lineJoin = "miter";
+      } else if (variant === "eraserLine") {
+        ctx.lineCap = "square";
+        ctx.lineJoin = "round";
+      } else {
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+      }
+    } else {
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+    }
+
     ctx.lineWidth = stroke.brush.width;
 
     if (stroke.kind === "erase") {
