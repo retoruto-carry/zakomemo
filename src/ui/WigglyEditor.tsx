@@ -15,6 +15,7 @@ const ERASER_GUIDE = {
   squareRadius: 2,
   line: {
     lengthMult: 2,
+    height: 2,
   },
 } as const;
 
@@ -217,6 +218,9 @@ export function WigglyEditor() {
       } else if (mod && key === "y") {
         ev.preventDefault();
         engine.redo();
+      } else if (mod && key === "z") {
+        ev.preventDefault();
+        engine.undo();
       }
     };
     window.addEventListener("keydown", handleKey);
@@ -460,7 +464,10 @@ export function WigglyEditor() {
                           ERASER_GUIDE.minSize,
                         )
                       : Math.max(width, ERASER_GUIDE.minSize),
-                  height: Math.max(width, ERASER_GUIDE.minSize),
+                  height:
+                    eraserVariant === "eraserLine"
+                      ? ERASER_GUIDE.line.height
+                      : Math.max(width, ERASER_GUIDE.minSize),
                   left: eraserPos.x,
                   top: eraserPos.y,
                   transform: "translate(-50%, -50%)",
