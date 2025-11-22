@@ -15,9 +15,8 @@ const ERASER_GUIDE = {
   squareRadius: 2,
   line: {
     widthMult: 3,
-    heightMult: 1.1,
+    heightFixed: 8,
     minWidth: 24,
-    minHeight: 12,
   },
 } as const;
 
@@ -465,10 +464,7 @@ export function WigglyEditor() {
                       : Math.max(width, ERASER_GUIDE.minSize),
                   height:
                     eraserVariant === "eraserLine"
-                      ? Math.max(
-                          width * ERASER_GUIDE.line.heightMult,
-                          ERASER_GUIDE.line.minHeight,
-                        )
+                      ? ERASER_GUIDE.line.heightFixed
                       : Math.max(width, ERASER_GUIDE.minSize),
                   left: eraserPos.x,
                   top: eraserPos.y,
