@@ -16,11 +16,7 @@ import type {
   TimeProvider,
 } from "./ports";
 import type { EraserVariant, PenVariant } from "./variants";
-import {
-  defaultEraserWidth,
-  defaultPenWidth,
-  resolveWidthVariant,
-} from "./variants";
+import { defaultPenWidth, resolveWidthVariant } from "./variants";
 
 export type Tool = "pen" | "pattern" | "eraser";
 
@@ -85,12 +81,10 @@ export class WigglyEngine {
 
   setPenVariant(variant: PenVariant): void {
     this.penVariant = variant;
-    this.pendingWidth = defaultPenWidth[variant];
   }
 
   setEraserVariant(variant: EraserVariant): void {
     this.eraserVariant = variant;
-    this.pendingWidth = defaultEraserWidth[variant];
   }
 
   setPattern(patternId: BrushSettings["patternId"]): void {
@@ -157,7 +151,7 @@ export class WigglyEngine {
     const variant: PenVariant | EraserVariant =
       lastStroke.kind === "erase" ? this.eraserVariant : this.penVariant;
     const adjustedWidth = resolveWidthVariant(
-      this.pendingWidth,
+      lastStroke.brush.width,
       variant,
       dist,
       now - this.strokeStartTime,

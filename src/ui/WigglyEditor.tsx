@@ -257,11 +257,6 @@ export function WigglyEditor() {
 
   const setToolAndState = (next: Tool) => {
     setTool(next);
-    if (next === "pen") {
-      setWidth(4);
-    } else if (next === "eraser") {
-      setWidth(12);
-    }
   };
 
   return (
