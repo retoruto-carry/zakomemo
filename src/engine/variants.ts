@@ -1,5 +1,3 @@
-import type { BrushSettings } from "@/core/types";
-
 export type PenVariant = "normal" | "pressure" | "noise";
 export type EraserVariant = "eraserCircle" | "eraserSquare" | "eraserLine";
 
@@ -20,7 +18,7 @@ export function resolveWidthVariant(
   variant: PenVariant | EraserVariant,
   dist: number,
   timeSinceStart: number,
-  strokeKind: "draw" | "erase"
+  strokeKind: "draw" | "erase",
 ): number {
   if (strokeKind === "erase") {
     return base;
@@ -34,7 +32,8 @@ export function resolveWidthVariant(
 
   if (variant === "noise") {
     const jitter =
-      (Math.sin(timeSinceStart * 0.02) + Math.cos(timeSinceStart * 0.031)) * 0.2;
+      (Math.sin(timeSinceStart * 0.02) + Math.cos(timeSinceStart * 0.031)) *
+      0.2;
     return Math.max(1, base * (1 + jitter));
   }
 

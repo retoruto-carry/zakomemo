@@ -1,11 +1,11 @@
-import type { Drawing, Stroke } from "../core/types";
+import type { Stroke } from "../core/types";
 
 export interface DrawingRenderer {
   clear(width: number, height: number): void;
   renderStroke(
     stroke: Stroke,
     jitteredPoints: { x: number; y: number }[],
-    timeMs: number
+    timeMs: number,
   ): void;
 }
 

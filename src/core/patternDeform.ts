@@ -8,7 +8,7 @@ export type PatternWiggleConfig = {
 export function wigglePatternTile(
   base: PatternTile,
   timeMs: number,
-  config: PatternWiggleConfig
+  config: PatternWiggleConfig,
 ): PatternTile {
   const { width, height, alpha } = base;
   const outputAlpha = new Array<number>(alpha.length);

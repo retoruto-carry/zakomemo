@@ -25,7 +25,7 @@ export class HowlerStrokeSound implements StrokeSound {
     this.updateVolume(info);
   }
 
-  onStrokeEnd(info: StrokeSoundInfo): void {
+  onStrokeEnd(_info: StrokeSoundInfo): void {
     const current = this.drawLoop.volume();
     this.drawLoop.fade(current, 0, 180);
   }

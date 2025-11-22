@@ -19,7 +19,7 @@ function hashNoise(a: number, b: number, c: number): number {
 export function computeJitter(
   point: Point,
   timeMs: number,
-  config: JitterConfig
+  config: JitterConfig,
 ): JitterOffset {
   // Quantize時間ベースの揺れでジャギー感を出す
   const bucket = Math.floor((point.t + timeMs) * config.frequency);

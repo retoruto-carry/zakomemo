@@ -1,23 +1,26 @@
-import type { Drawing, StrokeKind } from "../core/types";
 import { appendPoint, clearDrawing, startStroke } from "../core/drawingLogic";
-import type { JitterConfig } from "../core/jitter";
 import {
   createHistory,
+  type History,
   pushHistory,
   redoHistory,
   undoHistory,
-  type History,
 } from "../core/history";
+import type { JitterConfig } from "../core/jitter";
+import type { BrushSettings, Drawing, StrokeKind } from "../core/types";
 import { renderDrawingAtTime } from "./frameRenderer";
 import type {
   DrawingRenderer,
   RafScheduler,
-  StrokeSoundInfo,
   StrokeSound,
   TimeProvider,
 } from "./ports";
 import type { EraserVariant, PenVariant } from "./variants";
-import { defaultEraserWidth, defaultPenWidth, resolveWidthVariant } from "./variants";
+import {
+  defaultEraserWidth,
+  defaultPenWidth,
+  resolveWidthVariant,
+} from "./variants";
 
 export type Tool = "pen" | "pattern" | "eraser";
 
@@ -100,7 +103,8 @@ export class WigglyEngine {
     const drawing = this.history.present;
     this.strokeStartDrawing = drawing;
 
-    const strokeKind: StrokeKind = this.currentTool === "eraser" ? "erase" : "draw";
+    const strokeKind: StrokeKind =
+      this.currentTool === "eraser" ? "erase" : "draw";
     const brushKind = this.currentTool === "pattern" ? "pattern" : "solid";
     const variant: PenVariant | EraserVariant =
       strokeKind === "erase" ? this.eraserVariant : this.penVariant;
@@ -117,7 +121,7 @@ export class WigglyEngine {
         patternId: brushKind === "pattern" ? this.pendingPattern : undefined,
         variant,
       },
-      { x, y, t: now - this.startedAt }
+      { x, y, t: now - this.startedAt },
     );
 
     this.history = { ...this.history, present: updated };
@@ -157,7 +161,7 @@ export class WigglyEngine {
       variant,
       dist,
       now - this.strokeStartTime,
-      lastStroke.kind
+      lastStroke.kind,
     );
 
     this.strokeLength += dist;
@@ -171,10 +175,15 @@ export class WigglyEngine {
     });
 
     const strokesWithWidth = updated.strokes.map((s) =>
-      s.id === this.currentStrokeId ? { ...s, brush: { ...s.brush, width: adjustedWidth } } : s
+      s.id === this.currentStrokeId
+        ? { ...s, brush: { ...s.brush, width: adjustedWidth } }
+        : s,
     );
 
-    this.history = { ...this.history, present: { ...updated, strokes: strokesWithWidth } };
+    this.history = {
+      ...this.history,
+      present: { ...updated, strokes: strokesWithWidth },
+    };
 
     this.sound?.onStrokeUpdate({
       tool: this.currentTool,
@@ -198,7 +207,7 @@ export class WigglyEngine {
     const base = this.strokeStartDrawing ?? this.history.present;
     this.history = pushHistory(
       { ...this.history, present: base, future: [] },
-      this.history.present
+      this.history.present,
     );
     this.strokeStartDrawing = null;
     this.currentStrokeId = null;
@@ -236,7 +245,7 @@ export class WigglyEngine {
         this.history.present,
         this.renderer,
         this.jitterConfig,
-        elapsed
+        elapsed,
       );
       this.lastRenderAt = now;
     }
@@ -245,7 +254,10 @@ export class WigglyEngine {
   }
 
   private createStrokeId(): string {
-    if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    if (
+      typeof crypto !== "undefined" &&
+      typeof crypto.randomUUID === "function"
+    ) {
       return crypto.randomUUID();
     }
     return `stroke-${Math.random().toString(36).slice(2)}`;

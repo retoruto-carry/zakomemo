@@ -1,7 +1,10 @@
-import type { DrawingRenderer } from "../engine/ports";
-import type { Stroke } from "../core/types";
+import {
+  type PatternWiggleConfig,
+  wigglePatternTile,
+} from "../core/patternDeform";
 import { getPatternDefinition } from "../core/patterns";
-import { wigglePatternTile, type PatternWiggleConfig } from "../core/patternDeform";
+import type { BrushPatternId, Stroke } from "../core/types";
+import type { DrawingRenderer } from "../engine/ports";
 import { parseColorToRgb } from "./colorUtil";
 
 export class CanvasRenderer implements DrawingRenderer {
@@ -15,7 +18,7 @@ export class CanvasRenderer implements DrawingRenderer {
 
   constructor(
     private ctx: CanvasRenderingContext2D,
-    private wiggleConfig: PatternWiggleConfig
+    private wiggleConfig: PatternWiggleConfig,
   ) {}
 
   clear(width: number, height: number): void {
@@ -33,7 +36,7 @@ export class CanvasRenderer implements DrawingRenderer {
   renderStroke(
     stroke: Stroke,
     jitteredPoints: { x: number; y: number }[],
-    timeMs: number
+    timeMs: number,
   ): void {
     if (jitteredPoints.length < 2) return;
     const ctx = this.ctx;
@@ -56,7 +59,7 @@ export class CanvasRenderer implements DrawingRenderer {
         const pattern = this.createWigglyPattern(
           stroke.brush.patternId,
           stroke.brush.color,
-          timeMs
+          timeMs,
         );
         ctx.strokeStyle = pattern;
       }
@@ -78,16 +81,16 @@ export class CanvasRenderer implements DrawingRenderer {
   private createWigglyPattern(
     patternId: string,
     color: string,
-    timeMs: number
+    timeMs: number,
   ): CanvasPattern {
-    const cacheKey = patternId;
+    const cacheKey = `${patternId}:${color}`;
     const bucket = Math.floor(timeMs / this.patternCacheMs);
     const cached = this.patternCache.get(cacheKey);
     if (cached && cached.bucket === bucket) {
       return cached.pattern;
     }
 
-    const def = getPatternDefinition(patternId as any);
+    const def = getPatternDefinition(patternId as BrushPatternId);
     const tile = wigglePatternTile(def.tile, timeMs, this.wiggleConfig);
 
     const offscreen = document.createElement("canvas");

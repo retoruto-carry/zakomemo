@@ -15,7 +15,10 @@ export class GifEncGifEncoder implements GifEncoder {
 
   addFrame(imageData: ImageData): void {
     const { data, width, height } = imageData;
-    const palette = quantize(data, 256, { format: "rgba4444", oneBitAlpha: true });
+    const palette = quantize(data, 256, {
+      format: "rgba4444",
+      oneBitAlpha: true,
+    });
     const index = applyPalette(data, palette, "rgba4444");
 
     this.encoder.writeFrame(index, width, height, {

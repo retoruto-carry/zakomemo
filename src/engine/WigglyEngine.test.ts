@@ -1,4 +1,3 @@
-import { WigglyEngine } from "./WigglyEngine";
 import type { Drawing, Stroke } from "../core/types";
 import type {
   DrawingRenderer,
@@ -7,11 +6,15 @@ import type {
   StrokeSoundInfo,
   TimeProvider,
 } from "./ports";
+import { WigglyEngine } from "./WigglyEngine";
 
 class MockRenderer implements DrawingRenderer {
   clears: { width: number; height: number }[] = [];
-  rendered: Array<{ stroke: Stroke; jittered: { x: number; y: number }[]; time: number }> =
-    [];
+  rendered: Array<{
+    stroke: Stroke;
+    jittered: { x: number; y: number }[];
+    time: number;
+  }> = [];
   imageData: ImageData;
 
   constructor(width: number, height: number) {
@@ -29,7 +32,7 @@ class MockRenderer implements DrawingRenderer {
   renderStroke(
     stroke: Stroke,
     jitteredPoints: { x: number; y: number }[],
-    timeMs: number
+    timeMs: number,
   ): void {
     this.rendered.push({ stroke, jittered: jitteredPoints, time: timeMs });
   }
@@ -89,7 +92,10 @@ const initialDrawing: Drawing = {
 function createEngine() {
   const time = new MockTime();
   const raf = new MockRaf();
-  const renderer = new MockRenderer(initialDrawing.width, initialDrawing.height);
+  const renderer = new MockRenderer(
+    initialDrawing.width,
+    initialDrawing.height,
+  );
   const sound = new MockSound();
 
   const engine = new WigglyEngine({

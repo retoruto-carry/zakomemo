@@ -1,11 +1,14 @@
-import { renderDrawingAtTime } from "./frameRenderer";
 import type { Drawing, Stroke } from "../core/types";
+import { renderDrawingAtTime } from "./frameRenderer";
 import type { DrawingRenderer } from "./ports";
 
 class MockRenderer implements DrawingRenderer {
   clears: { width: number; height: number }[] = [];
-  strokes: Array<{ stroke: Stroke; jittered: { x: number; y: number }[]; time: number }> =
-    [];
+  strokes: Array<{
+    stroke: Stroke;
+    jittered: { x: number; y: number }[];
+    time: number;
+  }> = [];
 
   clear(width: number, height: number): void {
     this.clears.push({ width, height });
@@ -14,7 +17,7 @@ class MockRenderer implements DrawingRenderer {
   renderStroke(
     stroke: Stroke,
     jitteredPoints: { x: number; y: number }[],
-    timeMs: number
+    timeMs: number,
   ): void {
     this.strokes.push({ stroke, jittered: jitteredPoints, time: timeMs });
   }
@@ -44,7 +47,12 @@ describe("renderDrawingAtTime", () => {
     };
 
     const renderer = new MockRenderer();
-    renderDrawingAtTime(drawing, renderer, { amplitude: 1, frequency: 0.01 }, 100);
+    renderDrawingAtTime(
+      drawing,
+      renderer,
+      { amplitude: 1, frequency: 0.01 },
+      100,
+    );
 
     expect(renderer.clears).toEqual([{ width: 200, height: 100 }]);
     expect(renderer.strokes).toHaveLength(1);

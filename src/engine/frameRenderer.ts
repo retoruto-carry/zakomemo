@@ -1,13 +1,13 @@
-import type { Drawing } from "../core/types";
 import type { JitterConfig } from "../core/jitter";
 import { computeJitter } from "../core/jitter";
+import type { Drawing } from "../core/types";
 import type { DrawingRenderer } from "./ports";
 
 export function renderDrawingAtTime(
   drawing: Drawing,
   renderer: DrawingRenderer,
   jitterConfig: JitterConfig,
-  timeMs: number
+  timeMs: number,
 ): void {
   renderer.clear(drawing.width, drawing.height);
 

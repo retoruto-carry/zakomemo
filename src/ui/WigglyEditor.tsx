@@ -3,12 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import { createWigglyEngine } from "@/app/createWigglyEngine";
 import type { BrushPatternId, Drawing } from "@/core/types";
-import type { Tool, WigglyEngine } from "@/engine/WigglyEngine";
-import type { EraserVariant, PenVariant } from "@/engine/variants";
 import { exportDrawingAsGif } from "@/engine/exportGif";
+import type { EraserVariant, PenVariant } from "@/engine/variants";
+import type { Tool, WigglyEngine } from "@/engine/WigglyEngine";
 import { CanvasRenderer } from "@/infra/CanvasRenderer";
 import { GifEncGifEncoder } from "@/infra/GifEncGifEncoder";
-import { penVariants, eraserVariants } from "./variants";
+import { eraserVariants, penVariants } from "./variants";
 
 const initialDrawing: Drawing = {
   width: 480,
@@ -24,7 +24,14 @@ type PointerInfo = {
   moved: boolean;
 };
 
-const palette = ["#0b0b0b", "#ff3b30", "#34c759", "#007aff", "#fbbf24", "#9b51e0"];
+const palette = [
+  "#0b0b0b",
+  "#ff3b30",
+  "#34c759",
+  "#007aff",
+  "#fbbf24",
+  "#9b51e0",
+];
 
 export function WigglyEditor() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -36,12 +43,15 @@ export function WigglyEditor() {
   const [color, setColor] = useState("#0b0b0b");
   const [width, setWidth] = useState(4);
   const [penVariant, setPenVariant] = useState<PenVariant>("normal");
-  const [eraserVariant, setEraserVariant] = useState<EraserVariant>("eraserCircle");
+  const [eraserVariant, setEraserVariant] =
+    useState<EraserVariant>("eraserCircle");
   const [patternId, setPatternId] = useState<BrushPatternId>("dots");
   const [isExporting, setIsExporting] = useState(false);
   const [exportUrl, setExportUrl] = useState<string | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
-  const [eraserPos, setEraserPos] = useState<{ x: number; y: number } | null>(null);
+  const [eraserPos, setEraserPos] = useState<{ x: number; y: number } | null>(
+    null,
+  );
 
   const activePointersRef = useRef<Map<number, PointerInfo>>(new Map());
   const tapCandidateRef = useRef<PointerInfo | null>(null);
@@ -141,8 +151,12 @@ export function WigglyEditor() {
       canvas.releasePointerCapture(ev.pointerId);
     };
 
-    canvas.addEventListener("pointerdown", handlePointerDown, { passive: false });
-    canvas.addEventListener("pointermove", handlePointerMove, { passive: false });
+    canvas.addEventListener("pointerdown", handlePointerDown, {
+      passive: false,
+    });
+    canvas.addEventListener("pointermove", handlePointerMove, {
+      passive: false,
+    });
     canvas.addEventListener("pointerup", handlePointerUp);
     canvas.addEventListener("pointercancel", handlePointerUp);
 
@@ -266,6 +280,7 @@ export function WigglyEditor() {
           { id: "eraser", label: "🩹 消しゴム" },
         ].map((item) => (
           <button
+            type="button"
             key={item.id}
             onClick={() => setToolAndState(item.id as Tool)}
             className={`rounded-full px-4 py-2 text-sm font-medium transition-transform duration-150 ${
@@ -280,18 +295,21 @@ export function WigglyEditor() {
 
         <div className="ml-auto flex items-center gap-2">
           <button
+            type="button"
             onClick={() => engineRef.current?.undo()}
             className="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-800 hover:border-slate-400"
           >
             ⤺ Undo
           </button>
           <button
+            type="button"
             onClick={() => engineRef.current?.redo()}
             className="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-800 hover:border-slate-400"
           >
             ⤻ Redo
           </button>
           <button
+            type="button"
             onClick={() => engineRef.current?.clear()}
             className="rounded-full border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-medium text-rose-700 hover:border-rose-300"
           >
@@ -301,10 +319,13 @@ export function WigglyEditor() {
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
-        <span className="text-xs uppercase tracking-wide text-slate-500">Color</span>
+        <span className="text-xs uppercase tracking-wide text-slate-500">
+          Color
+        </span>
         <div className="flex items-center gap-2">
           {palette.map((c) => (
             <button
+              type="button"
               key={c}
               onClick={() => setColor(c)}
               style={{ background: c }}
@@ -314,6 +335,22 @@ export function WigglyEditor() {
             />
           ))}
         </div>
+        <div className="flex items-center gap-2">
+          <span className="text-xs uppercase tracking-wide text-slate-500">
+            Size
+          </span>
+          <input
+            type="range"
+            min={1}
+            max={24}
+            value={width}
+            onChange={(e) => setWidth(Number(e.target.value))}
+            className="h-2 w-40 accent-slate-900"
+          />
+          <span className="text-xs text-slate-700 w-8 text-right">
+            {width}px
+          </span>
+        </div>
         {tool === "pen" && (
           <div className="flex items-center gap-2">
             <span className="text-xs uppercase tracking-wide text-slate-500">
@@ -322,6 +359,7 @@ export function WigglyEditor() {
             <div className="flex flex-wrap gap-2">
               {penVariants.map((p) => (
                 <button
+                  type="button"
                   key={p.id}
                   onClick={() => setPenVariant(p.id)}
                   className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
@@ -344,6 +382,7 @@ export function WigglyEditor() {
             <div className="flex flex-wrap gap-2">
               {eraserVariants.map((v) => (
                 <button
+                  type="button"
                   key={v.id}
                   onClick={() => setEraserVariant(v.id)}
                   className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
@@ -358,32 +397,37 @@ export function WigglyEditor() {
             </div>
           </div>
         )}
-        <div className="flex items-center gap-2">
-          <span className="text-xs uppercase tracking-wide text-slate-500">
-            Pattern
-          </span>
-          <div className="flex flex-wrap items-center gap-2">
-            {([
-              { id: "dots", label: "ドット" },
-              { id: "dotsDense", label: "密ドット" },
-              { id: "horizontal", label: "横線" },
-              { id: "vertical", label: "縦線" },
-              { id: "checker", label: "市松" },
-            ] satisfies { id: BrushPatternId; label: string }[]).map((p) => (
-              <button
-                key={p.id}
-                onClick={() => setPatternId(p.id)}
-                className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
-                  patternId === p.id
-                    ? "border-slate-900 bg-slate-900 text-white"
-                    : "border-slate-200 bg-white text-slate-800 hover:border-slate-400"
-                }`}
-              >
-                {p.label}
-              </button>
-            ))}
+        {tool === "pattern" && (
+          <div className="flex items-center gap-2">
+            <span className="text-xs uppercase tracking-wide text-slate-500">
+              Pattern
+            </span>
+            <div className="flex flex-wrap items-center gap-2">
+              {(
+                [
+                  { id: "dots", label: "ドット" },
+                  { id: "dotsDense", label: "密ドット" },
+                  { id: "horizontal", label: "横線" },
+                  { id: "vertical", label: "縦線" },
+                  { id: "checker", label: "市松" },
+                ] satisfies { id: BrushPatternId; label: string }[]
+              ).map((p) => (
+                <button
+                  type="button"
+                  key={p.id}
+                  onClick={() => setPatternId(p.id)}
+                  className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
+                    patternId === p.id
+                      ? "border-slate-900 bg-slate-900 text-white"
+                      : "border-slate-200 bg-white text-slate-800 hover:border-slate-400"
+                  }`}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -418,10 +462,12 @@ export function WigglyEditor() {
           </div>
         </div>
         <div className="mt-2 text-xs text-slate-500">
-          スマホでは2本指タップで Undo。パターンは紙に印刷された模様のように固定されます。
+          スマホでは2本指タップで
+          Undo。パターンは紙に印刷された模様のように固定されます。
         </div>
         <div className="mt-4 flex items-center gap-2">
           <button
+            type="button"
             onClick={handleExportGif}
             disabled={isExporting}
             className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm transition disabled:opacity-60"
@@ -437,7 +483,9 @@ export function WigglyEditor() {
               ダウンロード
             </a>
           )}
-          {exportError && <span className="text-xs text-rose-600">{exportError}</span>}
+          {exportError && (
+            <span className="text-xs text-rose-600">{exportError}</span>
+          )}
         </div>
       </div>
     </div>

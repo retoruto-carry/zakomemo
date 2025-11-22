@@ -1,15 +1,15 @@
-import type { Drawing } from "@/core/types";
 import type { PatternWiggleConfig } from "@/core/patternDeform";
+import type { Drawing } from "@/core/types";
 import { WigglyEngine } from "@/engine/WigglyEngine";
-import { CanvasRenderer } from "@/infra/CanvasRenderer";
 import { BrowserRafScheduler } from "@/infra/BrowserRafScheduler";
+import { CanvasRenderer } from "@/infra/CanvasRenderer";
 import { HowlerStrokeSound } from "@/infra/HowlerStrokeSound";
 import { RealTimeProvider } from "@/infra/RealTimeProvider";
 
 function setupCanvasContext(
   canvas: HTMLCanvasElement,
   logicalWidth: number,
-  logicalHeight: number
+  logicalHeight: number,
 ): CanvasRenderingContext2D {
   const dpr = window.devicePixelRatio || 1;
   canvas.width = logicalWidth * dpr;
@@ -25,7 +25,7 @@ function setupCanvasContext(
 
 export function createWigglyEngine(
   canvas: HTMLCanvasElement,
-  initialDrawing: Drawing
+  initialDrawing: Drawing,
 ): WigglyEngine {
   const logicalWidth = initialDrawing.width;
   const logicalHeight = initialDrawing.height;

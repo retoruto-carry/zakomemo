@@ -11,7 +11,7 @@ export function startStroke(
   strokeId: string,
   strokeKind: StrokeKind,
   brush: BrushSettings,
-  startPoint: Point
+  startPoint: Point,
 ): Drawing {
   const newStroke: Stroke = {
     id: strokeId,
@@ -29,14 +29,14 @@ export function startStroke(
 export function appendPoint(
   drawing: Drawing,
   strokeId: string,
-  point: Point
+  point: Point,
 ): Drawing {
   return {
     ...drawing,
     strokes: drawing.strokes.map((stroke) =>
       stroke.id === strokeId
         ? { ...stroke, points: [...stroke.points, point] }
-        : stroke
+        : stroke,
     ),
   };
 }

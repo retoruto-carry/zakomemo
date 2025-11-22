@@ -1,4 +1,5 @@
 import { getPatternDefinition, PATTERNS } from "./patterns";
+import type { BrushPatternId } from "./types";
 
 describe("patterns", () => {
   test("getPatternDefinition returns a known pattern", () => {
@@ -21,7 +22,9 @@ describe("patterns", () => {
   });
 
   test("getPatternDefinition throws on unknown id", () => {
-    expect(() => getPatternDefinition("unknown" as any)).toThrowError();
+    expect(() =>
+      getPatternDefinition("unknown" as BrushPatternId),
+    ).toThrowError();
   });
 
   test("PATTERNS includes at least one definition", () => {

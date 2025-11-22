@@ -3,7 +3,6 @@ import {
   pushHistory,
   redoHistory,
   undoHistory,
-  type History,
 } from "./history";
 
 const initial = { value: 0 };

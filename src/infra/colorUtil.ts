@@ -1,4 +1,8 @@
-export function parseColorToRgb(color: string): { r: number; g: number; b: number } {
+export function parseColorToRgb(color: string): {
+  r: number;
+  g: number;
+  b: number;
+} {
   const hex = color.replace("#", "").trim();
 
   if (hex.length === 3) {

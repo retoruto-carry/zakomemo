@@ -1,17 +1,24 @@
-import { exportDrawingAsGif } from "./exportGif";
 import type { Drawing, Stroke } from "../core/types";
+import { exportDrawingAsGif } from "./exportGif";
 import type { DrawingRenderer, GifEncoder } from "./ports";
 
 class MockRenderer implements DrawingRenderer {
   clears: { width: number; height: number }[] = [];
   renders: Array<{ stroke: Stroke; time: number }> = [];
-  constructor(private width: number, private height: number) {}
+  constructor(
+    private width: number,
+    private height: number,
+  ) {}
 
   clear(width: number, height: number): void {
     this.clears.push({ width, height });
   }
 
-  renderStroke(stroke: Stroke, _points: { x: number; y: number }[], timeMs: number): void {
+  renderStroke(
+    stroke: Stroke,
+    _points: { x: number; y: number }[],
+    timeMs: number,
+  ): void {
     this.renders.push({ stroke, time: timeMs });
   }
 

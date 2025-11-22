@@ -1,5 +1,5 @@
-import type { Drawing } from "../core/types";
 import type { JitterConfig } from "../core/jitter";
+import type { Drawing } from "../core/types";
 import { renderDrawingAtTime } from "./frameRenderer";
 import type { DrawingRenderer, GifEncoder } from "./ports";
 
@@ -26,7 +26,9 @@ export async function exportDrawingAsGif(options: {
     renderDrawingAtTime(drawing, renderer, jitterConfig, timeMs);
     const imageData = renderer.getImageData?.();
     if (!imageData) {
-      throw new Error("DrawingRenderer must provide getImageData for GIF export");
+      throw new Error(
+        "DrawingRenderer must provide getImageData for GIF export",
+      );
     }
     gif.addFrame(imageData);
   }
