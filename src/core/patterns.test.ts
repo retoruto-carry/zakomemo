@@ -10,7 +10,6 @@ describe("patterns", () => {
   test("patterns include multiple variants", () => {
     const ids: BrushPatternId[] = [
       "dotsDense",
-      "stripesThin",
       "horizontal",
       "checker",
     ];

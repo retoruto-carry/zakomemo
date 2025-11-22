@@ -3,7 +3,6 @@ export type BrushKind = "solid" | "pattern";
 export type BrushPatternId =
   | "dots"
   | "dotsDense"
-  | "stripesThin"
   | "horizontal"
   | "checker";
 
