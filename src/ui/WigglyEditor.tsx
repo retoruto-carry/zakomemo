@@ -28,6 +28,7 @@ export function WigglyEditor() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const engineRef = useRef<WigglyEngine | null>(null);
   const primaryPointerIdRef = useRef<number | null>(null);
+  const toolRef = useRef<Tool>("pen");
 
   const [tool, setTool] = useState<Tool>("pen");
   const [color, setColor] = useState("#0b0b0b");
@@ -36,6 +37,7 @@ export function WigglyEditor() {
   const [isExporting, setIsExporting] = useState(false);
   const [exportUrl, setExportUrl] = useState<string | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
+  const [eraserPos, setEraserPos] = useState<{ x: number; y: number } | null>(null);
 
   const activePointersRef = useRef<Map<number, PointerInfo>>(new Map());
   const tapCandidateRef = useRef<PointerInfo | null>(null);
@@ -72,6 +74,9 @@ export function WigglyEditor() {
       if (primaryPointerIdRef.current === null) {
         primaryPointerIdRef.current = ev.pointerId;
         engine.pointerDown(pos.x, pos.y);
+        if (engineRef.current && toolRef.current === "eraser") {
+          setEraserPos(pos);
+        }
       }
     };
 
@@ -89,6 +94,9 @@ export function WigglyEditor() {
 
       if (ev.pointerId === primaryPointerIdRef.current) {
         engine.pointerMove(pos.x, pos.y);
+        if (toolRef.current === "eraser") {
+          setEraserPos(pos);
+        }
       }
     };
 
@@ -123,6 +131,7 @@ export function WigglyEditor() {
       if (ev.pointerId === primaryPointerIdRef.current) {
         engine.pointerUp();
         primaryPointerIdRef.current = null;
+        setEraserPos(null);
       }
 
       canvas.releasePointerCapture(ev.pointerId);
@@ -144,6 +153,10 @@ export function WigglyEditor() {
 
   useEffect(() => {
     engineRef.current?.setTool(tool);
+    toolRef.current = tool;
+    if (tool !== "eraser") {
+      setEraserPos(null);
+    }
   }, [tool]);
 
   useEffect(() => {
@@ -327,7 +340,7 @@ export function WigglyEditor() {
       </div>
 
       <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div className="overflow-hidden rounded-xl border border-slate-100 bg-slate-100 p-3 flex justify-center">
+        <div className="overflow-hidden rounded-xl border border-slate-100 bg-slate-100 p-3 flex justify-center relative">
           <canvas
             ref={canvasRef}
             width={initialDrawing.width}
@@ -335,6 +348,19 @@ export function WigglyEditor() {
             className="block rounded-lg border border-slate-200 shadow-sm"
             style={{ touchAction: "none", backgroundColor: "#ffffff" }}
           />
+          {tool === "eraser" && eraserPos && (
+            <div
+              className="pointer-events-none absolute rounded-full border border-rose-500/60"
+              style={{
+                width: Math.max(width * 2, 18),
+                height: Math.max(width * 2, 18),
+                left: eraserPos.x,
+                top: eraserPos.y,
+                transform: "translate(-50%, -50%)",
+                boxShadow: "0 0 0 1px rgba(255,255,255,0.9)",
+              }}
+            />
+          )}
         </div>
         <div className="mt-2 text-xs text-slate-500">
           スマホでは2本指タップで Undo。パターンは紙に印刷された模様のように固定されます。
