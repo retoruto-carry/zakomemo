@@ -443,21 +443,21 @@ export function WigglyEditor() {
             />
             {tool === "eraser" && eraserPos && (
               <div
-                className="pointer-events-none absolute rounded-full border border-black/70"
+                className="pointer-events-none absolute border border-black/70"
                 style={{
                   width:
                     eraserVariant === "eraserLine"
                       ? Math.max(width * 3, 24)
-                      : Math.max(width * 2, 18),
+                      : Math.max(width, 12),
                   height:
                     eraserVariant === "eraserLine"
-                      ? Math.max(width * 1.2, 12)
-                      : Math.max(width * 2, 18),
+                      ? Math.max(width * 1.1, 12)
+                      : Math.max(width, 12),
                   left: eraserPos.x,
                   top: eraserPos.y,
                   transform: "translate(-50%, -50%)",
                   borderRadius:
-                    eraserVariant === "eraserSquare" ? "4px" : "9999px",
+                    eraserVariant === "eraserSquare" ? "2px" : "9999px",
                   boxShadow: "0 0 0 1px rgba(255,255,255,0.9)",
                 }}
               />
