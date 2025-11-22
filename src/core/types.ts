@@ -4,6 +4,7 @@ export type BrushPatternId =
   | "dots"
   | "dotsDense"
   | "horizontal"
+  | "vertical"
   | "checker";
 
 export type BrushSettings = {

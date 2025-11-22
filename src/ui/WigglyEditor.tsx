@@ -318,6 +318,7 @@ export function WigglyEditor() {
               { id: "dots", label: "ドット" },
               { id: "dotsDense", label: "密ドット" },
               { id: "horizontal", label: "横線" },
+              { id: "vertical", label: "縦線" },
               { id: "checker", label: "市松" },
             ] satisfies { id: BrushPatternId; label: string }[]).map((p) => (
               <button
