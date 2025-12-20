@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { LoadingScreen } from "@/ui/components/LoadingScreen";
 import { WigglyEditor } from "@/ui/WigglyEditor";
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [isExiting, setIsExiting] = useState(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     // フォントとCSSの読み込みを待つ
@@ -22,7 +23,7 @@ export default function Home() {
         const elapsed = Date.now() - startTime;
         const remaining = Math.max(0, MIN_LOADING_TIME - elapsed);
 
-        setTimeout(() => {
+        timeoutRef.current = setTimeout(() => {
           setIsExiting(true);
         }, remaining);
       });
@@ -32,10 +33,14 @@ export default function Home() {
       checkReady();
     } else {
       window.addEventListener("load", checkReady);
-      return () => {
-        window.removeEventListener("load", checkReady);
-      };
     }
+
+    return () => {
+      window.removeEventListener("load", checkReady);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
   }, []);
 
   return (
