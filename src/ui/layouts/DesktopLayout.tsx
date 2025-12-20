@@ -21,10 +21,20 @@ export function DesktopLayout({ canvas, tools }: LayoutProps) {
         {/* Top Shell */}
         <div className="w-full bg-[#f2f2f2] p-8 pb-10 flex flex-col items-center relative">
           {/* Speaker Holes (Left) */}
-          <div className="absolute left-[10%] top-[45%] flex flex-col items-center justify-center gap-1.5 opacity-40">
-            <div className="flex gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-black/40 shadow-inner" /><div className="w-1.5 h-1.5 rounded-full bg-black/40 shadow-inner" /></div>
-            <div className="flex gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-black/40 shadow-inner" /><div className="w-1.5 h-1.5 rounded-full bg-black/40 shadow-inner" /><div className="w-1.5 h-1.5 rounded-full bg-black/40 shadow-inner" /></div>
-            <div className="flex gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-black/40 shadow-inner" /><div className="w-1.5 h-1.5 rounded-full bg-black/40 shadow-inner" /></div>
+          <div className="absolute left-[8%] top-[40%] flex flex-col items-center justify-center gap-1.5 opacity-40">
+            <div className="flex gap-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-black/40 shadow-inner" />
+              <div className="w-1.5 h-1.5 rounded-full bg-black/40 shadow-inner" />
+            </div>
+            <div className="flex gap-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-black/40 shadow-inner" />
+              <div className="w-1.5 h-1.5 rounded-full bg-black/40 shadow-inner" />
+              <div className="w-1.5 h-1.5 rounded-full bg-black/40 shadow-inner" />
+            </div>
+            <div className="flex gap-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-black/40 shadow-inner" />
+              <div className="w-1.5 h-1.5 rounded-full bg-black/40 shadow-inner" />
+            </div>
           </div>
 
           {/* Top Screen System */}
@@ -36,10 +46,20 @@ export function DesktopLayout({ canvas, tools }: LayoutProps) {
           </div>
 
           {/* Speaker Holes (Right) */}
-          <div className="absolute right-[10%] top-[45%] flex flex-col items-center justify-center gap-1.5 opacity-40">
-            <div className="flex gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-black/40 shadow-inner" /><div className="w-1.5 h-1.5 rounded-full bg-black/40 shadow-inner" /></div>
-            <div className="flex gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-black/40 shadow-inner" /><div className="w-1.5 h-1.5 rounded-full bg-black/40 shadow-inner" /><div className="w-1.5 h-1.5 rounded-full bg-black/40 shadow-inner" /></div>
-            <div className="flex gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-black/40 shadow-inner" /><div className="w-1.5 h-1.5 rounded-full bg-black/40 shadow-inner" /></div>
+          <div className="absolute right-[8%] top-[40%] flex flex-col items-center justify-center gap-1.5 opacity-40">
+            <div className="flex gap-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-black/40 shadow-inner" />
+              <div className="w-1.5 h-1.5 rounded-full bg-black/40 shadow-inner" />
+            </div>
+            <div className="flex gap-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-black/40 shadow-inner" />
+              <div className="w-1.5 h-1.5 rounded-full bg-black/40 shadow-inner" />
+              <div className="w-1.5 h-1.5 rounded-full bg-black/40 shadow-inner" />
+            </div>
+            <div className="flex gap-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-black/40 shadow-inner" />
+              <div className="w-1.5 h-1.5 rounded-full bg-black/40 shadow-inner" />
+            </div>
           </div>
         </div>
 
