@@ -82,13 +82,10 @@ export class CanvasRenderer implements DrawingRenderer {
           stroke.brush.patternId,
           stroke.brush.color,
         );
-        // パターンの座標系をDPRに合わせつつ、PATTERN_SCALEで密度を下げる
-        pattern.setTransform(
-          new DOMMatrix().scale(
-            PATTERN_SCALE / this.dpr,
-            PATTERN_SCALE / this.dpr,
-          ),
-        );
+        // パターンを論理座標でPATTERN_SCALE倍に見せる
+        // 物理座標ではPATTERN_SCALE * dpr倍にする必要がある
+        const patternScale = PATTERN_SCALE * this.dpr;
+        pattern.setTransform(new DOMMatrix().scale(patternScale, patternScale));
         ctx.strokeStyle = pattern;
       }
     }
