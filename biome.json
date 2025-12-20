@@ -23,7 +23,7 @@
         "noArrayIndexKey": "warn"
       },
       "performance": {
-        "noImgElement": "warn"
+        "noImgElement": "off"
       }
     },
     "domains": {

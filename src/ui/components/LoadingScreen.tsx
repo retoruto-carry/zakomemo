@@ -1,7 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
 import styles from "./LoadingScreen.module.css";
-import { useEffect, useState } from "react";
 
 interface LoadingScreenProps {
   isExiting?: boolean;
@@ -31,11 +31,10 @@ export function LoadingScreen({ isExiting, onExited }: LoadingScreenProps) {
       <div
         className={`relative z-30 flex flex-col items-center gap-4 ${styles.content}`}
       >
-        {/* biome-ignore lint/performance/noImgElement: ローディング画面でのfavicon表示のため */}
         <img
-          src="/favicon.ico"
+          src="/images/frog.gif"
           alt="Loading"
-          className="w-12 h-12 animate-pulse"
+          className="w-24 h-24"
           aria-hidden="true"
         />
       </div>
