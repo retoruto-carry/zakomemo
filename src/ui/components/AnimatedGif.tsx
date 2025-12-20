@@ -69,13 +69,22 @@ export const AnimatedGif = forwardRef<AnimatedGifHandle, AnimatedGifProps>(
     }));
 
     return (
-      <img
-        ref={imgRef}
-        src={currentSrc}
-        alt={alt}
-        className={className}
-        aria-hidden={alt === ""}
-      />
+      <>
+        {/* biome-ignore lint/performance/noImgElement: GIFアニメーション表示のため */}
+        <img
+          ref={imgRef}
+          src={currentSrc}
+          alt={alt}
+          className={className}
+          aria-hidden={alt === ""}
+          onError={() => {
+            if (currentSrc === animatedSrc) {
+              setCurrentSrc(staticSrc);
+              setIsAnimating(false);
+            }
+          }}
+        />
+      </>
     );
   },
 );

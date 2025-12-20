@@ -123,6 +123,11 @@ export function WigglyTools({
   const [settingsTab, setSettingsTab] = useState<"palette" | "body">("palette");
   const undoGifRef = useRef<AnimatedGifHandle>(null);
 
+  const handleUndo = () => {
+    undoGifRef.current?.playAnimation();
+    onUndo();
+  };
+
   // Toggle logic
   const handleToolClick = (t: Tool) => {
     // If clicking the already selected tool...
@@ -225,22 +230,8 @@ export function WigglyTools({
           {/* Undo (やり直し) */}
           {/* biome-ignore lint/a11y/useSemanticElements: Custom styled button */}
           <div
-            onClick={
-              canUndo
-                ? () => {
-                    undoGifRef.current?.playAnimation();
-                    onUndo();
-                  }
-                : undefined
-            }
-            onKeyDown={
-              canUndo
-                ? handleButtonKeyDown(() => {
-                    undoGifRef.current?.playAnimation();
-                    onUndo();
-                  })
-                : undefined
-            }
+            onClick={canUndo ? handleUndo : undefined}
+            onKeyDown={canUndo ? handleButtonKeyDown(handleUndo) : undefined}
             role="button"
             tabIndex={canUndo ? 0 : -1}
             aria-disabled={!canUndo}
@@ -315,6 +306,7 @@ export function WigglyTools({
             >
               ペン
             </div>
+            {/* biome-ignore lint/performance/noImgElement: ツールアイコン表示のため */}
             <img
               src={
                 tool === "pen" ? "/images/pen_on.png" : "/images/pen_off.png"
@@ -360,6 +352,7 @@ export function WigglyTools({
             >
               塗る
             </div>
+            {/* biome-ignore lint/performance/noImgElement: ツールアイコン表示のため */}
             <img
               src={
                 tool === "pattern"
@@ -501,6 +494,7 @@ export function WigglyTools({
             >
               消しゴム
             </div>
+            {/* biome-ignore lint/performance/noImgElement: ツールアイコン表示のため */}
             <img
               src={
                 tool === "eraser"
@@ -722,11 +716,14 @@ export function WigglyTools({
               <div className="flex flex-col items-center w-full gap-3">
                 <div className="bg-white p-1 rounded-[6px] border-[3px] border-black shadow-[6px_6px_0_rgba(0,0,0,0.2)] w-[75%] aspect-[3/2] flex items-center justify-center overflow-hidden">
                   {exportUrl && (
-                    <img
-                      src={exportUrl}
-                      alt="Generated GIF"
-                      className="w-full h-full object-contain image-rendering-pixelated"
-                    />
+                    <>
+                      {/* biome-ignore lint/performance/noImgElement: エクスポートされたGIF表示のため */}
+                      <img
+                        src={exportUrl}
+                        alt="Generated GIF"
+                        className="w-full h-full object-contain image-rendering-pixelated"
+                      />
+                    </>
                   )}
                 </div>
 

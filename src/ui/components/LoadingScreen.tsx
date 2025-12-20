@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import styles from "./LoadingScreen.module.css";
 
 interface LoadingScreenProps {
@@ -9,27 +9,60 @@ interface LoadingScreenProps {
 }
 
 export function LoadingScreen({ isExiting, onExited }: LoadingScreenProps) {
+  const layer1Ref = useRef<HTMLDivElement>(null);
+  const layer2Ref = useRef<HTMLDivElement>(null);
+  const hasCalledOnExitedRef = useRef(false);
+
   useEffect(() => {
-    if (isExiting && onExited) {
-      // Animation duration + delay (0.8s + 0.1s = 0.9s)
-      const timer = setTimeout(onExited, 900);
-      return () => clearTimeout(timer);
+    if (!isExiting || !onExited) return;
+
+    const handleAnimationEnd = () => {
+      if (!hasCalledOnExitedRef.current) {
+        hasCalledOnExitedRef.current = true;
+        onExited();
+      }
+    };
+
+    const layer1 = layer1Ref.current;
+    const layer2 = layer2Ref.current;
+
+    // 最後のアニメーション（layer2）が終了したらonExitedを呼ぶ
+    if (layer2) {
+      layer2.addEventListener("animationend", handleAnimationEnd, {
+        once: true,
+      });
+    } else if (layer1) {
+      // layer2がない場合はlayer1の終了を待つ
+      layer1.addEventListener("animationend", handleAnimationEnd, {
+        once: true,
+      });
     }
+
+    return () => {
+      if (layer1) {
+        layer1.removeEventListener("animationend", handleAnimationEnd);
+      }
+      if (layer2) {
+        layer2.removeEventListener("animationend", handleAnimationEnd);
+      }
+    };
   }, [isExiting, onExited]);
 
   return (
     <div
-      className={`fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden ${isExiting ? styles.exit : ""
-        }`}
+      className={`fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden ${
+        isExiting ? styles.exit : ""
+      }`}
     >
       {/* Background Layers */}
-      <div className={`${styles.layer} ${styles.layer2}`} />
-      <div className={`${styles.layer} ${styles.layer1}`} />
+      <div ref={layer2Ref} className={`${styles.layer} ${styles.layer2}`} />
+      <div ref={layer1Ref} className={`${styles.layer} ${styles.layer1}`} />
 
       {/* Content */}
       <div
         className={`relative z-30 flex flex-col items-center gap-4 ${styles.content}`}
       >
+        {/* biome-ignore lint/performance/noImgElement: ローディング画面のGIFアニメーション表示のため */}
         <img
           src="/images/frog_fast.gif"
           alt="Loading"
