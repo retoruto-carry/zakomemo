@@ -86,13 +86,16 @@ export function WigglyEditor() {
   }, []);
 
   // Touch Screen Undo/Redo (画面全体に適用)
+  const handleTouchUndo = useCallback(() => {
+    engineRef.current?.undo();
+  }, []);
+  const handleTouchRedo = useCallback(() => {
+    engineRef.current?.redo();
+  }, []);
+
   useTouchUndoRedo({
-    onUndo: () => {
-      engineRef.current?.undo();
-    },
-    onRedo: () => {
-      engineRef.current?.redo();
-    },
+    onUndo: handleTouchUndo,
+    onRedo: handleTouchRedo,
     enabled: true,
   });
 
