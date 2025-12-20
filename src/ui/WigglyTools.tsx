@@ -6,6 +6,7 @@ import type { Tool } from "@/engine/WigglyEngine";
 import { useState } from "react";
 import { eraserVariants } from "./variants";
 import { PALETTE_PRESETS, BODY_PRESETS, type BodyColor, generateBodyColorFromBase } from "./presets";
+import { ShareButton } from "./components/ShareButton";
 
 interface WigglyToolsProps {
   tool: Tool;
@@ -507,8 +508,8 @@ export function WigglyTools({
                 <div className="flex flex-col items-center gap-1 text-center mt-2">
                   <p className="text-sm font-black leading-tight">
                     {typeof window !== 'undefined' && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
-                      ? "スマホの場合は長押しで保存"
-                      : "右クリックで保存できます"
+                      ? "↑スマホの場合は長押しで保存"
+                      : "↑右クリックで保存できます"
                     }
                   </p>
                 </div>
@@ -521,6 +522,11 @@ export function WigglyTools({
                   >
                     保存する
                   </a>
+                  <ShareButton
+                    text="うごメモで絵を描いたよ！ #wigglyugomemo"
+                    imageUrl={exportUrl || undefined}
+                    className="w-full"
+                  />
                 </div>
               </div>
             )}
