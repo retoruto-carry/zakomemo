@@ -132,32 +132,30 @@ export class CanvasRenderer implements DrawingRenderer {
   private createWigglyPattern(
     patternId: string,
     color: string,
-    timeMs: number,
+    _timeMs: number,
   ): CanvasPattern {
+    // 静的パターンなのでキャッシュはpatternId:colorのみで判定
     const cacheKey = `${patternId}:${color}`;
-    const bucket = Math.floor(timeMs / this.patternCacheMs);
     const cached = this.patternCache.get(cacheKey);
-    if (cached && cached.bucket === bucket) {
+    if (cached) {
       return cached.pattern;
     }
 
     const def = getPatternDefinition(patternId as BrushPatternId);
     // 描画時は静的パターン（timeMs=0）を使用
     // これにより同じパターンを重ねて描いてもずれない
-    // アニメーション再生時のみゆらぎを適用する場合は別途実装が必要
     const tile = wigglePatternTile(def.tile, 0, this.wiggleConfig);
 
-    // パターンスケール: 1 = 元サイズ、2 = 2倍（密度半分）
-    const PATTERN_SCALE = 2;
+    // パターンタイルを元のサイズで作成
+    // ctxのDPRスケーリング（setTransform）により自動的にスケールされる
     const offscreen = document.createElement("canvas");
-    offscreen.width = tile.width * PATTERN_SCALE;
-    offscreen.height = tile.height * PATTERN_SCALE;
+    offscreen.width = tile.width;
+    offscreen.height = tile.height;
     const offCtx = offscreen.getContext("2d");
     if (!offCtx) {
       throw new Error("2D context not available");
     }
 
-    // 1x1のタイルをスケール倍に拡大して描画
     const imageData = offCtx.createImageData(tile.width, tile.height);
     const { r, g, b } = parseColorToRgb(color);
 
@@ -170,22 +168,13 @@ export class CanvasRenderer implements DrawingRenderer {
       imageData.data[idx + 3] = Math.round(255 * alpha);
     }
 
-    // 一時キャンバスに1xで描画し、スケール拡大
-    const tempCanvas = document.createElement("canvas");
-    tempCanvas.width = tile.width;
-    tempCanvas.height = tile.height;
-    const tempCtx = tempCanvas.getContext("2d");
-    if (!tempCtx) throw new Error("2D context not available");
-    tempCtx.putImageData(imageData, 0, 0);
-    
-    offCtx.imageSmoothingEnabled = false;
-    offCtx.drawImage(tempCanvas, 0, 0, offscreen.width, offscreen.height);
+    offCtx.putImageData(imageData, 0, 0);
     const pattern = this.ctx.createPattern(offscreen, "repeat");
     if (!pattern) {
       throw new Error("Failed to create canvas pattern");
     }
 
-    this.patternCache.set(cacheKey, { bucket, pattern });
+    this.patternCache.set(cacheKey, { bucket: 0, pattern });
     return pattern;
   }
 }
