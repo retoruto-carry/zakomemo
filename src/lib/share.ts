@@ -33,6 +33,9 @@ export const urlToFile = async (
   mimeType: string
 ): Promise<File> => {
   const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch: ${response.status}`);
+  }
   const blob = await response.blob();
   return new File([blob], filename, { type: mimeType });
 };

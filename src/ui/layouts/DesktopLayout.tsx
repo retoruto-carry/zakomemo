@@ -114,30 +114,34 @@ export function DesktopLayout({ canvas, tools }: LayoutProps) {
                   <div className="absolute right-2 w-0 h-0 border-t-4 border-b-4 border-l-6 border-t-transparent border-b-transparent border-l-[#999] opacity-60" />
                 </div>
 
-                {/* Clickable regions for D-pad - Purely visual animation */}
+                {/* Clickable regions for D-pad - Purely decorative, not keyboard focusable */}
                 <button
                   className="absolute top-0 left-[34%] w-[32%] h-[34%] active:bg-black/5 rounded-t-sm"
                   title="Up"
+                  tabIndex={-1}
                 />
                 <button
                   className="absolute bottom-0 left-[34%] w-[32%] h-[34%] active:bg-black/5 rounded-b-sm"
                   title="Down"
+                  tabIndex={-1}
                 />
                 <button
                   className="absolute top-[34%] left-0 w-[34%] h-[32%] active:bg-black/5 rounded-l-sm"
                   title="Left"
+                  tabIndex={-1}
                 />
                 <button
                   className="absolute top-[34%] right-0 w-[34%] h-[32%] active:bg-black/5 rounded-r-sm"
                   title="Right"
+                  tabIndex={-1}
                 />
               </div>
             </div>
 
-            {/* Power Button */}
+            {/* Power Button - Decorative */}
             <div className="flex items-center gap-2 -mt-2 pr-2">
               <span className="text-[9px] font-black text-[#aaa] tracking-[0.1em]">POWER</span>
-              <button className="w-7 h-7 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_1px_3px_rgba(0,0,0,0.1),inset_0_1px_2px_white] active:scale-90 flex items-center justify-center">
+              <button tabIndex={-1} className="w-7 h-7 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_1px_3px_rgba(0,0,0,0.1),inset_0_1px_2px_white] active:scale-90 flex items-center justify-center">
                 <div className="w-3 h-3 rounded-full border border-[#999] relative">
                   <div className="absolute top-[-3px] left-1/2 -translate-x-1/2 w-0.5 h-1.5 bg-[#999]" />
                 </div>
@@ -158,23 +162,23 @@ export function DesktopLayout({ canvas, tools }: LayoutProps) {
               {/* Buttons Socket (Perfectly matching body color, no shadow) */}
               <div className="absolute w-[110%] h-[110%] rounded-full bg-(--ugo-body-bg)" />
 
-              {/* Diamond Layout Buttons */}
+              {/* Diamond Layout Buttons - Decorative */}
               <div className="relative w-full h-full grid grid-cols-3 grid-rows-3 p-1">
-                <button className="col-start-2 row-start-1 w-10 h-10 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:translate-y-px flex items-center justify-center font-bold text-(--ugo-button-text)">X</button>
-                <button className="col-start-1 row-start-2 w-10 h-10 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:translate-y-px flex items-center justify-center font-bold text-(--ugo-button-text)">Y</button>
-                <button className="col-start-3 row-start-2 w-10 h-10 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:translate-y-px flex items-center justify-center font-bold text-(--ugo-button-text)">A</button>
-                <button className="col-start-2 row-start-3 w-10 h-10 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:translate-y-px flex items-center justify-center font-bold text-(--ugo-button-text)">B</button>
+                <button tabIndex={-1} className="col-start-2 row-start-1 w-10 h-10 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:translate-y-px flex items-center justify-center font-bold text-(--ugo-button-text)">X</button>
+                <button tabIndex={-1} className="col-start-1 row-start-2 w-10 h-10 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:translate-y-px flex items-center justify-center font-bold text-(--ugo-button-text)">Y</button>
+                <button tabIndex={-1} className="col-start-3 row-start-2 w-10 h-10 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:translate-y-px flex items-center justify-center font-bold text-(--ugo-button-text)">A</button>
+                <button tabIndex={-1} className="col-start-2 row-start-3 w-10 h-10 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:translate-y-px flex items-center justify-center font-bold text-(--ugo-button-text)">B</button>
               </div>
             </div>
 
-            {/* START/SELECT (Vertical align) */}
+            {/* START/SELECT - Decorative */}
             <div className="flex flex-col gap-4 pl-1 -mt-2">
               <div className="flex items-center gap-2">
-                <button className="w-5 h-5 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:scale-90" />
+                <button tabIndex={-1} className="w-5 h-5 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:scale-90" />
                 <span className="text-[8px] font-black text-[#bbb] tracking-tighter">START</span>
               </div>
               <div className="flex items-center gap-2">
-                <button className="w-5 h-5 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:scale-90" />
+                <button tabIndex={-1} className="w-5 h-5 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:scale-90" />
                 <span className="text-[8px] font-black text-[#bbb] tracking-tighter">SELECT</span>
               </div>
             </div>

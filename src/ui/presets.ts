@@ -116,7 +116,8 @@ export const BODY_PRESETS = [
 
 export function generateBodyColorFromBase(hex: string): BodyColor {
   // Simple logic to derive shades from a base color
-  // Ideally we'd use a color library, but we can do simple math or just reuse some parts
+  // Note: These helper functions expect 6-character hex codes (e.g., #ff0000).
+  // Shorthand codes like #fff will produce incorrect results.
   const isDark = (color: string) => {
     const c = color.replace('#', '');
     const r = parseInt(c.substring(0, 2), 16);

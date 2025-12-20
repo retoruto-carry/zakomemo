@@ -494,6 +494,18 @@ export function WigglyTools({
                   <span className="text-xl font-black tracking-tighter drop-shadow-md">GIFを生成中...</span>
                 </div>
               </div>
+            ) : exportError ? (
+              <div className="flex flex-col items-center gap-4 text-center">
+                <div className="text-4xl">⚠️</div>
+                <span className="text-xl font-black tracking-tighter drop-shadow-md">GIF生成に失敗しました</span>
+                <span className="text-sm opacity-80">{exportError}</span>
+                <button
+                  onClick={onCloseExport}
+                  className="bg-white text-[#ff6b00] border-[3px] border-black rounded-[6px] px-6 py-2 font-black text-lg active:translate-y-0.5 transition-all"
+                >
+                  閉じる
+                </button>
+              </div>
             ) : (
               <div className="flex flex-col items-center w-full gap-3">
                 <div className="bg-white p-1 rounded-[6px] border-[3px] border-black shadow-[6px_6px_0_rgba(0,0,0,0.2)] w-[75%] aspect-[3/2] flex items-center justify-center overflow-hidden">

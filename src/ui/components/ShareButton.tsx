@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { shareToTwitter, isMobile, canShareFiles } from "@/lib/share";
+import { useState } from "react";
+import { shareToTwitter } from "@/lib/share";
 
 // X (Twitter) アイコン
 const XIcon = () => (
@@ -32,20 +32,9 @@ interface ShareButtonProps {
  */
 export function ShareButton({ text, imageUrl, className = "" }: ShareButtonProps) {
   const [isSharing, setIsSharing] = useState(false);
-  const [canShare, setCanShare] = useState<boolean | null>(null);
-
-  // 画像付き Web Share API が使えるかチェック
-  useEffect(() => {
-    const checkShareCapability = async () => {
-      const mobile = isMobile();
-      const filesSupported = await canShareFiles();
-      setCanShare(mobile && filesSupported);
-    };
-    checkShareCapability();
-  }, []);
 
   const handleShare = async () => {
-    if (isSharing || !imageUrl) return;
+    if (isSharing) return;
     setIsSharing(true);
 
     try {
@@ -58,11 +47,6 @@ export function ShareButton({ text, imageUrl, className = "" }: ShareButtonProps
       setIsSharing(false);
     }
   };
-
-  //// 画像付きシェアができない環境では表示しない
-  //if (!canShare || !imageUrl) {
-  //  return null;
-  //}
 
   return (
     <button
