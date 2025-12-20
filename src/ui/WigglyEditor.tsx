@@ -89,6 +89,9 @@ export function WigglyEditor() {
     setIsExporting(true);
     setExportError(null);
 
+    // Yield to the event loop to allow the loading UI to render
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
     try {
       const offscreen = document.createElement("canvas");
       offscreen.width = drawing.width;
@@ -209,6 +212,10 @@ export function WigglyEditor() {
             canRedo={canRedo}
             onClear={() => engineRef.current?.clear()}
             onExport={handleExportGif}
+            onCloseExport={() => {
+              if (exportUrl) URL.revokeObjectURL(exportUrl);
+              setExportUrl(null);
+            }}
             isExporting={isExporting}
             exportUrl={exportUrl}
             exportError={exportError}

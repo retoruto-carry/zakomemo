@@ -30,6 +30,7 @@ interface WigglyToolsProps {
   isExporting: boolean;
   exportUrl: string | null;
   exportError: string | null;
+  onCloseExport: () => void;
 
   palette: string[];
   setPalette: (palette: string[]) => void;
@@ -59,6 +60,7 @@ export function WigglyTools({
   isExporting,
   exportUrl,
   exportError,
+  onCloseExport,
   palette,
   setPalette,
   bodyColor,
@@ -464,6 +466,67 @@ export function WigglyTools({
           )}
         </div>
       </div>
+
+      {/* EXPORT OVERLAY */}
+      {(isExporting || exportUrl) && (
+        <div className="absolute inset-0 z-[300] bg-[#ff6b00] flex flex-col items-center p-4 text-white overflow-hidden">
+          {/* Close button (Only visible after export or if error) */}
+          {!isExporting && (
+            <button
+              onClick={onCloseExport}
+              className="absolute top-3 right-3 z-20 bg-white border-[3px] border-black rounded-[6px] w-10 h-10 flex items-center justify-center text-2xl font-black text-black active:translate-y-0.5 shadow-md"
+            >
+              ×
+            </button>
+          )}
+
+          <div className="relative z-10 flex flex-col items-center w-full h-full justify-center max-w-sm gap-4">
+            {isExporting ? (
+              <div className="flex flex-col items-center gap-8">
+                {/* Spinner */}
+                <div className="relative w-12 h-12">
+                  <div className="absolute inset-0 border-4 border-white/20 rounded-full" />
+                  <div className="absolute inset-0 border-4 border-white border-t-transparent rounded-full animate-spin" />
+                </div>
+                <div className="flex flex-col items-center gap-2">
+                  <span className="text-xl font-black tracking-tighter drop-shadow-md">GIFを生成中...</span>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center w-full gap-3">
+                <div className="bg-white p-1 rounded-[6px] border-[3px] border-black shadow-[6px_6px_0_rgba(0,0,0,0.2)] w-[75%] aspect-[3/2] flex items-center justify-center overflow-hidden">
+                  {exportUrl && (
+                    <img
+                      src={exportUrl}
+                      alt="Generated GIF"
+                      className="w-full h-full object-contain image-rendering-pixelated"
+                    />
+                  )}
+                </div>
+
+                <div className="flex flex-col items-center gap-1 text-center mt-2">
+                  <p className="text-sm font-black leading-tight">
+                    {typeof window !== 'undefined' && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+                      ? "スマホの場合は長押しで保存"
+                      : "右クリックで保存できます"
+                    }
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-2 w-full px-8 mt-4">
+                  <a
+                    href={exportUrl || "#"}
+                    download="wiggly-ugomemo.gif"
+                    className="bg-white text-[#ff6b00] border-t-[3px] border-l-[3px] border-t-white border-l-white border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-[6px] py-2.5 flex items-center justify-center active:translate-y-0.5 transition-all font-black text-xl shadow-lg"
+                  >
+                    保存する
+                  </a>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* FULL SCREEN SETTINGS MODAL */}
       {activePopup === "settings" && (
