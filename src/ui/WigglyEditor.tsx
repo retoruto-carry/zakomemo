@@ -7,6 +7,7 @@ import type { EraserVariant, PenVariant } from "@/engine/variants";
 import type { Tool, WigglyEngine } from "@/engine/WigglyEngine";
 import { CanvasRenderer } from "@/infra/CanvasRenderer";
 import { GifEncGifEncoder } from "@/infra/GifEncGifEncoder";
+import { useTouchUndoRedo } from "@/ui/hooks/useTouchUndoRedo";
 import { DesktopLayout } from "./layouts/DesktopLayout";
 import { MobileLayout } from "./layouts/MobileLayout";
 import { BODY_PRESETS, PALETTE_PRESETS } from "./presets";
@@ -83,6 +84,20 @@ export function WigglyEditor() {
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, []);
+
+  // Touch Screen Undo/Redo (画面全体に適用)
+  const handleTouchUndo = useCallback(() => {
+    engineRef.current?.undo();
+  }, []);
+  const handleTouchRedo = useCallback(() => {
+    engineRef.current?.redo();
+  }, []);
+
+  useTouchUndoRedo({
+    onUndo: handleTouchUndo,
+    onRedo: handleTouchRedo,
+    enabled: true,
+  });
 
   const handleExportGif = async () => {
     const engine = engineRef.current;
