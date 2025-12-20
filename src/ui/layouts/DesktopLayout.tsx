@@ -21,21 +21,21 @@ export function DesktopLayout({ canvas, tools }: LayoutProps) {
         {/* Top Shell */}
         <div className="w-full bg-[#f2f2f2] p-8 pb-10 flex flex-col items-center relative">
           {/* Top Screen System */}
-          <div className="relative w-full max-w-[540px] aspect-3/2 bg-[#111] rounded-sm p-10 shadow-[inset_0_2px_15px_rgba(0,0,0,1)] border-[3px] border-[#222]">
+          <div className="relative w-full max-w-[540px] aspect-3/2 bg-[#111] rounded-sm p-4 shadow-[inset_0_2px_15px_rgba(0,0,0,1)] border-[3px] border-[#222]">
             {/* Speaker Holes (Honeycomb Pattern - Left) */}
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 flex flex-col gap-1 opacity-90">
+            <div className="absolute left-1.5 top-1/2 -translate-y-1/2 flex flex-col gap-1 opacity-90">
               <div className="flex gap-1 justify-center"><div className="w-1 h-1 rounded-full bg-black shadow-inner" /><div className="w-1 h-1 rounded-full bg-black shadow-inner" /></div>
               <div className="flex gap-1 justify-center -mx-1"><div className="w-1 h-1 rounded-full bg-black shadow-inner" /><div className="w-1 h-1 rounded-full bg-black shadow-inner" /><div className="w-1 h-1 rounded-full bg-black shadow-inner" /></div>
               <div className="flex gap-1 justify-center"><div className="w-1 h-1 rounded-full bg-black shadow-inner" /><div className="w-1 h-1 rounded-full bg-black shadow-inner" /></div>
             </div>
 
             {/* Glossy Screen */}
-            <div className="relative w-full h-full bg-white shadow-[0_0_40px_rgba(255,255,255,0.05)] overflow-hidden">
+            <div className="relative w-full h-full bg-white shadow-[0_0_40px_rgba(255,255,255,0.05)] overflow-hidden rounded-[2px]">
               {canvas}
             </div>
 
             {/* Speaker Holes (Honeycomb Pattern - Right) */}
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex flex-col gap-1 opacity-90">
+            <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex flex-col gap-1 opacity-90">
               <div className="flex gap-1 justify-center"><div className="w-1 h-1 rounded-full bg-black shadow-inner" /><div className="w-1 h-1 rounded-full bg-black shadow-inner" /></div>
               <div className="flex gap-1 justify-center -mx-1"><div className="w-1 h-1 rounded-full bg-black shadow-inner" /><div className="w-1 h-1 rounded-full bg-black shadow-inner" /><div className="w-1 h-1 rounded-full bg-black shadow-inner" /></div>
               <div className="flex gap-1 justify-center"><div className="w-1 h-1 rounded-full bg-black shadow-inner" /><div className="w-1 h-1 rounded-full bg-black shadow-inner" /></div>
@@ -106,8 +106,8 @@ export function DesktopLayout({ canvas, tools }: LayoutProps) {
           </div>
 
           {/* Center: Bottom Screen System */}
-          <div className="shrink-0 relative w-full max-w-[540px] aspect-3/2 bg-[#111] rounded-sm p-6 shadow-[inset_0_2px_15px_rgba(0,0,0,1)] border-[3px] border-[#222]">
-            <div className="relative w-full h-full bg-[#fdfdfd] shadow-[inset_0_2px_10px_rgba(0,0,0,0.1)] overflow-hidden">
+          <div className="shrink-0 relative w-full max-w-[540px] aspect-3/2 bg-[#111] rounded-sm p-4 shadow-[inset_0_2px_15px_rgba(0,0,0,1)] border-[3px] border-[#222]">
+            <div className="relative w-full h-full bg-[#fdfdfd] shadow-[inset_0_2px_10px_rgba(0,0,0,0.1)] overflow-hidden rounded-[2px]">
               {tools}
             </div>
           </div>
