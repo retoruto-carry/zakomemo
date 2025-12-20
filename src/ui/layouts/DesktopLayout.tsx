@@ -9,45 +9,130 @@ interface LayoutProps {
 
 export function DesktopLayout({ canvas, tools }: LayoutProps) {
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-[#2c2c2c] p-8 overflow-hidden font-sans">
-      {/* Desk Texture / Background Pattern */}
-      <div className="absolute inset-0 opacity-10 pointer-events-none"
-        style={{
-          backgroundImage: "radial-gradient(#ffffff 1px, transparent 1px)",
-          backgroundSize: "20px 20px"
-        }}
+    <div className="min-h-screen w-full flex items-center justify-center bg-[#1a1a1a] p-4 overflow-hidden font-sans text-slate-900">
+      {/* Table Surface */}
+      <div className="absolute inset-0 bg-[#2c2c2c] opacity-40 pointer-events-none"
+        style={{ backgroundImage: "radial-gradient(#000 1px, transparent 1px)", backgroundSize: "30px 30px" }}
       />
 
-      {/* Nintendo DS Console Container */}
-      <div className="relative flex flex-col items-center gap-6 p-12 rounded-[3rem] bg-[#f2f2f2] shadow-[0_20px_50px_rgba(0,0,0,0.5),inset_0_-8px_0_rgba(0,0,0,0.1)] border-4 border-[#e0e0e0] max-w-[600px] w-full transform scale-95 sm:scale-100 transition-transform">
+      {/* Nintendo DSi - Realistic Body */}
+      <div className="relative flex flex-col items-center gap-0 rounded-[3rem] bg-[#f2f2f2] shadow-[0_50px_100px_rgba(0,0,0,0.8),inset_0_-4px_10px_rgba(0,0,0,0.05),0_0_0_1px_rgba(0,0,0,0.1)] w-[900px] shrink-0 transform transition-transform duration-500 overflow-hidden border-b-[6px] border-[#d9d9d9]">
 
-        {/* Hinge */}
-        <div className="absolute top-1/2 left-0 right-0 h-8 -mt-4 bg-[#d0d0d0] z-0" />
+        {/* Top Shell */}
+        <div className="w-full bg-[#f2f2f2] p-8 pb-10 flex flex-col items-center relative">
+          {/* Top Screen System */}
+          <div className="relative w-full max-w-[540px] aspect-3/2 bg-[#111] rounded-sm p-10 shadow-[inset_0_2px_15px_rgba(0,0,0,1)] border-[3px] border-[#222]">
+            {/* Speaker Holes (Honeycomb Pattern - Left) */}
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 flex flex-col gap-1 opacity-90">
+              <div className="flex gap-1 justify-center"><div className="w-1 h-1 rounded-full bg-black shadow-inner" /><div className="w-1 h-1 rounded-full bg-black shadow-inner" /></div>
+              <div className="flex gap-1 justify-center -mx-1"><div className="w-1 h-1 rounded-full bg-black shadow-inner" /><div className="w-1 h-1 rounded-full bg-black shadow-inner" /><div className="w-1 h-1 rounded-full bg-black shadow-inner" /></div>
+              <div className="flex gap-1 justify-center"><div className="w-1 h-1 rounded-full bg-black shadow-inner" /><div className="w-1 h-1 rounded-full bg-black shadow-inner" /></div>
+            </div>
 
-        {/* Top Screen System */}
-        <div className="relative z-10 bg-[#1a1a1a] p-8 pb-10 rounded-t-3xl rounded-b-lg shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)] w-full flex justify-center">
-          {/* Glossy Screen Overlay handled by CSS usually, keeping simple for now */}
-          <div className="relative w-full max-w-[480px] aspect-[3/2] bg-white outline outline-4 outline-[#000000] shadow-[0_0_20px_rgba(255,255,255,0.1)] overflow-hidden">
-            {canvas}
-          </div>
+            {/* Glossy Screen */}
+            <div className="relative w-full h-full bg-white shadow-[0_0_40px_rgba(255,255,255,0.05)] overflow-hidden">
+              {canvas}
+            </div>
 
-          {/* Speakers (Decorative) */}
-          <div className="absolute top-1/2 left-3 -translate-y-1/2 flex flex-col gap-1">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="w-1 h-1 rounded-full bg-[#111] shadow-[inset_0_0_2px_rgba(255,255,255,0.1)]" />
-            ))}
-          </div>
-          <div className="absolute top-1/2 right-3 -translate-y-1/2 flex flex-col gap-1">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="w-1 h-1 rounded-full bg-[#111] shadow-[inset_0_0_2px_rgba(255,255,255,0.1)]" />
-            ))}
+            {/* Speaker Holes (Honeycomb Pattern - Right) */}
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex flex-col gap-1 opacity-90">
+              <div className="flex gap-1 justify-center"><div className="w-1 h-1 rounded-full bg-black shadow-inner" /><div className="w-1 h-1 rounded-full bg-black shadow-inner" /></div>
+              <div className="flex gap-1 justify-center -mx-1"><div className="w-1 h-1 rounded-full bg-black shadow-inner" /><div className="w-1 h-1 rounded-full bg-black shadow-inner" /><div className="w-1 h-1 rounded-full bg-black shadow-inner" /></div>
+              <div className="flex gap-1 justify-center"><div className="w-1 h-1 rounded-full bg-black shadow-inner" /><div className="w-1 h-1 rounded-full bg-black shadow-inner" /></div>
+            </div>
           </div>
         </div>
 
-        {/* Bottom Screen System (Touch) */}
-        <div className="relative z-10 bg-[#e8e8e8] p-6 pt-8 rounded-b-3xl rounded-t-lg shadow-[inset_0_-2px_10px_rgba(0,0,0,0.1)] w-full flex justify-center border border-[#d4d4d4]">
-          <div className="relative w-full max-w-[480px] aspect-[3/2] bg-[#f0f0f0] outline outline-2 outline-[#bbbbbb] shadow-[inset_0_2px_5px_rgba(0,0,0,0.05)] overflow-hidden rounded-sm">
-            {tools}
+        {/* Hinge Mechanism */}
+        <div className="w-full h-12 bg-linear-to-b from-[#e8e8e8] via-[#f2f2f2] to-[#e0e0e0] relative flex items-center justify-center border-y border-[#ccc] z-20">
+          {/* Status LEDs (Left side of the hinge cylinder) */}
+          <div className="absolute left-[12%] top-1/2 -translate-y-1/2 flex items-center gap-2 px-3 py-1 bg-black/5 rounded-full border border-white/20">
+            <div className="w-1.5 h-3 rounded-full bg-[#4fc3f7] shadow-[0_0_5px_#03a9f4]" title="Wireless" />
+            <div className="w-1.5 h-3 rounded-full bg-[#ffb74d] opacity-20" title="Charge" />
+            <div className="w-1.5 h-3 rounded-full bg-[#81c784] shadow-[0_0_5px_#4caf50]" title="Power" />
+          </div>
+
+          {/* Internal Camera */}
+          <div className="w-7 h-7 rounded-full bg-[#0a0a0a] border-[3px] border-[#ddd] shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)] flex items-center justify-center relative">
+            <div className="w-2.5 h-2.5 rounded-full bg-linear-to-tr from-[#001] to-[#113]" />
+            {/* Mic hole - moved right next to camera */}
+            <div className="absolute left-[calc(100%+8px)] top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-[#888] shadow-inner" />
+          </div>
+        </div>
+
+        {/* Bottom Shell */}
+        <div className="w-full bg-[#f2f2f2] p-8 pt-6 flex items-center justify-center gap-6 relative border-t border-white/50">
+
+          {/* Left: D-pad & Power */}
+          <div className="flex flex-col items-end gap-10">
+            <div className="relative w-28 h-28 flex items-center justify-center">
+              {/* D-pad Socket (Perfectly matching body color, no shadow) */}
+              <div className="absolute w-[110%] h-[110%] rounded-full bg-[#f2f2f2]" />
+
+              {/* D-pad Cross (Unified shape using clip-path for correct shadow) */}
+              <div className="relative w-full h-full filter drop-shadow(0 3px 4px rgba(0,0,0,0.15))">
+                <div
+                  className="w-full h-full bg-[#fdfdfd] border border-[#ccc] rounded-sm"
+                  style={{
+                    clipPath: "polygon(34% 0%, 66% 0%, 66% 34%, 100% 34%, 100% 66%, 66% 66%, 66% 100%, 34% 100%, 34% 66%, 0% 66%, 0% 34%, 34% 34%)"
+                  }}
+                />
+
+                {/* Visual D-pad Details */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  {/* Directional marks */}
+                  <div className="absolute top-2 w-0 h-0 border-l-4 border-r-4 border-b-6 border-l-transparent border-r-transparent border-b-[#999] opacity-60" />
+                  <div className="absolute bottom-2 w-0 h-0 border-l-4 border-r-4 border-t-6 border-l-transparent border-r-transparent border-t-[#999] opacity-60" />
+                  <div className="absolute left-2 w-0 h-0 border-t-4 border-b-4 border-r-6 border-t-transparent border-b-transparent border-r-[#999] opacity-60" />
+                  <div className="absolute right-2 w-0 h-0 border-t-4 border-b-4 border-l-6 border-t-transparent border-b-transparent border-l-[#999] opacity-60" />
+                </div>
+              </div>
+            </div>
+
+            {/* Power Button */}
+            <div className="flex items-center gap-2 -mt-2 pr-2">
+              <span className="text-[6px] font-black text-[#aaa] tracking-[0.1em]">POWER</span>
+              <button className="w-7 h-7 rounded-full bg-[#fdfdfd] border border-[#ccc] shadow-[0_1px_3px_rgba(0,0,0,0.1),inset_0_1px_2px_white] active:scale-90 flex items-center justify-center">
+                <div className="w-3 h-3 rounded-full border border-[#999] relative">
+                  <div className="absolute top-[-3px] left-1/2 -translate-x-1/2 w-0.5 h-1.5 bg-[#999]" />
+                </div>
+              </button>
+            </div>
+          </div>
+
+          {/* Center: Bottom Screen System */}
+          <div className="shrink-0 relative w-full max-w-[540px] aspect-3/2 bg-[#111] rounded-sm p-6 shadow-[inset_0_2px_15px_rgba(0,0,0,1)] border-[3px] border-[#222]">
+            <div className="relative w-full h-full bg-[#fdfdfd] shadow-[inset_0_2px_10px_rgba(0,0,0,0.1)] overflow-hidden">
+              {tools}
+            </div>
+          </div>
+
+          {/* Right: A/B/X/Y & Start/Select */}
+          <div className="flex flex-col items-start gap-10">
+            <div className="relative w-28 h-28 flex items-center justify-center">
+              {/* Buttons Socket (Perfectly matching body color, no shadow) */}
+              <div className="absolute w-[110%] h-[110%] rounded-full bg-[#f2f2f2]" />
+
+              {/* Diamond Layout Buttons */}
+              <div className="relative w-full h-full grid grid-cols-3 grid-rows-3 p-1">
+                <button className="col-start-2 row-start-1 w-10 h-10 rounded-full bg-[#fdfdfd] border border-[#ccc] shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:translate-y-px flex items-center justify-center font-bold text-[#888]">X</button>
+                <button className="col-start-1 row-start-2 w-10 h-10 rounded-full bg-[#fdfdfd] border border-[#ccc] shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:translate-y-px flex items-center justify-center font-bold text-[#888]">Y</button>
+                <button className="col-start-3 row-start-2 w-10 h-10 rounded-full bg-[#fdfdfd] border border-[#ccc] shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:translate-y-px flex items-center justify-center font-bold text-[#888]">A</button>
+                <button className="col-start-2 row-start-3 w-10 h-10 rounded-full bg-[#fdfdfd] border border-[#ccc] shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:translate-y-px flex items-center justify-center font-bold text-[#888]">B</button>
+              </div>
+            </div>
+
+            {/* START/SELECT (Vertical align) */}
+            <div className="flex flex-col gap-4 pl-1 -mt-2">
+              <div className="flex items-center gap-2">
+                <button className="w-5 h-5 rounded-full bg-[#fdfdfd] border border-[#ccc] shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:scale-90" />
+                <span className="text-[6px] font-black text-[#bbb] tracking-tighter">START</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button className="w-5 h-5 rounded-full bg-[#fdfdfd] border border-[#ccc] shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:scale-90" />
+                <span className="text-[6px] font-black text-[#bbb] tracking-tighter">SELECT</span>
+              </div>
+            </div>
           </div>
         </div>
 

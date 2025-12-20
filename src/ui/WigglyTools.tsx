@@ -57,6 +57,7 @@ export function WigglyTools({
   const handleToolClick = (t: Tool) => {
     // If clicking the already selected tool...
     if (tool === t) {
+      // Toggle popup for pattern/eraser, close for others
       if (t === "pattern") {
         setActivePopup(activePopup === "pattern" ? "none" : "pattern");
       } else if (t === "eraser") {
@@ -65,11 +66,9 @@ export function WigglyTools({
         setActivePopup("none");
       }
     } else {
-      // Switching to a new tool
+      // Switching to a new tool - close any open popup, don't open new one
       setTool(t);
-      if (t === "pattern") setActivePopup("pattern");
-      else if (t === "eraser") setActivePopup("eraser");
-      else setActivePopup("none");
+      setActivePopup("none");
     }
   };
 
@@ -107,124 +106,191 @@ export function WigglyTools({
       </div>
 
       {/* 2. MIDDLE ROW: Main Tools (Big Squares) */}
-      <div className="flex-1 grid grid-cols-3 gap-2 min-h-0 relative z-10">
+      <div className="flex flex-col justify-center min-h-0 relative z-10 py-2">
+        <div className="grid grid-cols-3 gap-2">
 
-        {/* Pen */}
-        <button
-          onClick={() => handleToolClick("pen")}
-          className={`
-                relative border-4 rounded-xl flex flex-col items-center justify-center p-2 transition-all active:scale-[0.98]
-                ${tool === "pen"
-              ? "bg-white border-[color:var(--color-ugo-orange)] shadow-[0_0_0_2px_var(--color-ugo-orange)] z-10"
-              : "bg-white border-slate-300 text-slate-400"
-            }
-            `}
-        >
-          <div className="absolute top-2 left-2 text-xs font-bold opacity-50">ペン</div>
-          <div className="text-6xl rotate-45 transform origin-center drop-shadow-sm">✏️</div>
-          {/* Corner Indicator */}
-          <div className={`absolute bottom-2 right-2 w-8 h-8 border-2 rounded-lg flex items-center justify-center transition-colors ${tool === "pen" ? "border-orange-500 bg-orange-100" : "border-slate-300 bg-slate-100"}`}>
-            <div className={`w-3 h-3 rounded-sm ${tool === "pen" ? "bg-orange-500" : "bg-slate-300"}`} />
-          </div>
-        </button>
-
-        {/* Paint / Pattern */}
-        <button
-          onClick={() => handleToolClick("pattern")}
-          className={`
-                relative border-4 rounded-xl flex flex-col items-center justify-center p-2 transition-all active:scale-[0.98]
-                ${tool === "pattern"
-              ? "bg-amber-50 border-[color:var(--color-ugo-orange)] shadow-[0_0_0_2px_var(--color-ugo-orange)] z-10"
-              : "bg-white border-slate-300 text-slate-400"
-            }
-            `}
-        >
-          <div className="absolute top-2 left-2 text-xs font-bold opacity-50">塗る</div>
-          <div className="text-6xl drop-shadow-sm">🖌️</div>
-          {/* Corner Indicator */}
-          <div className={`absolute bottom-2 right-2 w-8 h-8 border-2 rounded-lg flex items-center justify-center transition-colors ${tool === "pattern" ? "border-orange-500 bg-orange-100" : "border-slate-300 bg-slate-100"}`}>
-            {/* Tiny preview of current pattern */}
-            <div className="w-4 h-4 opacity-50 rounded-sm"
-              style={{
-                backgroundImage: patternId === 'dots' ? "radial-gradient(circle, #000 2px, transparent 2.5px)"
-                  : patternId === 'horizontal' ? "linear-gradient(0deg, transparent 50%, #000 50%)"
-                    : "radial-gradient(circle, #000 1.5px, transparent 2px)", // default or current logical match
-                backgroundSize: "4px 4px"
-              }}
-            />
-          </div>
-
-          {/* COMPACT POPUP: Pattern Grid */}
-          {activePopup === "pattern" && (
-            <div className="absolute top-full mt-2 w-48 bg-white rounded-xl border-4 border-orange-500 p-2 grid grid-cols-2 gap-2 shadow-xl z-50 animate-in fade-in zoom-in-95 duration-100 left-1/2 -translate-x-1/2">
-              {[
-                { id: "dots", label: "小", bg: "radial-gradient(circle, #000 2px, transparent 2.5px)", bgSize: "8px 8px" },
-                { id: "dotsDense", label: "中", bg: "radial-gradient(circle, #000 1.5px, transparent 2px)", bgSize: "4px 4px" },
-                { id: "horizontal", label: "横", bg: "linear-gradient(0deg, transparent 50%, #000 50%)", bgSize: "100% 4px" },
-                { id: "vertical", label: "縦", bg: "linear-gradient(90deg, transparent 50%, #000 50%)", bgSize: "4px 100%" },
-                {
-                  id: "checker", label: "市松",
-                  bg: "linear-gradient(45deg, #000 25%, transparent 25%), linear-gradient(-45deg, #000 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #000 75%), linear-gradient(-45deg, transparent 75%, #000 75%)",
-                  bgSize: "8px 8px", bgPos: "0 0, 0 4px, 4px -4px, -4px 0px"
-                },
-              ].map((p, i) => (
-                <button
-                  key={p.id || i}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setPatternId(p.id as BrushPatternId);
-                    setActivePopup("none");
-                  }}
-                  className={`relative rounded border-2 h-12 overflow-hidden bg-white hover:bg-slate-50 active:scale-95 transition-all aspect-square ${patternId === p.id ? "border-orange-500 ring-2 ring-orange-200" : "border-slate-200"}`}
-                  title={p.label}
-                >
-                  <div className="absolute inset-0 opacity-50" style={{ backgroundImage: p.bg, backgroundSize: p.bgSize, backgroundPosition: (p as any).bgPos }} />
-                </button>
-              ))}
+          {/* Pen */}
+          <button
+            onClick={() => handleToolClick("pen")}
+            className={`
+                  relative border-4 rounded-xl flex flex-col items-center justify-center p-2 transition-all active:scale-[0.98] aspect-square w-full
+                  ${tool === "pen"
+                ? "bg-white border-[color:var(--color-ugo-orange)] shadow-[0_0_0_2px_var(--color-ugo-orange)] z-10"
+                : "bg-white border-slate-300 text-slate-400"
+              }
+              `}
+          >
+            <div className="absolute top-2 left-2 text-xs font-bold opacity-50">ペン</div>
+            <div className="text-6xl rotate-45 transform origin-center drop-shadow-sm">✏️</div>
+            {/* Corner Indicator */}
+            <div className={`absolute bottom-2 right-2 w-8 h-8 border-2 rounded-lg flex items-center justify-center transition-colors ${tool === "pen" ? "border-orange-500 bg-orange-100" : "border-slate-300 bg-slate-100"}`}>
+              <div className={`w-3 h-3 rounded-sm ${tool === "pen" ? "bg-orange-500" : "bg-slate-300"}`} />
             </div>
-          )}
-        </button>
+          </button>
 
-        {/* Eraser */}
-        <button
-          onClick={() => handleToolClick("eraser")}
-          className={`
-                relative border-4 rounded-xl flex flex-col items-center justify-center p-2 transition-all active:scale-[0.98]
-                ${tool === "eraser"
-              ? "bg-white border-[color:var(--color-ugo-orange)] shadow-[0_0_0_2px_var(--color-ugo-orange)] z-10"
-              : "bg-white border-slate-300 text-slate-400"
-            }
-            `}
-        >
-          <div className="absolute top-2 left-2 text-xs font-bold opacity-50">消しゴム</div>
-          <div className="text-6xl drop-shadow-sm">🩹</div>
-          {/* Corner Indicator */}
-          <div className={`absolute bottom-2 right-2 w-8 h-8 border-2 rounded-lg flex items-center justify-center transition-colors ${tool === "eraser" ? "border-orange-500 bg-orange-100" : "border-slate-300 bg-slate-100"}`}>
-            <div className={`w-3 h-3 rounded-sm ${tool === "eraser" ? "bg-orange-500" : "bg-slate-300"}`} />
-          </div>
-
-          {/* COMPACT POPUP: Eraser Grid */}
-          {activePopup === "eraser" && (
-            <div className="absolute top-full mt-2 w-48 bg-white rounded-xl border-4 border-orange-500 p-2 grid grid-cols-1 gap-2 shadow-xl z-50 animate-in fade-in zoom-in-95 duration-100 right-0">
-              {eraserVariants.map((v) => (
-                <button
-                  key={v.id}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setEraserVariant(v.id);
-                    setActivePopup("none");
-                  }}
-                  className={`relative rounded border-2 h-10 px-2 flex items-center gap-2 bg-white hover:bg-slate-50 active:scale-95 transition-all
-                                ${eraserVariant === v.id ? "border-orange-500 ring-2 ring-orange-200" : "border-slate-200"}`}
-                >
-                  {/* Icon for size/type */}
-                  <div className={`rounded-full bg-slate-300 ${v.id === 'standard' ? 'w-4 h-4' : v.id === 'soft' ? 'w-4 h-4 opacity-50 blur-[1px]' : 'w-6 h-6'}`} />
-                  <span className="text-sm font-bold text-slate-700">{v.label}</span>
-                </button>
-              ))}
+          {/* Paint / Pattern */}
+          <button
+            onClick={() => handleToolClick("pattern")}
+            className={`
+                  relative border-4 rounded-xl flex flex-col items-center justify-center p-2 transition-all active:scale-[0.98] aspect-square w-full
+                  ${tool === "pattern"
+                ? "bg-amber-50 border-[color:var(--color-ugo-orange)] shadow-[0_0_0_2px_var(--color-ugo-orange)] z-10"
+                : "bg-white border-slate-300 text-slate-400"
+              }
+              `}
+          >
+            <div className="absolute top-2 left-2 text-xs font-bold opacity-50">塗る</div>
+            <div className="text-6xl drop-shadow-sm">🖌️</div>
+            {/* Corner Indicator */}
+            <div className={`absolute bottom-2 right-2 w-8 h-8 border-2 rounded-lg flex items-center justify-center transition-colors ${tool === "pattern" ? "border-orange-500 bg-orange-100" : "border-slate-300 bg-slate-100"}`}>
+              {/* Tiny preview of current pattern */}
+              <div className="w-4 h-4 rounded-sm"
+                style={{
+                  backgroundImage:
+                    patternId === 'dots' ? "radial-gradient(circle, #000 1px, transparent 1.5px)"
+                      : patternId === 'dotsDense' ? "radial-gradient(circle, #000 0.8px, transparent 1px)"
+                        : patternId === 'horizontal' ? "linear-gradient(0deg, transparent 50%, #000 50%)"
+                          : patternId === 'vertical' ? "linear-gradient(90deg, transparent 50%, #000 50%)"
+                            : patternId === 'checker' ? "linear-gradient(45deg, #000 25%, transparent 25%), linear-gradient(-45deg, #000 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #000 75%), linear-gradient(-45deg, transparent 75%, #000 75%)"
+                              : "radial-gradient(circle, #000 1px, transparent 1.5px)",
+                  backgroundSize:
+                    patternId === 'dots' ? "3px 3px"
+                      : patternId === 'dotsDense' ? "2px 2px"
+                        : patternId === 'horizontal' ? "100% 2px"
+                          : patternId === 'vertical' ? "2px 100%"
+                            : patternId === 'checker' ? "3px 3px, 3px 3px, 3px 3px, 3px 3px"
+                              : "3px 3px",
+                  backgroundPosition: patternId === 'checker' ? "0 0, 0 1.5px, 1.5px -1.5px, -1.5px 0px" : "0 0",
+                  opacity: tool === "pattern" ? 0.8 : 0.5
+                }}
+              />
             </div>
-          )}
-        </button>
+
+            {/* COMPACT POPUP: Pattern Grid (3x3) */}
+            {activePopup === "pattern" && (
+              <div className="absolute top-full mt-2 bg-white rounded-lg border-2 border-orange-500 p-1.5 grid grid-cols-3 gap-1.5 shadow-xl z-50" style={{ width: '140px', left: '50%', transform: 'translateX(-50%)', maxWidth: 'calc(100% - 1rem)' }}>
+                {[
+                  { id: "dots", bg: "radial-gradient(circle, #000 1.5px, transparent 2px)", bgSize: "6px 6px" },
+                  { id: "dotsDense", bg: "radial-gradient(circle, #000 1px, transparent 1.5px)", bgSize: "3px 3px" },
+                  { id: "vertical", bg: "linear-gradient(90deg, transparent 50%, #000 50%)", bgSize: "3px 100%" },
+                  { id: "horizontal", bg: "linear-gradient(0deg, transparent 50%, #000 50%)", bgSize: "100% 3px" },
+                  {
+                    id: "checker",
+                    bg: "linear-gradient(45deg, #000 25%, transparent 25%), linear-gradient(-45deg, #000 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #000 75%), linear-gradient(-45deg, transparent 75%, #000 75%)",
+                    bgSize: "6px 6px", bgPos: "0 0, 0 3px, 3px -3px, -3px 0px"
+                  },
+                  null, // Empty slot for 3x3 grid
+                  null, // Empty slot
+                  null, // Empty slot
+                  null, // Empty slot
+                ].map((p, i) => {
+                  if (!p) {
+                    return (
+                      <div key={`empty-${i}`} className="aspect-square border-2 border-transparent" />
+                    );
+                  }
+                  return (
+                    <button
+                      key={p.id}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setPatternId(p.id as BrushPatternId);
+                        setActivePopup("none");
+                      }}
+                      className={`relative rounded border-2 aspect-square overflow-hidden bg-white hover:bg-orange-50 active:scale-95 transition-all ${patternId === p.id
+                        ? "border-orange-500 bg-orange-100 ring-2 ring-orange-300 shadow-md"
+                        : "border-slate-300 hover:border-orange-300"
+                        }`}
+                      title={p.id}
+                    >
+                      <div
+                        className={`absolute inset-0 ${patternId === p.id ? "opacity-100" : "opacity-70"}`}
+                        style={{
+                          backgroundImage: p.bg,
+                          backgroundSize: p.bgSize,
+                          backgroundPosition: (p as any).bgPos || "0 0"
+                        }}
+                      />
+                      {patternId === p.id && (
+                        <div className="absolute inset-0 border-2 border-orange-600 rounded pointer-events-none" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </button>
+
+          {/* Eraser */}
+          <button
+            onClick={() => handleToolClick("eraser")}
+            className={`
+                  relative border-4 rounded-xl flex flex-col items-center justify-center p-2 transition-all active:scale-[0.98] aspect-square w-full
+                  ${tool === "eraser"
+                ? "bg-white border-[color:var(--color-ugo-orange)] shadow-[0_0_0_2px_var(--color-ugo-orange)] z-10"
+                : "bg-white border-slate-300 text-slate-400"
+              }
+              `}
+          >
+            <div className="absolute top-2 left-2 text-xs font-bold opacity-50">消しゴム</div>
+            <div className="text-6xl drop-shadow-sm">🩹</div>
+            {/* Corner Indicator */}
+            <div className={`absolute bottom-2 right-2 w-8 h-8 border-2 rounded-lg flex items-center justify-center transition-colors ${tool === "eraser" ? "border-orange-500 bg-orange-100" : "border-slate-300 bg-slate-100"}`}>
+              <div
+                className={`${eraserVariant === 'eraserCircle' ? 'rounded-full' :
+                  eraserVariant === 'eraserSquare' ? 'rounded-sm' :
+                    'rounded-none w-4 h-1'
+                  } ${eraserVariant === 'eraserCircle' || eraserVariant === 'eraserSquare' ? 'w-3 h-3' : ''
+                  } ${tool === "eraser" ? "bg-orange-600" : "bg-slate-400"}`}
+              />
+            </div>
+
+            {/* COMPACT POPUP: Eraser Grid (3x3, same size as pattern) */}
+            {activePopup === "eraser" && (
+              <div className="absolute top-full mt-2 bg-white rounded-lg border-2 border-orange-500 p-1.5 grid grid-cols-3 gap-1.5 shadow-xl z-50" style={{ width: '140px', left: '50%', transform: 'translateX(-50%)', maxWidth: 'calc(100% - 1rem)' }}>
+                {[
+                  ...eraserVariants.map(v => ({ variant: v, isEmpty: false })),
+                  ...Array(6).fill(null).map(() => ({ variant: null, isEmpty: true }))
+                ].slice(0, 9).map((item, i) => {
+                  if (item.isEmpty || !item.variant) {
+                    return (
+                      <div key={`empty-${i}`} className="aspect-square border-2 border-transparent" />
+                    );
+                  }
+                  const v = item.variant;
+                  return (
+                    <button
+                      key={v.id}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEraserVariant(v.id);
+                        setActivePopup("none");
+                      }}
+                      className={`relative rounded border-2 aspect-square flex items-center justify-center bg-white hover:bg-orange-50 active:scale-95 transition-all
+                                    ${eraserVariant === v.id
+                          ? "border-orange-500 bg-orange-100 ring-2 ring-orange-300 shadow-md"
+                          : "border-slate-300 hover:border-orange-300"
+                        }`}
+                    >
+                      {/* Icon for eraser type */}
+                      <div
+                        className={`${v.id === 'eraserCircle' ? 'rounded-full' :
+                          v.id === 'eraserSquare' ? 'rounded-sm' :
+                            'rounded-none w-6 h-1'
+                          } ${eraserVariant === v.id ? 'bg-orange-700' : 'bg-slate-600'
+                          } ${v.id === 'eraserCircle' || v.id === 'eraserSquare' ? 'w-6 h-6' : ''
+                          }`}
+                      />
+                      {eraserVariant === v.id && (
+                        <div className="absolute inset-0 border-2 border-orange-600 rounded pointer-events-none" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* 3. BOTTOM ROW: Slider | Colors | Save */}
