@@ -144,14 +144,17 @@ export class CanvasRenderer implements DrawingRenderer {
     const def = getPatternDefinition(patternId as BrushPatternId);
     const tile = wigglePatternTile(def.tile, timeMs, this.wiggleConfig);
 
+    // パターンスケール: 1 = 元サイズ、2 = 2倍（密度半分）
+    const PATTERN_SCALE = 2;
     const offscreen = document.createElement("canvas");
-    offscreen.width = tile.width;
-    offscreen.height = tile.height;
+    offscreen.width = tile.width * PATTERN_SCALE;
+    offscreen.height = tile.height * PATTERN_SCALE;
     const offCtx = offscreen.getContext("2d");
     if (!offCtx) {
       throw new Error("2D context not available");
     }
 
+    // 1x1のタイルをスケール倍に拡大して描画
     const imageData = offCtx.createImageData(tile.width, tile.height);
     const { r, g, b } = parseColorToRgb(color);
 
@@ -164,7 +167,16 @@ export class CanvasRenderer implements DrawingRenderer {
       imageData.data[idx + 3] = Math.round(255 * alpha);
     }
 
-    offCtx.putImageData(imageData, 0, 0);
+    // 一時キャンバスに1xで描画し、スケール拡大
+    const tempCanvas = document.createElement("canvas");
+    tempCanvas.width = tile.width;
+    tempCanvas.height = tile.height;
+    const tempCtx = tempCanvas.getContext("2d");
+    if (!tempCtx) throw new Error("2D context not available");
+    tempCtx.putImageData(imageData, 0, 0);
+    
+    offCtx.imageSmoothingEnabled = false;
+    offCtx.drawImage(tempCanvas, 0, 0, offscreen.width, offscreen.height);
     const pattern = this.ctx.createPattern(offscreen, "repeat");
     if (!pattern) {
       throw new Error("Failed to create canvas pattern");

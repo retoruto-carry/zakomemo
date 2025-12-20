@@ -17,32 +17,32 @@ const handleButtonKeyDown = (callback: () => void) => (e: KeyboardEvent) => {
   }
 };
 
-// パターンプレビュー用スタイル設定
+// パターンプレビュー用スタイル設定（実際の描画と同じ2倍スケール）
 const PATTERN_STYLES: Record<BrushPatternId, { image: string; size: string; position: string }> = {
   dots: {
-    image: "radial-gradient(circle, #000 1.5px, transparent 1.8px)",
-    size: "5px 5px",
+    image: "radial-gradient(circle, #000 3px, transparent 3.6px)",
+    size: "10px 10px",
     position: "0 0",
   },
   dotsDense: {
-    image: "radial-gradient(circle, #000 1px, transparent 1.2px)",
-    size: "3px 3px",
+    image: "radial-gradient(circle, #000 2px, transparent 2.4px)",
+    size: "6px 6px",
     position: "0 0",
   },
   horizontal: {
     image: "linear-gradient(0deg, transparent 50%, #000 50%)",
-    size: "100% 3px",
+    size: "100% 6px",
     position: "0 0",
   },
   vertical: {
     image: "linear-gradient(90deg, transparent 50%, #000 50%)",
-    size: "3px 100%",
+    size: "6px 100%",
     position: "0 0",
   },
   checker: {
     image: "linear-gradient(45deg, #000 25%, transparent 25%), linear-gradient(-45deg, #000 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #000 75%), linear-gradient(-45deg, transparent 75%, #000 75%)",
-    size: "5px 5px, 5px 5px, 5px 5px, 5px 5px",
-    position: "0 0, 0 2.5px, 2.5px -2.5px, -2.5px 0px",
+    size: "10px 10px, 10px 10px, 10px 10px, 10px 10px",
+    position: "0 0, 0 5px, 5px -5px, -5px 0px",
   },
 };
 
@@ -316,15 +316,15 @@ export function WigglyTools({
               >
                 {(
                   [
-                    { id: "dots", bg: "radial-gradient(circle, #000 1.5px, transparent 2px)", bgSize: "6px 6px" },
-                    { id: "dotsDense", bg: "radial-gradient(circle, #000 1px, transparent 1.5px)", bgSize: "3px 3px" },
-                    { id: "vertical", bg: "linear-gradient(90deg, transparent 50%, #000 50%)", bgSize: "4px 100%" },
-                    { id: "horizontal", bg: "linear-gradient(0deg, transparent 50%, #000 50%)", bgSize: "100% 4px" },
+                    { id: "dots", bg: "radial-gradient(circle, #000 3px, transparent 4px)", bgSize: "12px 12px" },
+                    { id: "dotsDense", bg: "radial-gradient(circle, #000 2px, transparent 3px)", bgSize: "6px 6px" },
+                    { id: "vertical", bg: "linear-gradient(90deg, transparent 50%, #000 50%)", bgSize: "8px 100%" },
+                    { id: "horizontal", bg: "linear-gradient(0deg, transparent 50%, #000 50%)", bgSize: "100% 8px" },
                     {
                       id: "checker",
                       bg: "linear-gradient(45deg, #000 25%, transparent 25%), linear-gradient(-45deg, #000 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #000 75%), linear-gradient(-45deg, transparent 75%, #000 75%)",
-                      bgSize: "6px 6px",
-                      bgPos: "0 0, 0 3px, 3px -3px, -3px 0px"
+                      bgSize: "12px 12px",
+                      bgPos: "0 0, 0 6px, 6px -6px, -6px 0px"
                     },
                   ] as { id: string; bg: string; bgSize: string; bgPos?: string }[]
                 ).map((p) => {
