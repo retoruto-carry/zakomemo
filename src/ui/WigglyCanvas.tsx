@@ -48,6 +48,7 @@ export function WigglyCanvas({
   const engineRef = useRef<WigglyEngine | null>(null);
   const primaryPointerIdRef = useRef<number | null>(null);
   const activePointersRef = useRef<Map<number, PointerInfo>>(new Map());
+  const isMultiTouchRef = useRef(false);
   const [eraserPos, setEraserPos] = useState<{ x: number; y: number } | null>(
     null,
   );
@@ -115,15 +116,26 @@ export function WigglyCanvas({
       // pointerdownでは筆圧をチェックせず、すべてのペン入力を処理します。
       // 軽い筆圧でも描画を開始できるようにするためです。
 
-      // マルチタッチ（2本指以上）の場合は描画を無効にして、undo/redoジェスチャーを優先
-      // 現在アクティブなポインター数 + 今回追加されるポインターが2本以上の場合、描画を開始しない
+      // マルチタッチ（2本指以上）の検出
+      // pointerdownイベントが発火した時点で、既にアクティブなポインターが1本以上ある場合、
+      // マルチタッチと判断して描画を無効にし、undo/redoジェスチャーを優先します
       const activePointerCount = activePointersRef.current.size;
       if (activePointerCount >= 1) {
-        // 既に1本以上のポインターがアクティブな場合、マルチタッチと判断
-        // この場合は描画を開始せず、undo/redoジェスチャーを優先
+        // マルチタッチ状態を記録
+        isMultiTouchRef.current = true;
+        // 描画を開始せず、undo/redoジェスチャーを優先
+        // ポインター情報は記録するが、描画は開始しない
+        activePointersRef.current.set(ev.pointerId, {
+          id: ev.pointerId,
+          startX: 0,
+          startY: 0,
+          startTime: performance.now(),
+          moved: false,
+        });
         return;
       }
 
+      // シングルタッチの場合のみ描画を開始
       ev.preventDefault();
       canvas.setPointerCapture(ev.pointerId);
       const now = performance.now();
@@ -164,6 +176,11 @@ export function WigglyCanvas({
         setEraserPos(null);
       }
 
+      // マルチタッチ状態の場合は描画を無効化
+      if (isMultiTouchRef.current) {
+        return;
+      }
+
       if (!info) return;
 
       const dx = internal.x - info.startX;
@@ -183,6 +200,11 @@ export function WigglyCanvas({
 
       if (info) {
         activePointersRef.current.delete(ev.pointerId);
+      }
+
+      // すべてのポインターが離れた場合、マルチタッチ状態をリセット
+      if (activePointersRef.current.size === 0) {
+        isMultiTouchRef.current = false;
       }
 
       if (ev.pointerId === primaryPointerIdRef.current) {
