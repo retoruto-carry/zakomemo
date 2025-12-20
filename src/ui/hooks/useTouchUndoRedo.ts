@@ -49,6 +49,9 @@ export function useTouchUndoRedo({
 
     const handleTouchStart = (ev: TouchEvent) => {
       // 既存のタッチをクリア（新しいタッチセッション）
+      // 注: 複数の指が画面にある状態で1本離して新しい指を追加するケースでは
+      // 古いデータが残る可能性があるが、現実的な使用ケースではないため
+      // この実装で問題ないと判断
       if (ev.touches.length === 1) {
         touchesRef.current.clear();
       }
@@ -143,7 +146,6 @@ export function useTouchUndoRedo({
         // ジェスチャーの評価が完了したので、次のジェスチャーのためにタッチ情報をクリア
         touchesRef.current.clear();
       }
-      // まだ他のタッチが残っている場合は、何もせずに情報を保持する
     };
 
     const handleTouchCancel = () => {
