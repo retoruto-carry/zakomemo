@@ -29,6 +29,10 @@ class MockRenderer implements DrawingRenderer {
     this.clears.push({ width, height });
   }
 
+  clearPatternCache(): void {
+    // noop for mock
+  }
+
   renderStroke(
     stroke: Stroke,
     jitteredPoints: { x: number; y: number }[],

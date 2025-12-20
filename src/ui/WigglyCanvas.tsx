@@ -50,7 +50,7 @@ export function WigglyCanvas({
   const activePointersRef = useRef<Map<number, PointerInfo>>(new Map());
   const tapCandidateRef = useRef<PointerInfo | null>(null);
   const [eraserPos, setEraserPos] = useState<{ x: number; y: number } | null>(
-    null
+    null,
   );
 
   // Keep a ref to the current tool to access it inside event handlers without re-binding
@@ -60,14 +60,27 @@ export function WigglyCanvas({
   }, [tool]);
 
   // Sync Props to Engine
-  useEffect(() => { engineRef.current?.setTool(tool); }, [tool]);
-  useEffect(() => { engineRef.current?.setBrushColor(color); }, [color]);
-  useEffect(() => { engineRef.current?.setBrushWidth(width); }, [width]);
-  useEffect(() => { engineRef.current?.setPattern(patternId); }, [patternId]);
-  useEffect(() => { engineRef.current?.setPenVariant(penVariant); }, [penVariant]);
-  useEffect(() => { engineRef.current?.setEraserVariant(eraserVariant); }, [eraserVariant]);
+  useEffect(() => {
+    engineRef.current?.setTool(tool);
+  }, [tool]);
+  useEffect(() => {
+    engineRef.current?.setBrushColor(color);
+  }, [color]);
+  useEffect(() => {
+    engineRef.current?.setBrushWidth(width);
+  }, [width]);
+  useEffect(() => {
+    engineRef.current?.setPattern(patternId);
+  }, [patternId]);
+  useEffect(() => {
+    engineRef.current?.setPenVariant(penVariant);
+  }, [penVariant]);
+  useEffect(() => {
+    engineRef.current?.setEraserVariant(eraserVariant);
+  }, [eraserVariant]);
 
   // Initialize Engine and Event Listeners
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Intentionally run once on mount
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -128,7 +141,11 @@ export function WigglyCanvas({
 
       // Update eraser cursor for hover (mouse/pen) or drag (touch/all)
       if (toolRef.current === "eraser") {
-        if (ev.pointerType === "mouse" || ev.pointerType === "pen" || primaryPointerIdRef.current === ev.pointerId) {
+        if (
+          ev.pointerType === "mouse" ||
+          ev.pointerType === "pen" ||
+          primaryPointerIdRef.current === ev.pointerId
+        ) {
           setEraserPos(visual);
         }
       } else {
@@ -156,7 +173,10 @@ export function WigglyCanvas({
 
       if (info) {
         const dt = now - info.startTime;
-        const dist = Math.hypot(internal.x - info.startX, internal.y - info.startY);
+        const dist = Math.hypot(
+          internal.x - info.startX,
+          internal.y - info.startY,
+        );
         const wasTap = dt < 220 && dist < 10;
 
         if (wasTap) {
@@ -179,7 +199,7 @@ export function WigglyCanvas({
       if (ev.pointerId === primaryPointerIdRef.current) {
         engine.pointerUp();
         primaryPointerIdRef.current = null;
-        if (toolRef.current !== "eraser" || (ev.pointerType === "touch")) {
+        if (toolRef.current !== "eraser" || ev.pointerType === "touch") {
           setEraserPos(null);
         }
       }
@@ -194,8 +214,12 @@ export function WigglyCanvas({
       }
     };
 
-    canvas.addEventListener("pointerdown", handlePointerDown, { passive: false });
-    canvas.addEventListener("pointermove", handlePointerMove, { passive: false });
+    canvas.addEventListener("pointerdown", handlePointerDown, {
+      passive: false,
+    });
+    canvas.addEventListener("pointermove", handlePointerMove, {
+      passive: false,
+    });
     canvas.addEventListener("pointerup", handlePointerUp);
     canvas.addEventListener("pointercancel", handlePointerUp);
     canvas.addEventListener("pointerleave", handlePointerLeave);
@@ -217,7 +241,7 @@ export function WigglyCanvas({
         width={initialDrawing.width}
         height={initialDrawing.height}
         className="block touch-none"
-        style={{ 
+        style={{
           touchAction: "none",
           width: "100%",
           height: "100%",
@@ -227,18 +251,24 @@ export function WigglyCanvas({
         <div
           className="pointer-events-none absolute border border-black/70 z-10"
           style={{
-            width: eraserVariant === "eraserLine"
-              ? Math.max(width * ERASER_GUIDE.line.lengthMult, ERASER_GUIDE.minSize)
-              : Math.max(width, ERASER_GUIDE.minSize),
-            height: eraserVariant === "eraserLine"
-              ? ERASER_GUIDE.line.height
-              : Math.max(width, ERASER_GUIDE.minSize),
+            width:
+              eraserVariant === "eraserLine"
+                ? Math.max(
+                    width * ERASER_GUIDE.line.lengthMult,
+                    ERASER_GUIDE.minSize,
+                  )
+                : Math.max(width, ERASER_GUIDE.minSize),
+            height:
+              eraserVariant === "eraserLine"
+                ? ERASER_GUIDE.line.height
+                : Math.max(width, ERASER_GUIDE.minSize),
             left: eraserPos.x,
             top: eraserPos.y,
             transform: "translate(-50%, -50%)",
-            borderRadius: eraserVariant === "eraserSquare"
-              ? `${ERASER_GUIDE.squareRadius}px`
-              : "9999px",
+            borderRadius:
+              eraserVariant === "eraserSquare"
+                ? `${ERASER_GUIDE.squareRadius}px`
+                : "9999px",
             boxShadow: "0 0 0 1px rgba(255,255,255,0.9)",
           }}
         />

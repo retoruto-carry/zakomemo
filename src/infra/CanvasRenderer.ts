@@ -7,13 +7,13 @@ import type { BrushPatternId, BrushVariant, Stroke } from "../core/types";
 import type { DrawingRenderer } from "../engine/ports";
 import { parseColorToRgb, resolveCssVariable } from "./colorUtil";
 
+/** パターンタイルを2倍にスケールして密度を下げる */
+const PATTERN_SCALE = 2;
+
 export class CanvasRenderer implements DrawingRenderer {
   private lastWidth = 0;
   private lastHeight = 0;
-  private patternCache = new Map<
-    string,
-    { bucket: number; pattern: CanvasPattern }
-  >();
+  private patternCache = new Map<string, CanvasPattern>();
   private dpr: number;
 
   constructor(
@@ -21,7 +21,9 @@ export class CanvasRenderer implements DrawingRenderer {
     private wiggleConfig: PatternWiggleConfig,
     dpr?: number,
   ) {
-    this.dpr = dpr ?? ((typeof window !== "undefined" ? window.devicePixelRatio : 1) || 1);
+    this.dpr =
+      dpr ??
+      ((typeof window !== "undefined" ? window.devicePixelRatio : 1) || 1);
   }
 
   clear(width: number, height: number): void {
@@ -39,7 +41,7 @@ export class CanvasRenderer implements DrawingRenderer {
   renderStroke(
     stroke: Stroke,
     jitteredPoints: { x: number; y: number }[],
-    timeMs: number,
+    _timeMs: number,
   ): void {
     if (jitteredPoints.length === 0) return;
     const ctx = this.ctx;
@@ -79,7 +81,6 @@ export class CanvasRenderer implements DrawingRenderer {
         const pattern = this.createWigglyPattern(
           stroke.brush.patternId,
           stroke.brush.color,
-          timeMs,
         );
         // パターンの座標系をDPRに合わせてスケール
         pattern.setTransform(new DOMMatrix().scale(1 / this.dpr, 1 / this.dpr));
@@ -134,64 +135,50 @@ export class CanvasRenderer implements DrawingRenderer {
     this.patternCache.clear();
   }
 
-  private createWigglyPattern(
-    patternId: string,
-    color: string,
-    _timeMs: number,
-  ): CanvasPattern {
-    // 静的パターンなのでキャッシュはpatternId:colorのみで判定
+  /**
+   * パターンタイルを生成してキャッシュ
+   * 静的パターン（timeMs=0）を使用し、同じパターンを重ねてもずれない
+   */
+  private createWigglyPattern(patternId: string, color: string): CanvasPattern {
     const cacheKey = `${patternId}:${color}`;
     const cached = this.patternCache.get(cacheKey);
-    if (cached) {
-      return cached.pattern;
-    }
+    if (cached) return cached;
 
     const def = getPatternDefinition(patternId as BrushPatternId);
-    // 描画時は静的パターン（timeMs=0）を使用
-    // これにより同じパターンを重ねて描いてもずれない
     const tile = wigglePatternTile(def.tile, 0, this.wiggleConfig);
 
-    // パターンスケール: 2倍（密度を下げる）
-    const PATTERN_SCALE = 2;
-    const offscreen = document.createElement("canvas");
-    offscreen.width = tile.width * PATTERN_SCALE;
-    offscreen.height = tile.height * PATTERN_SCALE;
-    const offCtx = offscreen.getContext("2d");
-    if (!offCtx) {
-      throw new Error("2D context not available");
-    }
-
     // 1xサイズでタイルを作成
-    const imageData = offCtx.createImageData(tile.width, tile.height);
-    const { r, g, b } = parseColorToRgb(color);
-
-    for (let i = 0; i < tile.alpha.length; i += 1) {
-      const alpha = tile.alpha[i];
-      const idx = i * 4;
-      imageData.data[idx + 0] = r;
-      imageData.data[idx + 1] = g;
-      imageData.data[idx + 2] = b;
-      imageData.data[idx + 3] = Math.round(255 * alpha);
-    }
-
-    // 一時キャンバスに1xで描画し、2倍にスケール
     const tempCanvas = document.createElement("canvas");
     tempCanvas.width = tile.width;
     tempCanvas.height = tile.height;
     const tempCtx = tempCanvas.getContext("2d");
     if (!tempCtx) throw new Error("2D context not available");
+
+    const imageData = tempCtx.createImageData(tile.width, tile.height);
+    const { r, g, b } = parseColorToRgb(color);
+
+    for (let i = 0; i < tile.alpha.length; i++) {
+      const idx = i * 4;
+      imageData.data[idx] = r;
+      imageData.data[idx + 1] = g;
+      imageData.data[idx + 2] = b;
+      imageData.data[idx + 3] = Math.round(255 * tile.alpha[i]);
+    }
     tempCtx.putImageData(imageData, 0, 0);
-    
+
+    // PATTERN_SCALE倍にスケール
+    const offscreen = document.createElement("canvas");
+    offscreen.width = tile.width * PATTERN_SCALE;
+    offscreen.height = tile.height * PATTERN_SCALE;
+    const offCtx = offscreen.getContext("2d");
+    if (!offCtx) throw new Error("2D context not available");
     offCtx.imageSmoothingEnabled = false;
     offCtx.drawImage(tempCanvas, 0, 0, offscreen.width, offscreen.height);
 
     const pattern = this.ctx.createPattern(offscreen, "repeat");
-    if (!pattern) {
-      throw new Error("Failed to create canvas pattern");
-    }
+    if (!pattern) throw new Error("Failed to create canvas pattern");
 
-    // setTransformはrenderStroke内で動的に適用（オフセット対応のため）
-    this.patternCache.set(cacheKey, { bucket: 0, pattern });
+    this.patternCache.set(cacheKey, pattern);
     return pattern;
   }
 }

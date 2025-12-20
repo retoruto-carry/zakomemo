@@ -7,19 +7,17 @@ import type { EraserVariant, PenVariant } from "@/engine/variants";
 import type { Tool, WigglyEngine } from "@/engine/WigglyEngine";
 import { CanvasRenderer } from "@/infra/CanvasRenderer";
 import { GifEncGifEncoder } from "@/infra/GifEncGifEncoder";
-
-import { WigglyCanvas } from "./WigglyCanvas";
-import { WigglyTools } from "./WigglyTools";
 import { DesktopLayout } from "./layouts/DesktopLayout";
 import { MobileLayout } from "./layouts/MobileLayout";
+import { BODY_PRESETS, PALETTE_PRESETS } from "./presets";
+import { WigglyCanvas } from "./WigglyCanvas";
+import { WigglyTools } from "./WigglyTools";
 
 const initialDrawing: Drawing = {
   width: 960,
   height: 640,
   strokes: [],
 };
-
-import { PALETTE_PRESETS, BODY_PRESETS } from "./presets";
 
 // Default palette: black, red, green, blue, yellow, purple
 const defaultPalette = PALETTE_PRESETS[0].colors;
@@ -35,7 +33,8 @@ export function WigglyEditor() {
   const [color, setColor] = useState("var(--palette-0)");
   const [width, setWidth] = useState(16);
   const [penVariant, setPenVariant] = useState<PenVariant>("normal");
-  const [eraserVariant, setEraserVariant] = useState<EraserVariant>("eraserCircle");
+  const [eraserVariant, setEraserVariant] =
+    useState<EraserVariant>("eraserCircle");
   const [patternId, setPatternId] = useState<BrushPatternId>("dots");
 
   const [isExporting, setIsExporting] = useState(false);
@@ -136,6 +135,7 @@ export function WigglyEditor() {
   }, []);
 
   // Sync palette/body changes to engine's pattern cache
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Intentionally trigger on palette/bodyColor changes
   useEffect(() => {
     engineRef.current?.clearRendererCache();
   }, [palette, bodyColor]);
@@ -144,7 +144,10 @@ export function WigglyEditor() {
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: Static CSS, no user input
+        dangerouslySetInnerHTML={{
+          __html: `
         :root {
           ${palette.map((c, i) => `--palette-${i}: ${c};`).join("\n")}
           --ugo-body-bg: ${bodyColor.bg};
@@ -178,7 +181,9 @@ export function WigglyEditor() {
           scrollbar-width: auto;
           scrollbar-color: #ff6b00 #fdfbf7;
         }
-      `}} />
+      `,
+        }}
+      />
       <Layout
         canvas={
           <WigglyCanvas
