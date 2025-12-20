@@ -315,11 +315,14 @@ export function WigglyTools({
             >
               ペン
             </div>
-            <div
-              className={`text-8xl rotate-45 transform origin-center drop-shadow-sm ${tool === "pen" ? "opacity-100" : "opacity-60"}`}
-            >
-              ✏️
-            </div>
+            <img
+              src={
+                tool === "pen" ? "/images/pen_on.png" : "/images/pen_off.png"
+              }
+              alt="ペン"
+              className="w-24 h-24 object-contain drop-shadow-sm"
+              aria-hidden="true"
+            />
             {/* Corner Indicator (Circle) */}
             <div
               className={`absolute bottom-2 right-2 w-11 h-11 border-[4px] rounded-[3px] flex items-center justify-center ${tool === "pen" ? "border-black bg-white" : "border-[#d2b48c] bg-white"}`}
@@ -357,11 +360,16 @@ export function WigglyTools({
             >
               塗る
             </div>
-            <div
-              className={`text-8xl drop-shadow-sm ${tool === "pattern" ? "opacity-100" : "opacity-60"}`}
-            >
-              🖌️
-            </div>
+            <img
+              src={
+                tool === "pattern"
+                  ? "/images/pattern_on.png"
+                  : "/images/pattern_off.png"
+              }
+              alt="塗る"
+              className="w-24 h-24 object-contain drop-shadow-sm"
+              aria-hidden="true"
+            />
             {/* Corner Indicator */}
             <button
               type="button"
@@ -493,11 +501,16 @@ export function WigglyTools({
             >
               消しゴム
             </div>
-            <div
-              className={`text-8xl drop-shadow-sm ${tool === "eraser" ? "opacity-100" : "opacity-60"}`}
-            >
-              🩹
-            </div>
+            <img
+              src={
+                tool === "eraser"
+                  ? "/images/eraser_on.png"
+                  : "/images/eraser_off.png"
+              }
+              alt="消しゴム"
+              className="w-24 h-24 object-contain drop-shadow-sm"
+              aria-hidden="true"
+            />
             {/* Corner Indicator */}
             <button
               type="button"
