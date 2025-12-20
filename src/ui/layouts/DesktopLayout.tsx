@@ -68,17 +68,20 @@ export function DesktopLayout({ canvas, tools }: LayoutProps) {
 
         {/* Hinge Mechanism */}
         <div className="w-full h-12 bg-linear-to-b from-(--ugo-hinge-from) via-(--ugo-hinge-via) to-(--ugo-hinge-to) relative flex items-center justify-center border-y border-(--ugo-hinge-border) z-20">
-          {/* Status LEDs (Left side of the hinge cylinder) */}
+          {/* Status LEDs (Left side of the hinge cylinder) - decorative only */}
           <div className="absolute left-[12%] top-1/2 -translate-y-1/2 flex items-center gap-2 px-3 py-1 bg-black/5 rounded-full border border-white/20">
             <div
+              aria-hidden="true"
               className="w-1.5 h-3 rounded-full bg-[#4fc3f7] shadow-[0_0_5px_#03a9f4]"
               title="Wireless"
             />
             <div
+              aria-hidden="true"
               className="w-1.5 h-3 rounded-full bg-[#ffb74d] opacity-20"
               title="Charge"
             />
             <div
+              aria-hidden="true"
               className="w-1.5 h-3 rounded-full bg-[#81c784] shadow-[0_0_5px_#4caf50]"
               title="Power"
             />

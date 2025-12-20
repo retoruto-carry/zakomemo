@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { shareToTwitter } from "@/lib/share";
 
 // X (Twitter) アイコン
@@ -37,10 +37,20 @@ export function ShareButton({
   className = "",
 }: ShareButtonProps) {
   const [isSharing, setIsSharing] = useState(false);
+  const [shareError, setShareError] = useState(false);
+
+  // エラー表示を3秒後にリセット
+  useEffect(() => {
+    if (shareError) {
+      const timer = setTimeout(() => setShareError(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [shareError]);
 
   const handleShare = async () => {
     if (isSharing) return;
     setIsSharing(true);
+    setShareError(false);
 
     try {
       await shareToTwitter({
@@ -50,10 +60,13 @@ export function ShareButton({
       });
     } catch (error) {
       console.error("Share failed:", error);
+      setShareError(true);
     } finally {
       setIsSharing(false);
     }
   };
+
+  const buttonText = shareError ? "シェア失敗..." : "シェアする";
 
   return (
     <button
@@ -73,7 +86,7 @@ export function ShareButton({
       `}
     >
       <XIcon />
-      <span>シェアする</span>
+      <span>{buttonText}</span>
     </button>
   );
 }
