@@ -25,14 +25,18 @@ const defaultPalette = PALETTE_PRESETS[0].colors;
 // Standard DS White body
 const defaultBodyColor = BODY_PRESETS[0].body;
 
+/** Default pen width (should match engine/variants.ts defaultPenWidth.normal) */
+const DEFAULT_PEN_WIDTH = 16;
+
 export function WigglyEditor() {
   const engineRef = useRef<WigglyEngine | null>(null);
 
   // State
   const [tool, setTool] = useState<Tool>("pen");
   const [color, setColor] = useState("var(--palette-0)");
-  const [width, setWidth] = useState(16);
-  const [penVariant, _setPenVariant] = useState<PenVariant>("normal");
+  const [width, setWidth] = useState(DEFAULT_PEN_WIDTH);
+  // penVariantは現在"normal"のみなので定数として扱う
+  const penVariant: PenVariant = "normal";
   const [eraserVariant, setEraserVariant] =
     useState<EraserVariant>("eraserCircle");
   const [patternId, setPatternId] = useState<BrushPatternId>("dots");

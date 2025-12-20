@@ -22,6 +22,11 @@ const handleButtonKeyDown = (callback: () => void) => (e: KeyboardEvent) => {
   }
 };
 
+/** ペン幅スライダーの最小値 */
+const MIN_PEN_WIDTH = 1;
+/** ペン幅スライダーの最大値 */
+const MAX_PEN_WIDTH = 48;
+
 // パターンプレビュー用スタイル設定（実際の描画と同じ2倍スケール）
 const PATTERN_STYLES: Record<
   BrushPatternId,
@@ -561,8 +566,8 @@ export function WigglyTools({
           />
           <input
             type="range"
-            min={1}
-            max={48}
+            min={MIN_PEN_WIDTH}
+            max={MAX_PEN_WIDTH}
             value={width}
             onChange={(e) => setWidth(Number(e.target.value))}
             className="w-full h-8 relative z-10 accent-[#ff6b00] cursor-pointer mix-blend-multiply"
