@@ -6,6 +6,7 @@ import { WigglyEditor } from "@/ui/WigglyEditor";
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
+  const [isExiting, setIsExiting] = useState(false);
 
   useEffect(() => {
     // フォントとCSSの読み込みを待つ
@@ -22,7 +23,7 @@ export default function Home() {
         const remaining = Math.max(0, MIN_LOADING_TIME - elapsed);
 
         setTimeout(() => {
-          setIsLoading(false);
+          setIsExiting(true);
         }, remaining);
       });
     };
@@ -44,7 +45,12 @@ export default function Home() {
           <WigglyEditor />
         </main>
       </div>
-      {isLoading && <LoadingScreen />}
+      {isLoading && (
+        <LoadingScreen
+          isExiting={isExiting}
+          onExited={() => setIsLoading(false)}
+        />
+      )}
     </>
   );
 }
