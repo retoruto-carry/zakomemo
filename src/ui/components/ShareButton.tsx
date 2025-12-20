@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { shareToTwitter, isMobile, canShareFiles } from "@/lib/share";
 
 // X (Twitter) アイコン
@@ -27,20 +27,24 @@ interface ShareButtonProps {
 
 /**
  * X (Twitter) シェアボタン
- * - モバイル + 画像: Web Share API で画像付きシェア
- * - その他: Intent URL でシェア
+ * Web Share API で画像付きシェアができる環境（モバイル）でのみ表示
  */
 export function ShareButton({ text, imageUrl, className = "" }: ShareButtonProps) {
   const [isSharing, setIsSharing] = useState(false);
-  const [canShareWithImage, setCanShareWithImage] = useState<boolean | null>(null);
+  const [canShare, setCanShare] = useState<boolean | null>(null);
 
-  // 初回レンダー時に画像付きシェアが可能かチェック
-  if (canShareWithImage === null && typeof window !== "undefined") {
-    canShareFiles().then(setCanShareWithImage);
-  }
+  // 画像付き Web Share API が使えるかチェック
+  useEffect(() => {
+    const checkShareCapability = async () => {
+      const mobile = isMobile();
+      const filesSupported = await canShareFiles();
+      setCanShare(mobile && filesSupported);
+    };
+    checkShareCapability();
+  }, []);
 
   const handleShare = async () => {
-    if (isSharing) return;
+    if (isSharing || !imageUrl) return;
     setIsSharing(true);
 
     try {
@@ -54,8 +58,10 @@ export function ShareButton({ text, imageUrl, className = "" }: ShareButtonProps
     }
   };
 
-  // モバイルで画像付きシェアが可能な場合のラベル
-  const showImageBadge = isMobile() && imageUrl && canShareWithImage;
+  // 画像付きシェアができない環境では表示しない
+  if (!canShare || !imageUrl) {
+    return null;
+  }
 
   return (
     <button
@@ -75,11 +81,6 @@ export function ShareButton({ text, imageUrl, className = "" }: ShareButtonProps
     >
       <XIcon />
       <span>シェアする</span>
-      {showImageBadge && (
-        <span className="text-xs bg-white/20 px-1.5 py-0.5 rounded ml-1">
-          画像付き
-        </span>
-      )}
     </button>
   );
 }
