@@ -330,7 +330,7 @@ export function WigglyTools({
                   eraserVariant === 'eraserSquare' ? 'rounded-none' :
                     'rounded-none w-6 h-1.5'
                   } ${eraserVariant === 'eraserCircle' || eraserVariant === 'eraserSquare' ? 'w-5 h-5' : ''
-                  } ${tool === "eraser" ? "bg-black" : "bg-[#d2b48c]"} shadow-inner`}
+                  } bg-white border-[1.5px] ${tool === "eraser" ? "border-black" : "border-[#d2b48c]"} shadow-inner`}
               />
             </div>
 
@@ -354,17 +354,17 @@ export function WigglyTools({
                         setEraserVariant(v.id);
                         setActivePopup("none");
                       }}
-                      className={`relative border-[2px] w-11 h-11 flex items-center justify-center bg-white active:scale-95 transition-all rounded-[2px]
+                      className={`relative border-[2px] w-11 h-11 flex items-center justify-center transition-all rounded-[2px]
                                     ${eraserVariant === v.id
-                          ? "border-black bg-[#ffff00]/30"
-                          : "border-[#e7d1b1]"
+                          ? "border-black bg-slate-100"
+                          : "border-[#e7d1b1] bg-white"
                         }`}
                     >
                       <div
                         className={`${v.id === 'eraserCircle' ? 'rounded-full' :
                           v.id === 'eraserSquare' ? 'rounded-none' :
                             'rounded-none w-7 h-2'
-                          } ${eraserVariant === v.id ? 'bg-black' : 'bg-[#a67c52]'
+                          } bg-white border-[1.5px] ${eraserVariant === v.id ? 'border-black' : 'border-[#a67c52]'
                           } ${v.id === 'eraserCircle' || v.id === 'eraserSquare' ? 'w-6 h-6' : ''
                           }`}
                       />
