@@ -54,6 +54,8 @@ export class WigglyEngine {
   private lastRenderAt = 0;
   private minFrameIntervalMs = 1000 / 45; // 約45fps目安で間引き
 
+  private onHistoryChange?: () => void;
+
   constructor(options: EngineOptions) {
     this.history = createHistory(options.initialDrawing);
     this.renderer = options.renderer;
@@ -89,6 +91,22 @@ export class WigglyEngine {
 
   setPattern(patternId: BrushSettings["patternId"]): void {
     this.pendingPattern = patternId;
+  }
+
+  setHistoryChangeListener(listener: () => void): void {
+    this.onHistoryChange = listener;
+  }
+
+  clearRendererCache(): void {
+    this.renderer.clearPatternCache();
+  }
+
+  canUndo(): boolean {
+    return this.history.past.length > 0;
+  }
+
+  canRedo(): boolean {
+    return this.history.future.length > 0;
   }
 
   pointerDown(x: number, y: number): void {
@@ -205,14 +223,17 @@ export class WigglyEngine {
     );
     this.strokeStartDrawing = null;
     this.currentStrokeId = null;
+    this.onHistoryChange?.();
   }
 
   undo(): void {
     this.history = undoHistory(this.history);
+    this.onHistoryChange?.();
   }
 
   redo(): void {
     this.history = redoHistory(this.history);
+    this.onHistoryChange?.();
   }
 
   getDrawing(): Drawing {
@@ -222,6 +243,7 @@ export class WigglyEngine {
   clear(): void {
     const cleared = clearDrawing(this.history.present);
     this.history = pushHistory(this.history, cleared);
+    this.onHistoryChange?.();
   }
 
   destroy(): void {

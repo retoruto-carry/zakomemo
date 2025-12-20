@@ -5,7 +5,7 @@ import {
 import { getPatternDefinition } from "../core/patterns";
 import type { BrushPatternId, BrushVariant, Stroke } from "../core/types";
 import type { DrawingRenderer } from "../engine/ports";
-import { parseColorToRgb } from "./colorUtil";
+import { parseColorToRgb, resolveCssVariable } from "./colorUtil";
 
 export class CanvasRenderer implements DrawingRenderer {
   private lastWidth = 0;
@@ -70,7 +70,8 @@ export class CanvasRenderer implements DrawingRenderer {
       ctx.globalCompositeOperation = "source-over";
       ctx.globalAlpha = stroke.brush.opacity;
       if (stroke.brush.kind === "solid" || !stroke.brush.patternId) {
-        ctx.strokeStyle = stroke.brush.color;
+        // CSS変数を解決してCanvas APIで使用可能な色に変換
+        ctx.strokeStyle = resolveCssVariable(stroke.brush.color);
       } else {
         const pattern = this.createWigglyPattern(
           stroke.brush.patternId,
@@ -122,6 +123,10 @@ export class CanvasRenderer implements DrawingRenderer {
 
   getImageData(): ImageData {
     return this.ctx.getImageData(0, 0, this.lastWidth, this.lastHeight);
+  }
+
+  clearPatternCache(): void {
+    this.patternCache.clear();
   }
 
   private createWigglyPattern(
