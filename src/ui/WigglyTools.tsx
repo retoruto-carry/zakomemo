@@ -449,7 +449,7 @@ export function WigglyTools({
           <input
             type="range"
             min={1}
-            max={48}
+            max={64}
             value={width}
             onChange={(e) => setWidth(Number(e.target.value))}
             className="w-full h-8 relative z-10 accent-[#ff6b00] cursor-pointer mix-blend-multiply"
