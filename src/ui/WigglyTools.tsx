@@ -1,10 +1,11 @@
 "use client";
 
-import { type KeyboardEvent, useState } from "react";
+import { type KeyboardEvent, useRef, useState } from "react";
 import type { BrushPatternId } from "@/core/types";
 import type { EraserVariant } from "@/engine/variants";
 import type { Tool } from "@/engine/WigglyEngine";
 import { isMobile } from "@/lib/share";
+import { AnimatedGif, type AnimatedGifHandle } from "./components/AnimatedGif";
 import { ShareButton } from "./components/ShareButton";
 import {
   BODY_PRESETS,
@@ -120,6 +121,7 @@ export function WigglyTools({
     "none" | "pattern" | "eraser" | "settings"
   >("none");
   const [settingsTab, setSettingsTab] = useState<"palette" | "body">("palette");
+  const undoGifRef = useRef<AnimatedGifHandle>(null);
 
   // Toggle logic
   const handleToolClick = (t: Tool) => {
@@ -223,8 +225,22 @@ export function WigglyTools({
           {/* Undo (やり直し) */}
           {/* biome-ignore lint/a11y/useSemanticElements: Custom styled button */}
           <div
-            onClick={onUndo}
-            onKeyDown={handleButtonKeyDown(onUndo)}
+            onClick={
+              canUndo
+                ? () => {
+                    undoGifRef.current?.playAnimation();
+                    onUndo();
+                  }
+                : undefined
+            }
+            onKeyDown={
+              canUndo
+                ? handleButtonKeyDown(() => {
+                    undoGifRef.current?.playAnimation();
+                    onUndo();
+                  })
+                : undefined
+            }
             role="button"
             tabIndex={canUndo ? 0 : -1}
             aria-disabled={!canUndo}
@@ -239,7 +255,13 @@ export function WigglyTools({
               }
             `}
           >
-            <div className="text-white text-3xl font-black leading-none">⤺</div>
+            <AnimatedGif
+              ref={undoGifRef}
+              staticSrc="/images/frog_stop.png"
+              animatedSrc="/images/frog_back.gif"
+              alt=""
+              className="w-8 h-8"
+            />
             <span className="text-white font-black text-xl leading-none tracking-tighter whitespace-nowrap">
               やり直し
             </span>

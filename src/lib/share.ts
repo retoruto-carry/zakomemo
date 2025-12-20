@@ -31,7 +31,7 @@ export const canShareFiles = async (): Promise<boolean> => {
 export const urlToFile = async (
   url: string,
   filename: string,
-  mimeType: string,
+  mimeType: string
 ): Promise<File> => {
   const response = await fetch(url);
   if (!response.ok) {
