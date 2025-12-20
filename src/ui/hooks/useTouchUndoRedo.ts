@@ -2,11 +2,6 @@
 
 import { useEffect, useRef } from "react";
 
-/** 連続タップ防止のための最小間隔（ミリ秒） */
-const MIN_TAP_INTERVAL = 500;
-/** タップ後のクールダウン時間（ミリ秒） */
-const TAP_COOLDOWN = 300;
-
 interface TouchInfo {
   id: number;
   startX: number;
@@ -48,8 +43,6 @@ export function useTouchUndoRedo({
   enabled = true,
 }: UseTouchUndoRedoOptions) {
   const touchesRef = useRef<Map<number, TouchInfo>>(new Map());
-  const lastTapTimeRef = useRef<number>(0);
-  const tapCooldownRef = useRef<number>(0);
 
   useEffect(() => {
     if (!enabled) return;
@@ -97,12 +90,6 @@ export function useTouchUndoRedo({
     const handleTouchEnd = (ev: TouchEvent) => {
       const now = performance.now();
 
-      // クールダウン中は処理しない
-      if (now < tapCooldownRef.current) {
-        touchesRef.current.clear();
-        return;
-      }
-
       // すべてのタッチが終了したか確認
       const activeTouches = Array.from(touchesRef.current.values());
       const activeTouchIds = new Set(
@@ -144,15 +131,6 @@ export function useTouchUndoRedo({
           });
 
           if (allTaps) {
-            // 連続タップの防止（前回のタップから一定時間以内は無視）
-            if (now - lastTapTimeRef.current < MIN_TAP_INTERVAL) {
-              touchesRef.current.clear();
-              return;
-            }
-
-            lastTapTimeRef.current = now;
-            tapCooldownRef.current = now + TAP_COOLDOWN;
-
             if (touchCount === 2) {
               // 二本指タップ: undo
               onUndo();
