@@ -512,22 +512,24 @@ export function WigglyTools({
                 
                 {/* Custom Palette Option */}
                 <div className="col-span-2 mt-4 p-4 bg-white border-[3px] border-[#e7d1b1] rounded-[8px]">
-                  <span className="font-black text-lg mb-3 block">カスタムパレット</span>
+                  <span className="font-black text-lg mb-3 block text-center">カスタムパレット（色をタップして編集）</span>
                   <div className="grid grid-cols-6 gap-2">
                     {palette.map((c, i) => (
                       <div key={i} className="flex flex-col items-center gap-1">
-                        <div className="w-10 h-10 rounded-full border-2 border-black/20" style={{ backgroundColor: c }} />
-                        <input
-                          type="color"
-                          value={c}
-                          onChange={(e) => {
-                            const newPalette = [...palette];
-                            newPalette[i] = e.target.value;
-                            setPalette(newPalette);
-                          }}
-                          className="w-8 h-8 cursor-pointer opacity-0 absolute"
-                        />
-                        <span className="text-[10px] font-mono">{c}</span>
+                        <div className="relative w-10 h-10">
+                          <div className="absolute inset-0 rounded-full border-2 border-black/20" style={{ backgroundColor: c }} />
+                          <input
+                            type="color"
+                            value={c}
+                            onChange={(e) => {
+                              const newPalette = [...palette];
+                              newPalette[i] = e.target.value;
+                              setPalette(newPalette);
+                            }}
+                            className="absolute inset-0 w-full h-full cursor-pointer opacity-0"
+                          />
+                        </div>
+                        <span className="text-[10px] font-mono leading-none">{c.toUpperCase()}</span>
                       </div>
                     ))}
                   </div>
