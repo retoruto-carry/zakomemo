@@ -111,15 +111,9 @@ export function WigglyCanvas({
     };
 
     const handlePointerDown = (ev: PointerEvent) => {
-      // Apple Pencilなどのペン入力の場合、軽い筆圧でも描画できるようにする
-      // pressureが0の場合（タッチやマウス）や、ペンの場合は最小筆圧の閾値を設けない
-      // 誤検知を防ぐため、pressureが0でない限りすべてのペン入力を処理
-      // ただし、pressureが0の場合は無視（タッチやマウスの場合）
-      if (
-        ev.pointerType === "pen" &&
-        ev.pressure !== undefined &&
-        ev.pressure === 0
-      ) {
+      // Apple Pencilなどのペン入力で、筆圧0のイベント（ホバー時など）を無視することで
+      // 意図しない描画を防ぎ、軽い筆圧でも正しく描画を開始できるようにします。
+      if (ev.pointerType === "pen" && ev.pressure === 0) {
         return;
       }
 
