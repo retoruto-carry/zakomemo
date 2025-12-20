@@ -787,7 +787,7 @@ export function WigglyTools({
               <button
                 type="button"
                 onClick={() => setSettingsTab("body")}
-                className={`px-6 py-2 rounded-t-[8px] font-black text-lg transition-all ${
+                className={`hidden sm:block px-6 py-2 rounded-t-[8px] font-black text-lg transition-all ${
                   settingsTab === "body"
                     ? "bg-[#fdfbf7] text-[#ff6b00] translate-y-px border-t-[3px] border-l-[3px] border-r-[3px] border-[#e7d1b1]"
                     : "bg-[#ff9d5c] text-white hover:bg-[#ff8c00]"
