@@ -121,6 +121,7 @@ export function WigglyCanvas({
       // マルチタッチと判断して描画を無効にし、undo/redoジェスチャーを優先します
       const activePointerCount = activePointersRef.current.size;
       if (activePointerCount >= 1) {
+        ev.preventDefault();
         // マルチタッチ状態を記録
         isMultiTouchRef.current = true;
         // 描画を開始せず、undo/redoジェスチャーを優先
