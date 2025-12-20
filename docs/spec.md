@@ -73,7 +73,7 @@
 
 ## インフラ層（infra）
 - CanvasRenderer: Canvas2D で Stroke を描画。erase は destination-out、solid は色、pattern は wigglePatternTile→offscreenタイル→createPattern でワールド固定の模様を適用。DPR対応。
-  - パターンスケーリング: `PATTERN_SCALE=2`により、パターンの密度を2倍に下げる（ドットや市松が粗く見える）。DPR対応のため`pattern.setTransform(PATTERN_SCALE/dpr)`で統合スケーリング。
+  - パターンスケーリング: `PATTERN_SCALE=2`により、パターンの密度を2倍に下げる（ドットや市松が粗く見える）。論理座標で一貫したサイズに見せるため`pattern.setTransform(PATTERN_SCALE*dpr)`で物理ピクセルをスケール。
 - その他: RealTimeProvider（performance.now）、BrowserRafScheduler（requestAnimationFrame）、HowlerStrokeSound（速度に応じたボリューム制御）、GIF エンコーダー実装（ライブラリラップ）。
 
 ## UI層
