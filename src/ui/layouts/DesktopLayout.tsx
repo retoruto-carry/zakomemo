@@ -70,9 +70,14 @@ export function DesktopLayout({ canvas, tools }: LayoutProps) {
               <div className="absolute w-[110%] h-[110%] rounded-full bg-[#f2f2f2]" />
 
               {/* D-pad Cross (Unified shape using clip-path for correct shadow) */}
-              <div className="relative w-full h-full filter drop-shadow(0 3px 4px rgba(0,0,0,0.15))">
+              <div
+                className="relative w-[85%] h-[85%]"
+                style={{
+                  filter: 'drop-shadow(1px 0 0 #ccc) drop-shadow(-1px 0 0 #ccc) drop-shadow(0 1px 0 #ccc) drop-shadow(0 -1px 0 #ccc) drop-shadow(0 2px 4px rgba(0,0,0,0.1))'
+                }}
+              >
                 <div
-                  className="w-full h-full bg-[#fdfdfd] border border-[#ccc] rounded-sm"
+                  className="w-full h-full bg-[#fdfdfd]"
                   style={{
                     clipPath: "polygon(34% 0%, 66% 0%, 66% 34%, 100% 34%, 100% 66%, 66% 66%, 66% 100%, 34% 100%, 34% 66%, 0% 66%, 0% 34%, 34% 34%)"
                   }}
