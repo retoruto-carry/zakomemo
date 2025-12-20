@@ -106,8 +106,8 @@ export function WigglyTools({
       </div>
 
       {/* 2. MIDDLE ROW: Main Tools (Big Squares) */}
-      <div className="flex flex-col justify-center min-h-0 relative z-10 py-2">
-        <div className="grid grid-cols-3 gap-2">
+      <div className="flex-1 flex flex-col justify-center min-h-0 relative z-10 py-2">
+        <div className="grid grid-cols-3 gap-2 items-center">
 
           {/* Pen */}
           <button
@@ -130,7 +130,11 @@ export function WigglyTools({
 
           {/* Paint / Pattern */}
           <button
-            onClick={() => handleToolClick("pattern")}
+            onClick={() => {
+              // Main button click: just select the tool without opening popup
+              setTool("pattern");
+              setActivePopup("none");
+            }}
             className={`
                   relative border-4 rounded-xl flex flex-col items-center justify-center p-2 transition-all active:scale-[0.98] aspect-square w-full
                   ${tool === "pattern"
@@ -141,8 +145,15 @@ export function WigglyTools({
           >
             <div className="absolute top-2 left-2 text-xs font-bold opacity-50">塗る</div>
             <div className="text-6xl drop-shadow-sm">🖌️</div>
-            {/* Corner Indicator */}
-            <div className={`absolute bottom-2 right-2 w-8 h-8 border-2 rounded-lg flex items-center justify-center transition-colors ${tool === "pattern" ? "border-orange-500 bg-orange-100" : "border-slate-300 bg-slate-100"}`}>
+            {/* Corner Indicator - Clicking this opens the popup immediately */}
+            <div
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent main button's onClick
+                setTool("pattern"); // Also select the tool
+                setActivePopup(activePopup === "pattern" ? "none" : "pattern");
+              }}
+              className={`absolute bottom-2 right-2 w-8 h-8 border-2 rounded-lg flex items-center justify-center transition-all hover:scale-110 active:scale-90 ${tool === "pattern" ? "border-orange-500 bg-orange-100" : "border-slate-300 bg-slate-100"}`}
+            >
               {/* Tiny preview of current pattern */}
               <div className="w-4 h-4 rounded-sm"
                 style={{
@@ -168,7 +179,7 @@ export function WigglyTools({
 
             {/* COMPACT POPUP: Pattern Grid (3x3) */}
             {activePopup === "pattern" && (
-              <div className="absolute top-full mt-2 bg-white rounded-lg border-2 border-orange-500 p-1.5 grid grid-cols-3 gap-1.5 shadow-xl z-50" style={{ width: '140px', left: '50%', transform: 'translateX(-50%)', maxWidth: 'calc(100% - 1rem)' }}>
+              <div className="absolute top-full mt-2 bg-white rounded-lg border-2 border-orange-500 p-1.5 grid grid-cols-3 gap-1.5 shadow-xl z-50 h-fit" style={{ width: '140px', left: '50%', transform: 'translateX(-50%)', maxWidth: 'calc(100% - 1rem)' }}>
                 {[
                   { id: "dots", bg: "radial-gradient(circle, #000 1.5px, transparent 2px)", bgSize: "6px 6px" },
                   { id: "dotsDense", bg: "radial-gradient(circle, #000 1px, transparent 1.5px)", bgSize: "3px 3px" },
@@ -179,21 +190,13 @@ export function WigglyTools({
                     bg: "linear-gradient(45deg, #000 25%, transparent 25%), linear-gradient(-45deg, #000 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #000 75%), linear-gradient(-45deg, transparent 75%, #000 75%)",
                     bgSize: "6px 6px", bgPos: "0 0, 0 3px, 3px -3px, -3px 0px"
                   },
-                  null, // Empty slot for 3x3 grid
-                  null, // Empty slot
-                  null, // Empty slot
-                  null, // Empty slot
-                ].map((p, i) => {
-                  if (!p) {
-                    return (
-                      <div key={`empty-${i}`} className="aspect-square border-2 border-transparent" />
-                    );
-                  }
+                ].map((p) => {
                   return (
                     <button
                       key={p.id}
                       onClick={(e) => {
                         e.stopPropagation();
+                        setTool("pattern"); // Select tool when pattern chosen
                         setPatternId(p.id as BrushPatternId);
                         setActivePopup("none");
                       }}
@@ -223,7 +226,11 @@ export function WigglyTools({
 
           {/* Eraser */}
           <button
-            onClick={() => handleToolClick("eraser")}
+            onClick={() => {
+              // Main button click: just select the tool without opening popup
+              setTool("eraser");
+              setActivePopup("none");
+            }}
             className={`
                   relative border-4 rounded-xl flex flex-col items-center justify-center p-2 transition-all active:scale-[0.98] aspect-square w-full
                   ${tool === "eraser"
@@ -234,8 +241,15 @@ export function WigglyTools({
           >
             <div className="absolute top-2 left-2 text-xs font-bold opacity-50">消しゴム</div>
             <div className="text-6xl drop-shadow-sm">🩹</div>
-            {/* Corner Indicator */}
-            <div className={`absolute bottom-2 right-2 w-8 h-8 border-2 rounded-lg flex items-center justify-center transition-colors ${tool === "eraser" ? "border-orange-500 bg-orange-100" : "border-slate-300 bg-slate-100"}`}>
+            {/* Corner Indicator - Clicking this opens the popup immediately */}
+            <div
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent main button's onClick
+                setTool("eraser"); // Also select the tool
+                setActivePopup(activePopup === "eraser" ? "none" : "eraser");
+              }}
+              className={`absolute bottom-2 right-2 w-8 h-8 border-2 rounded-lg flex items-center justify-center transition-all hover:scale-110 active:scale-90 ${tool === "eraser" ? "border-orange-500 bg-orange-100" : "border-slate-300 bg-slate-100"}`}
+            >
               <div
                 className={`${eraserVariant === 'eraserCircle' ? 'rounded-full' :
                   eraserVariant === 'eraserSquare' ? 'rounded-sm' :
@@ -247,27 +261,19 @@ export function WigglyTools({
 
             {/* COMPACT POPUP: Eraser Grid (3x3, same size as pattern) */}
             {activePopup === "eraser" && (
-              <div className="absolute top-full mt-2 bg-white rounded-lg border-2 border-orange-500 p-1.5 grid grid-cols-3 gap-1.5 shadow-xl z-50" style={{ width: '140px', left: '50%', transform: 'translateX(-50%)', maxWidth: 'calc(100% - 1rem)' }}>
-                {[
-                  ...eraserVariants.map(v => ({ variant: v, isEmpty: false })),
-                  ...Array(6).fill(null).map(() => ({ variant: null, isEmpty: true }))
-                ].slice(0, 9).map((item, i) => {
-                  if (item.isEmpty || !item.variant) {
-                    return (
-                      <div key={`empty-${i}`} className="aspect-square border-2 border-transparent" />
-                    );
-                  }
-                  const v = item.variant;
+              <div className="absolute top-full mt-2 bg-white rounded-lg border-2 border-orange-500 p-1.5 grid grid-cols-3 gap-1.5 shadow-xl z-50 h-fit" style={{ width: '140px', left: '50%', transform: 'translateX(-50%)', maxWidth: 'calc(100% - 1rem)' }}>
+                {eraserVariants.map((v) => {
                   return (
                     <button
                       key={v.id}
                       onClick={(e) => {
                         e.stopPropagation();
+                        setTool("eraser"); // Select tool when variant chosen
                         setEraserVariant(v.id);
                         setActivePopup("none");
                       }}
                       className={`relative rounded border-2 aspect-square flex items-center justify-center bg-white hover:bg-orange-50 active:scale-95 transition-all
-                                    ${eraserVariant === v.id
+                                  ${eraserVariant === v.id
                           ? "border-orange-500 bg-orange-100 ring-2 ring-orange-300 shadow-md"
                           : "border-slate-300 hover:border-orange-300"
                         }`}
@@ -275,8 +281,8 @@ export function WigglyTools({
                       {/* Icon for eraser type */}
                       <div
                         className={`${v.id === 'eraserCircle' ? 'rounded-full' :
-                          v.id === 'eraserSquare' ? 'rounded-sm' :
-                            'rounded-none w-6 h-1'
+                            v.id === 'eraserSquare' ? 'rounded-sm' :
+                              'rounded-none w-6 h-1'
                           } ${eraserVariant === v.id ? 'bg-orange-700' : 'bg-slate-600'
                           } ${v.id === 'eraserCircle' || v.id === 'eraserSquare' ? 'w-6 h-6' : ''
                           }`}
