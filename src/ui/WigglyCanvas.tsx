@@ -111,6 +111,9 @@ export function WigglyCanvas({
     };
 
     const handlePointerDown = (ev: PointerEvent) => {
+      // Apple Pencilの初期pointerdownイベントではpressure=0になることがあるため、
+      // pointerdownでは筆圧をチェックせず、すべてのペン入力を処理します。
+      // 軽い筆圧でも描画を開始できるようにするためです。
       ev.preventDefault();
       canvas.setPointerCapture(ev.pointerId);
       const now = performance.now();

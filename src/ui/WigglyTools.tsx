@@ -787,7 +787,7 @@ export function WigglyTools({
               <button
                 type="button"
                 onClick={() => setSettingsTab("body")}
-                className={`px-6 py-2 rounded-t-[8px] font-black text-lg transition-all ${
+                className={`hidden sm:block px-6 py-2 rounded-t-[8px] font-black text-lg transition-all ${
                   settingsTab === "body"
                     ? "bg-[#fdfbf7] text-[#ff6b00] translate-y-px border-t-[3px] border-l-[3px] border-r-[3px] border-[#e7d1b1]"
                     : "bg-[#ff9d5c] text-white hover:bg-[#ff8c00]"
@@ -810,7 +810,7 @@ export function WigglyTools({
           <div className="flex-1 overflow-y-auto ugo-scrollbar p-4 relative z-10">
             {settingsTab === "palette" ? (
               <div className="flex flex-col gap-4">
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {PALETTE_PRESETS.map((p) => (
                     <button
                       type="button"
@@ -858,7 +858,7 @@ export function WigglyTools({
                           />
                           <div className="absolute inset-0 border-[1.5px] border-white/30 rounded-[3px] pointer-events-none" />
                         </div>
-                        <span className="text-[9px] font-black text-[#a67c52] leading-none">
+                        <span className="text-sm font-black text-[#a67c52] leading-none">
                           {c.toUpperCase()}
                         </span>
                         <input
