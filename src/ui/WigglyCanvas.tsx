@@ -78,17 +78,23 @@ export function WigglyCanvas({
 
     canvas.style.touchAction = "none";
 
-    const rectFor = () => canvas.getBoundingClientRect();
+    // 座標変換: client座標→キャンバス論理座標
     const toCanvasPos = (ev: PointerEvent) => {
-      const rect = rectFor();
-      const scaleX = canvas.width / rect.width;
-      const scaleY = canvas.height / rect.height;
+      const rect = canvas.getBoundingClientRect();
       const visualX = ev.clientX - rect.left;
       const visualY = ev.clientY - rect.top;
 
+      // canvas.width/height は DPR を掛けた物理ピクセル値なので、論理サイズに戻してからスケールする
+      const dpr = window.devicePixelRatio || 1;
+      const logicalWidth = canvas.width / dpr;
+      const logicalHeight = canvas.height / dpr;
+
+      const scaleX = logicalWidth / rect.width;
+      const scaleY = logicalHeight / rect.height;
+
       return {
-        visual: { x: visualX, y: visualY },
-        internal: { x: visualX * scaleX, y: visualY * scaleY }
+        visual: { x: visualX, y: visualY }, // 画面上の表示座標（eraserガイド用）
+        internal: { x: visualX * scaleX, y: visualY * scaleY }, // エンジン用の論理座標
       };
     };
 
@@ -205,13 +211,17 @@ export function WigglyCanvas({
   }, []); // Run once on mount
 
   return (
-    <div className="relative inline-block bg-white box-border w-full h-full touch-none select-none">
+    <div className="relative w-full h-full bg-white touch-none select-none overflow-hidden flex items-center justify-center">
       <canvas
         ref={canvasRef}
         width={initialDrawing.width}
         height={initialDrawing.height}
-        className="block w-full h-full object-contain touch-none"
-        style={{ touchAction: "none" }}
+        className="block touch-none"
+        style={{ 
+          touchAction: "none",
+          width: "100%",
+          height: "100%",
+        }}
       />
       {tool === "eraser" && eraserPos && (
         <div
