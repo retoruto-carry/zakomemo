@@ -82,8 +82,13 @@ export class CanvasRenderer implements DrawingRenderer {
           stroke.brush.patternId,
           stroke.brush.color,
         );
-        // パターンの座標系をDPRに合わせてスケール
-        pattern.setTransform(new DOMMatrix().scale(1 / this.dpr, 1 / this.dpr));
+        // パターンの座標系をDPRに合わせつつ、PATTERN_SCALEで密度を下げる
+        pattern.setTransform(
+          new DOMMatrix().scale(
+            PATTERN_SCALE / this.dpr,
+            PATTERN_SCALE / this.dpr,
+          ),
+        );
         ctx.strokeStyle = pattern;
       }
     }
@@ -147,14 +152,14 @@ export class CanvasRenderer implements DrawingRenderer {
     const def = getPatternDefinition(patternId as BrushPatternId);
     const tile = wigglePatternTile(def.tile, 0, this.wiggleConfig);
 
-    // 1xサイズでタイルを作成
-    const tempCanvas = document.createElement("canvas");
-    tempCanvas.width = tile.width;
-    tempCanvas.height = tile.height;
-    const tempCtx = tempCanvas.getContext("2d");
-    if (!tempCtx) throw new Error("2D context not available");
+    // 1xサイズでタイルを作成（setTransformでスケール適用するため）
+    const offscreen = document.createElement("canvas");
+    offscreen.width = tile.width;
+    offscreen.height = tile.height;
+    const offCtx = offscreen.getContext("2d");
+    if (!offCtx) throw new Error("2D context not available");
 
-    const imageData = tempCtx.createImageData(tile.width, tile.height);
+    const imageData = offCtx.createImageData(tile.width, tile.height);
     const { r, g, b } = parseColorToRgb(color);
 
     for (let i = 0; i < tile.alpha.length; i++) {
@@ -164,16 +169,7 @@ export class CanvasRenderer implements DrawingRenderer {
       imageData.data[idx + 2] = b;
       imageData.data[idx + 3] = Math.round(255 * tile.alpha[i]);
     }
-    tempCtx.putImageData(imageData, 0, 0);
-
-    // PATTERN_SCALE倍にスケール
-    const offscreen = document.createElement("canvas");
-    offscreen.width = tile.width * PATTERN_SCALE;
-    offscreen.height = tile.height * PATTERN_SCALE;
-    const offCtx = offscreen.getContext("2d");
-    if (!offCtx) throw new Error("2D context not available");
-    offCtx.imageSmoothingEnabled = false;
-    offCtx.drawImage(tempCanvas, 0, 0, offscreen.width, offscreen.height);
+    offCtx.putImageData(imageData, 0, 0);
 
     const pattern = this.ctx.createPattern(offscreen, "repeat");
     if (!pattern) throw new Error("Failed to create canvas pattern");
