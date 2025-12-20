@@ -810,7 +810,7 @@ export function WigglyTools({
           <div className="flex-1 overflow-y-auto ugo-scrollbar p-4 relative z-10">
             {settingsTab === "palette" ? (
               <div className="flex flex-col gap-4">
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {PALETTE_PRESETS.map((p) => (
                     <button
                       type="button"
