@@ -58,10 +58,10 @@ export function ShareButton({ text, imageUrl, className = "" }: ShareButtonProps
     }
   };
 
-  // 画像付きシェアができない環境では表示しない
-  if (!canShare || !imageUrl) {
-    return null;
-  }
+  //// 画像付きシェアができない環境では表示しない
+  //if (!canShare || !imageUrl) {
+  //  return null;
+  //}
 
   return (
     <button
