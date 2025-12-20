@@ -27,7 +27,8 @@ interface ShareButtonProps {
 
 /**
  * X (Twitter) シェアボタン
- * Web Share API で画像付きシェアができる環境（モバイル）でのみ表示
+ * Web Share API対応ブラウザ（主にモバイル）では画像付きの共有を試みます。
+ * 非対応の環境では、テキスト共有のインテントURLを開きます。
  */
 export function ShareButton({ text, imageUrl, className = "" }: ShareButtonProps) {
   const [isSharing, setIsSharing] = useState(false);

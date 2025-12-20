@@ -3,6 +3,7 @@
 import type { BrushPatternId } from "@/core/types";
 import type { EraserVariant, PenVariant } from "@/engine/variants";
 import type { Tool } from "@/engine/WigglyEngine";
+import { isMobile } from "@/lib/share";
 import { useState } from "react";
 import { eraserVariants } from "./variants";
 import { PALETTE_PRESETS, BODY_PRESETS, type BodyColor, generateBodyColorFromBase } from "./presets";
@@ -507,7 +508,7 @@ export function WigglyTools({
 
                 <div className="flex flex-col items-center gap-1 text-center mt-2">
                   <p className="text-sm font-black leading-tight">
-                    {typeof window !== 'undefined' && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+                    {isMobile()
                       ? "↑スマホの場合は長押しで保存"
                       : "↑右クリックで保存できます"
                     }

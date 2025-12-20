@@ -187,19 +187,18 @@ export function WigglyCanvas({
     };
 
     // Use window for move/up to catch drags leaving the canvas (though capture handles most)
+    const handlePointerLeave = () => {
+      // Hide eraser if pen leaves canvas (only when not dragging)
+      if (toolRef.current === "eraser" && !primaryPointerIdRef.current) {
+        setEraserPos(null);
+      }
+    };
+
     canvas.addEventListener("pointerdown", handlePointerDown, { passive: false });
     canvas.addEventListener("pointermove", handlePointerMove, { passive: false });
     canvas.addEventListener("pointerup", handlePointerUp);
     canvas.addEventListener("pointercancel", handlePointerUp);
-    canvas.addEventListener("pointerleave", () => {
-      // Hide eraser if pen leaves canvas
-      if (toolRef.current === "eraser") { // and not dragging?
-        // If dragging (captured), we might still want it? 
-        // pointerleave fires even if captured? No, if captured, events go to target.
-        // But if not captured (hover), leave fires.
-        if (!primaryPointerIdRef.current) setEraserPos(null);
-      }
-    });
+    canvas.addEventListener("pointerleave", handlePointerLeave);
 
     return () => {
       engine.destroy();
@@ -207,6 +206,7 @@ export function WigglyCanvas({
       canvas.removeEventListener("pointermove", handlePointerMove);
       canvas.removeEventListener("pointerup", handlePointerUp);
       canvas.removeEventListener("pointercancel", handlePointerUp);
+      canvas.removeEventListener("pointerleave", handlePointerLeave);
     };
   }, []); // Run once on mount
 

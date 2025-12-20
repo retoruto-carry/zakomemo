@@ -92,7 +92,11 @@ export const shareToTwitter = async (options: ShareOptions): Promise<void> => {
   
   if (isMobile()) {
     // モバイルでは twitter:// を試し、失敗したら web URL にフォールバック
-    const webFallbackUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+    const fallbackParams = new URLSearchParams({ text });
+    if (options.url) {
+      fallbackParams.set("url", options.url);
+    }
+    const webFallbackUrl = `https://twitter.com/intent/tweet?${fallbackParams.toString()}`;
     
     // twitter:// スキームを試す
     window.location.href = intentUrl;
