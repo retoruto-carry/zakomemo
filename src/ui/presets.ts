@@ -96,6 +96,22 @@ export const BODY_PRESETS = [
     name: "ホットピンク", 
     body: { bg: "#f50057", border: "#c51162", bezel: "#2a2a2a", bezelBorder: "#333", button: "#ff80ab", buttonBorder: "#f50057", buttonText: "#fff", hingeFrom: "#c51162", hingeVia: "#f50057", hingeTo: "#c51162", hingeBorder: "#880e4f" } 
   },
+  { 
+    name: "コーラルピンク", 
+    body: { bg: "#ff8a80", border: "#ff5252", bezel: "#2a2a2a", bezelBorder: "#333", button: "#ffebee", buttonBorder: "#ff8a80", buttonText: "#b71c1c", hingeFrom: "#ff5252", hingeVia: "#ff8a80", hingeTo: "#ff5252", hingeBorder: "#ff1744" } 
+  },
+  { 
+    name: "ティール", 
+    body: { bg: "#009688", border: "#00695c", bezel: "#1a1a1a", bezelBorder: "#000", button: "#e0f2f1", buttonBorder: "#009688", buttonText: "#004d40", hingeFrom: "#00695c", hingeVia: "#009688", hingeTo: "#00695c", hingeBorder: "#004d40" } 
+  },
+  { 
+    name: "ラベンダー", 
+    body: { bg: "#d1c4e9", border: "#9575cd", bezel: "#2a2a2a", bezelBorder: "#333", button: "#f3e5f5", buttonBorder: "#d1c4e9", buttonText: "#4527a0", hingeFrom: "#9575cd", hingeVia: "#d1c4e9", hingeTo: "#9575cd", hingeBorder: "#673ab7" } 
+  },
+  { 
+    name: "チャコール", 
+    body: { bg: "#455a64", border: "#263238", bezel: "#1a1a1a", bezelBorder: "#000", button: "#cfd8dc", buttonBorder: "#455a64", buttonText: "#eceff1", hingeFrom: "#263238", hingeVia: "#455a64", hingeTo: "#263238", hingeBorder: "#212121" } 
+  },
 ];
 
 export function generateBodyColorFromBase(hex: string): BodyColor {

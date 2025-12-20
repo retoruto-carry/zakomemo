@@ -557,15 +557,15 @@ export function WigglyTools({
               </div>
             ) : (
               <div className="flex flex-col gap-3">
-                <div className="grid grid-cols-4 gap-3">
+                <div className="grid grid-cols-5 gap-2.5">
                   {BODY_PRESETS.map((b) => (
                     <button
                       key={b.name}
                       onClick={() => setBodyColor(b.body)}
-                      className={`aspect-square rounded-[6px] border-[3px] transition-all relative flex items-center justify-center p-1.5 ${
+                      className={`aspect-square rounded-[4px] border-[3px] transition-all relative flex items-center justify-center p-1.5 ${
                         bodyColor.bg === b.body.bg
-                          ? "border-black bg-[#ffff00] shadow-[4px_4px_0_rgba(0,0,0,0.15)] z-10"
-                          : "border-[#e7d1b1] bg-white hover:border-[#ff9d5c] shadow-[2px_2px_0_rgba(210,180,140,0.1)]"
+                          ? "border-black bg-[#ffff00] shadow-[3px_3px_0_rgba(0,0,0,0.15)] z-10"
+                          : "border-[#e7d1b1] bg-white hover:border-[#ff9d5c] shadow-[1px_1px_0_rgba(210,180,140,0.1)]"
                       }`}
                     >
                       <div className="w-full h-full relative border-[2.5px] border-black/10 rounded-[3px] shadow-inner overflow-hidden" style={{ backgroundColor: b.body.bg }}>
