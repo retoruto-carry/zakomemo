@@ -2,7 +2,7 @@
 
 import { type KeyboardEvent, useState } from "react";
 import type { BrushPatternId } from "@/core/types";
-import type { EraserVariant, PenVariant } from "@/engine/variants";
+import type { EraserVariant } from "@/engine/variants";
 import type { Tool } from "@/engine/WigglyEngine";
 import { isMobile } from "@/lib/share";
 import { ShareButton } from "./components/ShareButton";
@@ -62,8 +62,6 @@ interface WigglyToolsProps {
   setColor: (color: string) => void;
   width: number;
   setWidth: (width: number) => void;
-  penVariant: PenVariant;
-  setPenVariant: (variant: PenVariant) => void;
   eraserVariant: EraserVariant;
   setEraserVariant: (variant: EraserVariant) => void;
   patternId: BrushPatternId;
@@ -93,8 +91,6 @@ export function WigglyTools({
   setColor,
   width,
   setWidth,
-  penVariant: _penVariant,
-  setPenVariant: _setPenVariant,
   eraserVariant,
   setEraserVariant,
   patternId,
