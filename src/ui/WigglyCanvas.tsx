@@ -125,10 +125,11 @@ export function WigglyCanvas({
         isMultiTouchRef.current = true;
         // 描画を開始せず、undo/redoジェスチャーを優先
         // ポインター情報は記録するが、描画は開始しない
+        const { internal } = toCanvasPos(ev);
         activePointersRef.current.set(ev.pointerId, {
           id: ev.pointerId,
-          startX: 0,
-          startY: 0,
+          startX: internal.x,
+          startY: internal.y,
           startTime: performance.now(),
           moved: false,
         });
