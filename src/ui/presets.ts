@@ -98,3 +98,52 @@ export const BODY_PRESETS = [
   },
 ];
 
+export function generateBodyColorFromBase(hex: string): BodyColor {
+  // Simple logic to derive shades from a base color
+  // Ideally we'd use a color library, but we can do simple math or just reuse some parts
+  const isDark = (color: string) => {
+    const c = color.replace('#', '');
+    const r = parseInt(c.substring(0, 2), 16);
+    const g = parseInt(c.substring(2, 4), 16);
+    const b = parseInt(c.substring(4, 6), 16);
+    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+    return brightness < 128;
+  };
+
+  const darken = (color: string, percent: number) => {
+    const c = color.replace('#', '');
+    const num = parseInt(c, 16);
+    const amt = Math.round(2.55 * percent);
+    const R = (num >> 16) - amt;
+    const G = (num >> 8 & 0x00FF) - amt;
+    const B = (num & 0x0000FF) - amt;
+    return "#" + (0x1000000 + (R < 255 ? R < 0 ? 0 : R : 255) * 0x10000 + (G < 255 ? G < 0 ? 0 : G : 255) * 0x100 + (B < 255 ? B < 0 ? 0 : B : 255)).toString(16).slice(1);
+  };
+
+  const lighten = (color: string, percent: number) => {
+    const c = color.replace('#', '');
+    const num = parseInt(c, 16);
+    const amt = Math.round(2.55 * percent);
+    const R = (num >> 16) + amt;
+    const G = (num >> 8 & 0x00FF) + amt;
+    const B = (num & 0x0000FF) + amt;
+    return "#" + (0x1000000 + (R < 255 ? R < 0 ? 0 : R : 255) * 0x10000 + (G < 255 ? G < 0 ? 0 : G : 255) * 0x100 + (B < 255 ? B < 0 ? 0 : B : 255)).toString(16).slice(1);
+  };
+
+  const dark = isDark(hex);
+  
+  return {
+    bg: hex,
+    border: darken(hex, 10),
+    bezel: dark ? darken(hex, 20) : "#2a2a2a",
+    bezelBorder: dark ? darken(hex, 30) : "#333",
+    button: lighten(hex, 15),
+    buttonBorder: hex,
+    buttonText: dark ? "#fff" : darken(hex, 40),
+    hingeFrom: darken(hex, 5),
+    hingeVia: hex,
+    hingeTo: darken(hex, 10),
+    hingeBorder: darken(hex, 15),
+  };
+}
+

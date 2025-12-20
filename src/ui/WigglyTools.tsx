@@ -5,7 +5,7 @@ import type { EraserVariant, PenVariant } from "@/engine/variants";
 import type { Tool } from "@/engine/WigglyEngine";
 import { useState } from "react";
 import { eraserVariants } from "./variants";
-import { PALETTE_PRESETS, BODY_PRESETS, type BodyColor } from "./presets";
+import { PALETTE_PRESETS, BODY_PRESETS, type BodyColor, generateBodyColorFromBase } from "./presets";
 
 interface WigglyToolsProps {
   tool: Tool;
@@ -490,34 +490,43 @@ export function WigglyTools({
           {/* Content Area with Custom Scrollbar */}
           <div className="flex-1 overflow-y-auto ugo-scrollbar p-4">
             {settingsTab === "palette" ? (
-              <div className="grid grid-cols-2 gap-4">
-                {PALETTE_PRESETS.map((p) => (
-                  <button
-                    key={p.name}
-                    onClick={() => setPalette(p.colors)}
-                    className={`flex flex-col p-3 rounded-[8px] border-[3px] transition-all ${
-                      JSON.stringify(palette) === JSON.stringify(p.colors)
-                        ? "border-[#ff6b00] bg-[#fff1e5]"
-                        : "border-[#e7d1b1] bg-white hover:border-[#ff9d5c]"
-                    }`}
-                  >
-                    <span className="font-black text-base mb-2">{p.name}</span>
-                    <div className="flex gap-1">
-                      {p.colors.map((c, i) => (
-                        <div key={i} className="w-6 h-6 rounded-full border border-black/10" style={{ backgroundColor: c }} />
-                      ))}
-                    </div>
-                  </button>
-                ))}
+              <div className="flex flex-col gap-4">
+                <div className="grid grid-cols-2 gap-3">
+                  {PALETTE_PRESETS.map((p) => (
+                    <button
+                      key={p.name}
+                      onClick={() => setPalette(p.colors)}
+                      className={`flex flex-col p-2.5 rounded-[4px] border-[3px] transition-all relative overflow-hidden ${
+                        JSON.stringify(palette) === JSON.stringify(p.colors)
+                          ? "border-black bg-[#ffff00] shadow-[4px_4px_0_rgba(0,0,0,0.1)]"
+                          : "border-[#e7d1b1] bg-white hover:border-[#ff9d5c] shadow-[2px_2px_0_rgba(210,180,140,0.1)]"
+                      }`}
+                    >
+                      <span className={`font-black text-sm mb-2 text-left ${JSON.stringify(palette) === JSON.stringify(p.colors) ? "text-black" : "text-[#a67c52]"}`}>
+                        {p.name}
+                      </span>
+                      <div className="flex gap-1">
+                        {p.colors.map((c, i) => (
+                          <div 
+                            key={i} 
+                            className="w-full aspect-square border-[1.5px] border-black/20 rounded-[2px]" 
+                            style={{ backgroundColor: c }} 
+                          />
+                        ))}
+                      </div>
+                    </button>
+                  ))}
+                </div>
                 
                 {/* Custom Palette Option */}
-                <div className="col-span-2 mt-4 p-4 bg-white border-[3px] border-[#e7d1b1] rounded-[8px]">
-                  <span className="font-black text-lg mb-3 block text-center">カスタムパレット（色をタップして編集）</span>
+                <div className="mt-2 p-4 bg-white border-[3px] border-[#e7d1b1] rounded-[6px] shadow-[2px_2px_0_rgba(210,180,140,0.1)]">
+                  <span className="font-black text-lg mb-4 block text-center text-[#a67c52]">カスタムパレット</span>
                   <div className="grid grid-cols-6 gap-2">
                     {palette.map((c, i) => (
-                      <div key={i} className="flex flex-col items-center gap-1">
-                        <div className="relative w-10 h-10">
-                          <div className="absolute inset-0 rounded-full border-2 border-black/20" style={{ backgroundColor: c }} />
+                      <div key={i} className="flex flex-col items-center gap-1.5">
+                        <div className="relative w-full aspect-square">
+                          <div className="absolute inset-0 border-[2.5px] border-black/10 rounded-[4px]" style={{ backgroundColor: c }} />
+                          <div className="absolute inset-0 border-[1.5px] border-white/30 rounded-[3px] pointer-events-none" />
                           <input
                             type="color"
                             value={c}
@@ -529,31 +538,63 @@ export function WigglyTools({
                             className="absolute inset-0 w-full h-full cursor-pointer opacity-0"
                           />
                         </div>
-                        <span className="text-[10px] font-mono leading-none">{c.toUpperCase()}</span>
+                        <span className="text-[9px] font-black text-[#a67c52] leading-none">{c.toUpperCase()}</span>
                       </div>
                     ))}
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-4">
-                {BODY_PRESETS.map((b) => (
-                  <button
-                    key={b.name}
-                    onClick={() => setBodyColor(b.body)}
-                    className={`flex flex-col p-3 rounded-[8px] border-[3px] transition-all ${
-                      bodyColor.bg === b.body.bg
-                        ? "border-[#ff6b00] bg-[#fff1e5]"
-                        : "border-[#e7d1b1] bg-white hover:border-[#ff9d5c]"
-                    }`}
-                  >
-                    <span className="font-black text-base mb-2">{b.name}</span>
-                    <div className="flex gap-2 items-center">
-                      <div className="w-12 h-8 rounded-[4px] border border-black/10" style={{ backgroundColor: b.body.bg }} />
-                      <div className="w-6 h-6 rounded-full border border-black/10" style={{ backgroundColor: b.body.button }} />
+              <div className="flex flex-col gap-4">
+                <div className="grid grid-cols-2 gap-3">
+                  {BODY_PRESETS.map((b) => (
+                    <button
+                      key={b.name}
+                      onClick={() => setBodyColor(b.body)}
+                      className={`flex flex-col p-2.5 rounded-[4px] border-[3px] transition-all relative overflow-hidden ${
+                        bodyColor.bg === b.body.bg
+                          ? "border-black bg-[#ffff00] shadow-[4px_4px_0_rgba(0,0,0,0.1)]"
+                          : "border-[#e7d1b1] bg-white hover:border-[#ff9d5c] shadow-[2px_2px_0_rgba(210,180,140,0.1)]"
+                      }`}
+                    >
+                      <span className={`font-black text-sm mb-2 text-left ${bodyColor.bg === b.body.bg ? "text-black" : "text-[#a67c52]"}`}>
+                        {b.name}
+                      </span>
+                      <div className="flex gap-2 items-center">
+                        <div className="flex-1 h-10 rounded-[4px] border-[2px] border-black/10 relative overflow-hidden" style={{ backgroundColor: b.body.bg }}>
+                           <div className="absolute inset-0 border border-white/20" />
+                        </div>
+                        <div className="w-8 h-8 rounded-full border-[2px] border-black/10 relative" style={{ backgroundColor: b.body.button }}>
+                           <div className="absolute inset-0 border border-white/30 rounded-full" />
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Custom Body Color Option */}
+                <div className="mt-2 p-4 bg-white border-[3px] border-[#e7d1b1] rounded-[6px] shadow-[2px_2px_0_rgba(210,180,140,0.1)]">
+                  <span className="font-black text-lg mb-4 block text-center text-[#a67c52]">カスタム本体色</span>
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="relative w-32 h-20">
+                      <div className="absolute inset-0 rounded-[8px] border-[4px] border-black/20 shadow-inner" style={{ backgroundColor: bodyColor.bg }} />
+                      <div className="absolute inset-0 border-[2px] border-white/20 rounded-[6px] pointer-events-none" />
+                      <input
+                        type="color"
+                        value={bodyColor.bg}
+                        onChange={(e) => {
+                          const base = e.target.value;
+                          setBodyColor(generateBodyColorFromBase(base));
+                        }}
+                        className="absolute inset-0 w-full h-full cursor-pointer opacity-0"
+                      />
                     </div>
-                  </button>
-                ))}
+                    <span className="font-black text-sm text-[#a67c52] tracking-wider">{bodyColor.bg.toUpperCase()}</span>
+                    <p className="text-[10px] text-[#a67c52]/60 text-center font-black">
+                      ベースカラーを選ぶと、影やハイライトが自動計算されます
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
           </div>
