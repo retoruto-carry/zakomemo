@@ -22,6 +22,8 @@ interface WigglyToolsProps {
 
   onUndo: () => void;
   onRedo: () => void;
+  canUndo?: boolean;
+  canRedo?: boolean;
   onClear: () => void;
   onExport: () => void;
   isExporting: boolean;
@@ -44,6 +46,8 @@ export function WigglyTools({
   setPatternId,
   onUndo,
   onRedo,
+  canUndo,
+  canRedo,
   onClear,
   onExport,
   isExporting,
@@ -127,24 +131,43 @@ export function WigglyTools({
         <div className="flex-1" />
 
         {/* Right-aligned group: Undo & Redo */}
-        <div className="flex gap-px h-full">
-          {/* Undo (戻る) */}
-          <button
+        <div className="flex h-full items-stretch">
+          {/* Undo (やり直し) */}
+          <div
             onClick={onUndo}
-            className="bg-[#ff6b00] border-t-[3px] border-l-[3px] border-[#ff9d5c] border-b-[3px] border-r-[3px] border-[#b34700] rounded-[4px] h-full px-5 flex items-center justify-center gap-2 active:translate-y-0.5"
+            role="button"
+            aria-disabled={!canUndo}
+            className={`
+              border-t-[3px] border-l-[3px] border-b-[3px] border-r-[1.5px] 
+              rounded-l-[6px] h-full px-5 flex items-center justify-center gap-2 
+              transition-all focus:outline-none cursor-pointer
+              ${!canUndo 
+                ? "bg-[#ffd6b8] border-t-white border-l-[#fffefc] border-b-[#ffb38a] border-r-[#ffb38a] pointer-events-none" 
+                : "bg-[#ff6b00] border-[#ff9d5c] border-b-[#b34700] border-r-[#b34700] active:translate-y-0.5 active:brightness-95"
+              }
+            `}
           >
             <div className="text-white text-3xl font-black leading-none">⤺</div>
-            <span className="text-white font-black text-lg leading-none tracking-tighter whitespace-nowrap">戻る</span>
-          </button>
+            <span className="text-white font-black text-xl leading-none tracking-tighter whitespace-nowrap">やり直し</span>
+          </div>
 
           {/* Redo (進む) */}
-          <button
+          <div
             onClick={onRedo}
-            className="bg-[#ff6b00] border-t-[3px] border-l-[3px] border-[#ff9d5c] border-b-[3px] border-r-[3px] border-[#b34700] rounded-[4px] h-full px-5 flex items-center justify-center gap-2 active:translate-y-0.5"
+            role="button"
+            aria-disabled={!canRedo}
+            className={`
+              border-t-[3px] border-l-[1.5px] border-r-[3px] border-b-[3px] 
+              rounded-r-[6px] h-full px-4 flex items-center justify-center 
+              transition-all focus:outline-none cursor-pointer
+              ${!canRedo 
+                ? "bg-[#ffd6b8] border-t-white border-l-[#ffb38a] border-r-[#ffb38a] border-b-[#ffb38a] pointer-events-none" 
+                : "bg-[#ff6b00] border-t-[#ff9d5c] border-l-[#ff9d5c] border-r-[#b34700] border-b-[#b34700] active:translate-y-0.5 active:brightness-95"
+              }
+            `}
           >
-            <span className="text-white font-black text-lg leading-none tracking-tighter whitespace-nowrap">進む</span>
             <div className="text-white text-3xl font-black leading-none">⤻</div>
-          </button>
+          </div>
         </div>
       </div>
 
@@ -153,10 +176,11 @@ export function WigglyTools({
         <div className="grid grid-cols-3 gap-3 items-center">
 
           {/* Pen */}
-          <button
+          <div
             onClick={() => handleToolClick("pen")}
+            role="button"
             className={`
-                  relative flex flex-col items-center justify-center p-2 transition-all active:scale-[0.98] aspect-square w-full rounded-[8px]
+                  relative flex flex-col items-center justify-center p-2 transition-all active:scale-[0.98] aspect-square w-full rounded-[8px] cursor-pointer
                   ${tool === "pen"
                 ? "bg-[#fff700] border-[5px] border-black shadow-[6px_6px_0_#000] z-30"
                 : "bg-[#fffdeb] border-[4px] border-[#d2b48c] shadow-[4px_4px_0_rgba(210,180,140,0.3)]"
@@ -169,16 +193,17 @@ export function WigglyTools({
             <div className={`absolute bottom-2 right-2 w-11 h-11 border-[4px] rounded-[3px] flex items-center justify-center ${tool === "pen" ? "border-black bg-white" : "border-[#d2b48c] bg-white"}`}>
               <div className={`w-4.5 h-4.5 ${tool === "pen" ? "bg-black" : "bg-[#d2b48c]"}`} />
             </div>
-          </button>
+          </div>
 
           {/* Paint / Pattern */}
-          <button
+          <div
             onClick={() => {
               setTool("pattern");
               setActivePopup("none");
             }}
+            role="button"
             className={`
-                  relative flex flex-col items-center justify-center p-2 transition-all active:scale-[0.98] aspect-square w-full rounded-[8px]
+                  relative flex flex-col items-center justify-center p-2 transition-all active:scale-[0.98] aspect-square w-full rounded-[8px] cursor-pointer
                   ${tool === "pattern"
                 ? "bg-[#fff700] border-[5px] border-black shadow-[6px_6px_0_#000] z-30"
                 : "bg-[#fffdeb] border-[4px] border-[#d2b48c] shadow-[4px_4px_0_rgba(210,180,140,0.3)]"
@@ -268,16 +293,17 @@ export function WigglyTools({
                 })}
               </div>
             )}
-          </button>
+          </div>
 
           {/* Eraser */}
-          <button
+          <div
             onClick={() => {
               setTool("eraser");
               setActivePopup("none");
             }}
+            role="button"
             className={`
-                  relative flex flex-col items-center justify-center p-2 transition-all active:scale-[0.98] aspect-square w-full rounded-[8px]
+                  relative flex flex-col items-center justify-center p-2 transition-all active:scale-[0.98] aspect-square w-full rounded-[8px] cursor-pointer
                   ${tool === "eraser"
                 ? "bg-[#fff700] border-[5px] border-black shadow-[6px_6px_0_#000] z-30"
                 : "bg-[#fffdeb] border-[4px] border-[#d2b48c] shadow-[4px_4px_0_rgba(210,180,140,0.3)]"
@@ -343,7 +369,7 @@ export function WigglyTools({
                 })}
               </div>
             )}
-          </button>
+          </div>
         </div>
       </div>
 

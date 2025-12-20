@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { BrushPatternId, Drawing } from "@/core/types";
 import { exportDrawingAsGif } from "@/engine/exportGif";
 import type { EraserVariant, PenVariant } from "@/engine/variants";
@@ -33,6 +33,9 @@ export function WigglyEditor() {
   const [isExporting, setIsExporting] = useState(false);
   const [exportUrl, setExportUrl] = useState<string | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
+
+  const [canUndo, setCanUndo] = useState(false);
+  const [canRedo, setCanRedo] = useState(false);
 
   // Layout State
   const [isDesktop, setIsDesktop] = useState(false);
@@ -106,6 +109,17 @@ export function WigglyEditor() {
     }
   };
 
+  const onEngineInit = useCallback((engine: WigglyEngine) => {
+    engineRef.current = engine;
+    engine.setHistoryChangeListener(() => {
+      setCanUndo(engine.canUndo());
+      setCanRedo(engine.canRedo());
+    });
+    // Initial check
+    setCanUndo(engine.canUndo());
+    setCanRedo(engine.canRedo());
+  }, []);
+
   const Layout = isDesktop ? DesktopLayout : MobileLayout;
 
   return (
@@ -119,9 +133,7 @@ export function WigglyEditor() {
           penVariant={penVariant}
           eraserVariant={eraserVariant}
           patternId={patternId}
-          onEngineInit={(engine) => {
-            engineRef.current = engine;
-          }}
+          onEngineInit={onEngineInit}
         />
       }
       tools={
@@ -140,6 +152,8 @@ export function WigglyEditor() {
           setPatternId={setPatternId}
           onUndo={() => engineRef.current?.undo()}
           onRedo={() => engineRef.current?.redo()}
+          canUndo={canUndo}
+          canRedo={canRedo}
           onClear={() => engineRef.current?.clear()}
           onExport={handleExportGif}
           isExporting={isExporting}
