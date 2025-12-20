@@ -101,11 +101,12 @@ export function WigglyTools({
       />
 
       {/* 1. TOP ROW: Action Buttons (Faithful Orange Beveled Style) */}
-      <div className="flex items-center h-16 shrink-0 relative z-10 gap-px">
+      <div className="flex items-center h-16 shrink-0 relative z-10 gap-2">
         {/* Left: Clear All (消す) */}
-        <button
+        <div
           onClick={onClear}
-          className="bg-[#ff6b00] border-t-[3px] border-l-[3px] border-[#ff9d5c] border-b-[3px] border-r-[3px] border-[#b34700] rounded-[4px] h-full px-4 flex items-center justify-center gap-1.5 active:translate-y-0.5 active:brightness-95 transition-all"
+          role="button"
+          className="bg-[#ff6b00] border-t-[3px] border-l-[3px] border-t-[#ff9d5c] border-l-[#ff9d5c] border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-[6px] h-full px-4 flex items-center justify-center gap-1.5 active:translate-y-0.5 active:brightness-95 transition-all cursor-pointer"
         >
           <div className="relative w-8 h-8 flex items-center justify-center shrink-0">
             {[...Array(8)].map((_, i) => (
@@ -117,15 +118,18 @@ export function WigglyTools({
             ))}
           </div>
           <span className="text-white font-black text-lg leading-none tracking-tighter whitespace-nowrap">消す</span>
-        </button>
+        </div>
 
         {/* Center-Left: Settings */}
-        <button className="bg-[#ff6b00] border-t-[3px] border-l-[3px] border-[#ff9d5c] border-b-[3px] border-r-[3px] border-[#b34700] rounded-[4px] h-full px-4 flex items-center justify-center gap-1.5 active:translate-y-0.5 group">
+        <div 
+          role="button"
+          className="bg-[#ff6b00] border-t-[3px] border-l-[3px] border-t-[#ff9d5c] border-l-[#ff9d5c] border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-[6px] h-full px-4 flex items-center justify-center gap-1.5 active:translate-y-0.5 group cursor-pointer"
+        >
           <svg viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7 text-white drop-shadow-sm transition-transform group-active:rotate-45">
             <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.21.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" />
           </svg>
           <span className="text-white font-black text-base leading-none tracking-tighter whitespace-nowrap">設定</span>
-        </button>
+        </div>
 
         {/* Spacer to push Undo/Redo to the right */}
         <div className="flex-1" />
@@ -416,18 +420,18 @@ export function WigglyTools({
             <a
               href={exportUrl}
               download="wiggly-ugomemo.gif"
-              className="bg-[#ff6b00] border-t-[3px] border-l-[3px] border-[#ff9d5c] border-b-[3px] border-r-[3px] border-[#b34700] rounded-[3px] h-full px-5 flex items-center justify-center active:translate-y-0.5 transition-all text-white font-black text-xl"
+              className="bg-[#ff6b00] border-t-[3px] border-l-[3px] border-t-[#ff9d5c] border-l-[#ff9d5c] border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-[6px] h-full px-5 flex items-center justify-center active:translate-y-0.5 transition-all text-white font-black text-xl"
             >
               保存
             </a>
           ) : (
-            <button
+            <div
               onClick={onExport}
-              disabled={isExporting}
-              className="bg-[#ff6b00] border-t-[3px] border-l-[3px] border-[#ff9d5c] border-b-[3px] border-r-[3px] border-[#b34700] rounded-[3px] h-full px-5 flex items-center justify-center active:translate-y-0.5 transition-all text-white font-black text-xl disabled:opacity-50"
+              role="button"
+              className={`bg-[#ff6b00] border-t-[3px] border-l-[3px] border-t-[#ff9d5c] border-l-[#ff9d5c] border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-[6px] h-full px-5 flex items-center justify-center active:translate-y-0.5 transition-all text-white font-black text-xl cursor-pointer ${isExporting ? "opacity-50 pointer-events-none" : ""}`}
             >
               {isExporting ? "..." : "保存"}
-            </button>
+            </div>
           )}
         </div>
       </div>
