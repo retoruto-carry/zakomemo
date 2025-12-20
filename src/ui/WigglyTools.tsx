@@ -73,7 +73,7 @@ export function WigglyTools({
   };
 
   return (
-    <div className="flex flex-col h-full w-full bg-[#f0f0eb] select-none text-[color:var(--color-ugo-dark)] font-sans p-2 gap-2 relative">
+    <div className="flex flex-col w-full bg-[#f0f0eb] select-none text-[color:var(--color-ugo-dark)] font-sans p-2 gap-2 relative">
 
       {/* 1. TOP ROW: Clear | Settings | Undo/Redo */}
       <div className="flex items-center gap-2 h-14 shrink-0">

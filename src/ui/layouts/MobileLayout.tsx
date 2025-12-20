@@ -28,7 +28,7 @@ export function MobileLayout({ canvas, tools }: LayoutProps) {
       </div>
 
       {/* Bottom: Tools Area */}
-      <div className="flex-1 min-h-0 relative z-0">
+      <div className="relative z-0">
         {tools}
       </div>
     </div>

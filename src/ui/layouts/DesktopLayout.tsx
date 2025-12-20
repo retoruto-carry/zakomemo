@@ -91,6 +91,24 @@ export function DesktopLayout({ canvas, tools }: LayoutProps) {
                   <div className="absolute left-2 w-0 h-0 border-t-4 border-b-4 border-r-6 border-t-transparent border-b-transparent border-r-[#999] opacity-60" />
                   <div className="absolute right-2 w-0 h-0 border-t-4 border-b-4 border-l-6 border-t-transparent border-b-transparent border-l-[#999] opacity-60" />
                 </div>
+
+                {/* Clickable regions for D-pad - Purely visual animation */}
+                <button
+                  className="absolute top-0 left-[34%] w-[32%] h-[34%] active:bg-black/5 rounded-t-sm"
+                  title="Up"
+                />
+                <button
+                  className="absolute bottom-0 left-[34%] w-[32%] h-[34%] active:bg-black/5 rounded-b-sm"
+                  title="Down"
+                />
+                <button
+                  className="absolute top-[34%] left-0 w-[34%] h-[32%] active:bg-black/5 rounded-l-sm"
+                  title="Left"
+                />
+                <button
+                  className="absolute top-[34%] right-0 w-[34%] h-[32%] active:bg-black/5 rounded-r-sm"
+                  title="Right"
+                />
               </div>
             </div>
 
