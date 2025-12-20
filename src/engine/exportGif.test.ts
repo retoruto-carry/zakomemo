@@ -22,6 +22,10 @@ class MockRenderer implements DrawingRenderer {
     this.renders.push({ stroke, time: timeMs });
   }
 
+  clearPatternCache(): void {
+    // noop for mock
+  }
+
   getImageData(): ImageData {
     return {
       width: this.width,

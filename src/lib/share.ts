@@ -4,7 +4,8 @@
 
 // デバイス判定
 export const isIos = (): boolean =>
-  typeof navigator !== "undefined" && /iPhone|iPad|iPod/i.test(navigator.userAgent);
+  typeof navigator !== "undefined" &&
+  /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
 export const isAndroid = (): boolean =>
   typeof navigator !== "undefined" && /Android/i.test(navigator.userAgent);
@@ -30,7 +31,7 @@ export const canShareFiles = async (): Promise<boolean> => {
 export const urlToFile = async (
   url: string,
   filename: string,
-  mimeType: string
+  mimeType: string,
 ): Promise<File> => {
   const response = await fetch(url);
   if (!response.ok) {
@@ -92,7 +93,7 @@ export const shareToTwitter = async (options: ShareOptions): Promise<void> => {
 
   // Intent でシェア
   const intentUrl = createTwitterIntentUrl(text, options.url);
-  
+
   if (isMobile()) {
     // モバイルでは twitter:// を試し、失敗したら web URL にフォールバック
     const fallbackParams = new URLSearchParams({ text });
@@ -100,10 +101,10 @@ export const shareToTwitter = async (options: ShareOptions): Promise<void> => {
       fallbackParams.set("url", options.url);
     }
     const webFallbackUrl = `https://twitter.com/intent/tweet?${fallbackParams.toString()}`;
-    
+
     // twitter:// スキームを試す
     window.location.href = intentUrl;
-    
+
     // 1秒後にまだページにいたら web URL にフォールバック
     setTimeout(() => {
       // ページがまだアクティブなら Twitter アプリが開かなかったと判断
@@ -116,4 +117,3 @@ export const shareToTwitter = async (options: ShareOptions): Promise<void> => {
     window.open(intentUrl, "_blank");
   }
 };
-

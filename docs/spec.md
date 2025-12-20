@@ -8,13 +8,15 @@
 ## ユーザー機能
 - ツール: ✏️ペン（ソリッド）、🎨パターン、🩹消しゴム。選択状態をUIで明示。
 - カラーパレット: 6色（可変）。設定画面からプリセット（スタンダード、ゲームボーイ等）の選択、またはカスタム色の指定が可能。
-- 本体色（テーマ）: DS本体（筐体）の色を変更可能。設定画面からプリセット（マットホワイト、メタリックレッド等）を選択可能。
-- 太さ: 1〜24px のスライダーで調整。
-- 消しゴム: destination-out で透明に描画。太さはペン設定と連動。プレビューは白抜きで表示。
-- Undo/Redo: ボタンおよび2本指タップで操作可能。履歴がある場合のみ有効。
+- 本体色（テーマ）: DS本体（筐体）の色を変更可能。設定画面からプリセット（マットホワイト、メタリックレッド等、全20種）を選択可能。カスタムカラーも指定可能。
+- 太さ: 1〜48px のスライダーで調整（初期値16px）。
+- 消しゴム: destination-out で透明に描画。太さはペン設定と連動。プレビューは白抜きで表示。形状は円/四角/横線の3種。
+- Undo/Redo: 「やり直し」「進む」ボタンおよび2本指タップで操作可能。履歴がある場合のみ有効（disabled状態で表示）。
 - 全消し: 「消す」ボタンで履歴に push した上でクリア。
-- 設定: 下画面を覆うフルスクリーンモーダル。パレットと本体色のタブ切り替え。カスタムスクロールバー実装。
-- GIF 出力: 12fps・約2秒（24フレーム）をループGIFとして出力。
+- 設定: 下画面を覆うフルスクリーンモーダル。「パレット」と「本体色」のタブ切り替え。カスタムスクロールバー実装。
+- GIF 出力: 12fps・約2秒（24フレーム）をループGIFとして出力。保存後、X（Twitter）へのシェア機能あり。
+  - モバイル: Web Share API対応時は画像付きシェア、非対応時はIntent URLでテキストシェア。
+  - PC: Intent URLで新規タブを開く。
 
 ## 技術仕様：動的カラーシステム
 - **CSS変数による管理**:
@@ -47,7 +49,9 @@
 ## ドメイン仕様（core）
 - 型: BrushKind/PatternId/BrushSettings、StrokeKind、Point(x,y,t)、Stroke(id/kind/brush/points)、Drawing(width/height/strokes)。
 - Drawing操作: `startStroke` で新規ストローク追加、`appendPoint` でポイント追記、`clearDrawing` で全消去。すべて純粋関数。
-- ぷるぷるノイズ: `computeJitter(Point, timeMs, JitterConfig)` が安定したオフセット(dx,dy)を返す。
+- ぷるぷるノイズ:
+  - `computeJitter(Point, timeMs, JitterConfig)`: ペン/消しゴム用。`point.t`（ストローク内の時間）を使い、各点が個別に揺れる。
+  - `computePatternJitter(Point, timeMs, JitterConfig)`: パターン用。`point.t`を使わず座標とtimeMsのみで計算。同じ座標には同じjitterが適用され、異なるストロークでもパターンがずれない。
 - パターン: `PatternTile` と `PatternDefinition`。`getPatternDefinition` で id→定義取得（例: dots）。`wigglePatternTile` で時間に応じてタイルを歪ませる。
 - 履歴: `History<T>` で past/present/future を保持。`create/push/undo/redoHistory` を提供。Drawingに適用。
 
@@ -69,6 +73,7 @@
 
 ## インフラ層（infra）
 - CanvasRenderer: Canvas2D で Stroke を描画。erase は destination-out、solid は色、pattern は wigglePatternTile→offscreenタイル→createPattern でワールド固定の模様を適用。DPR対応。
+  - パターンスケーリング: `PATTERN_SCALE=2`により、パターンの密度を2倍に下げる（ドットや市松が粗く見える）。論理座標で一貫したサイズに見せるため`pattern.setTransform(PATTERN_SCALE*dpr)`で物理ピクセルをスケール。
 - その他: RealTimeProvider（performance.now）、BrowserRafScheduler（requestAnimationFrame）、HowlerStrokeSound（速度に応じたボリューム制御）、GIF エンコーダー実装（ライブラリラップ）。
 
 ## UI層

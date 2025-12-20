@@ -21,6 +21,10 @@ class MockRenderer implements DrawingRenderer {
   ): void {
     this.strokes.push({ stroke, jittered: jitteredPoints, time: timeMs });
   }
+
+  clearPatternCache(): void {
+    // noop for mock
+  }
 }
 
 describe("renderDrawingAtTime", () => {

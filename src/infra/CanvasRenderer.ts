@@ -7,19 +7,24 @@ import type { BrushPatternId, BrushVariant, Stroke } from "../core/types";
 import type { DrawingRenderer } from "../engine/ports";
 import { parseColorToRgb, resolveCssVariable } from "./colorUtil";
 
+/** パターンタイルを2倍にスケールして密度を下げる */
+const PATTERN_SCALE = 2;
+
 export class CanvasRenderer implements DrawingRenderer {
   private lastWidth = 0;
   private lastHeight = 0;
-  private patternCache = new Map<
-    string,
-    { bucket: number; pattern: CanvasPattern }
-  >();
-  private patternCacheMs = 80; // ゆらぎを間引きしてパフォーマンスを稼ぐ
+  private patternCache = new Map<string, CanvasPattern>();
+  private dpr: number;
 
   constructor(
     private ctx: CanvasRenderingContext2D,
     private wiggleConfig: PatternWiggleConfig,
-  ) {}
+    dpr?: number,
+  ) {
+    this.dpr =
+      dpr ??
+      ((typeof window !== "undefined" ? window.devicePixelRatio : 1) || 1);
+  }
 
   clear(width: number, height: number): void {
     this.lastWidth = width;
@@ -36,7 +41,7 @@ export class CanvasRenderer implements DrawingRenderer {
   renderStroke(
     stroke: Stroke,
     jitteredPoints: { x: number; y: number }[],
-    timeMs: number,
+    _timeMs: number,
   ): void {
     if (jitteredPoints.length === 0) return;
     const ctx = this.ctx;
@@ -76,8 +81,11 @@ export class CanvasRenderer implements DrawingRenderer {
         const pattern = this.createWigglyPattern(
           stroke.brush.patternId,
           stroke.brush.color,
-          timeMs,
         );
+        // パターンを論理座標でPATTERN_SCALE倍に見せる
+        // 物理座標ではPATTERN_SCALE * dpr倍にする必要がある
+        const patternScale = PATTERN_SCALE * this.dpr;
+        pattern.setTransform(new DOMMatrix().scale(patternScale, patternScale));
         ctx.strokeStyle = pattern;
       }
     }
@@ -129,48 +137,41 @@ export class CanvasRenderer implements DrawingRenderer {
     this.patternCache.clear();
   }
 
-  private createWigglyPattern(
-    patternId: string,
-    color: string,
-    timeMs: number,
-  ): CanvasPattern {
+  /**
+   * パターンタイルを生成してキャッシュ
+   * 静的パターン（timeMs=0）を使用し、同じパターンを重ねてもずれない
+   */
+  private createWigglyPattern(patternId: string, color: string): CanvasPattern {
     const cacheKey = `${patternId}:${color}`;
-    const bucket = Math.floor(timeMs / this.patternCacheMs);
     const cached = this.patternCache.get(cacheKey);
-    if (cached && cached.bucket === bucket) {
-      return cached.pattern;
-    }
+    if (cached) return cached;
 
     const def = getPatternDefinition(patternId as BrushPatternId);
-    const tile = wigglePatternTile(def.tile, timeMs, this.wiggleConfig);
+    const tile = wigglePatternTile(def.tile, 0, this.wiggleConfig);
 
+    // 1xサイズでタイルを作成（setTransformでスケール適用するため）
     const offscreen = document.createElement("canvas");
     offscreen.width = tile.width;
     offscreen.height = tile.height;
     const offCtx = offscreen.getContext("2d");
-    if (!offCtx) {
-      throw new Error("2D context not available");
-    }
+    if (!offCtx) throw new Error("2D context not available");
 
     const imageData = offCtx.createImageData(tile.width, tile.height);
     const { r, g, b } = parseColorToRgb(color);
 
-    for (let i = 0; i < tile.alpha.length; i += 1) {
-      const alpha = tile.alpha[i];
+    for (let i = 0; i < tile.alpha.length; i++) {
       const idx = i * 4;
-      imageData.data[idx + 0] = r;
+      imageData.data[idx] = r;
       imageData.data[idx + 1] = g;
       imageData.data[idx + 2] = b;
-      imageData.data[idx + 3] = Math.round(255 * alpha);
+      imageData.data[idx + 3] = Math.round(255 * tile.alpha[i]);
     }
-
     offCtx.putImageData(imageData, 0, 0);
-    const pattern = this.ctx.createPattern(offscreen, "repeat");
-    if (!pattern) {
-      throw new Error("Failed to create canvas pattern");
-    }
 
-    this.patternCache.set(cacheKey, { bucket, pattern });
+    const pattern = this.ctx.createPattern(offscreen, "repeat");
+    if (!pattern) throw new Error("Failed to create canvas pattern");
+
+    this.patternCache.set(cacheKey, pattern);
     return pattern;
   }
 }

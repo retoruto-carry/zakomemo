@@ -14,9 +14,6 @@ function setupCanvasContext(
   const dpr = window.devicePixelRatio || 1;
   canvas.width = logicalWidth * dpr;
   canvas.height = logicalHeight * dpr;
-  // canvas.style.width/height is handled by CSS (w-full h-full) for responsiveness
-  // canvas.style.width = `${logicalWidth}px`;
-  // canvas.style.height = `${logicalHeight}px`;
 
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("2D context not available");

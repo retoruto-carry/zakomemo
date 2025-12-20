@@ -33,3 +33,27 @@ export function computeJitter(
     dy: (noiseY * 2 - 1) * amplitude,
   };
 }
+
+/**
+ * 座標ベースのjitterを計算（point.tを使わない）
+ * パターン描画で使用し、同じ座標には同じjitterが適用される
+ * これにより別のストロークで同じ場所に描いてもパターンがずれない
+ */
+export function computePatternJitter(
+  point: Point,
+  timeMs: number,
+  config: JitterConfig,
+): JitterOffset {
+  // point.tを使わず、timeMsのみで時間変化を計算
+  const bucket = Math.floor(timeMs * config.frequency);
+  const amplitude = config.amplitude;
+
+  // 座標に基づいたノイズ（同じ座標なら同じ結果）
+  const noiseX = hashNoise(point.x, point.y, bucket);
+  const noiseY = hashNoise(point.y, point.x, bucket + 1);
+
+  return {
+    dx: (noiseX * 2 - 1) * amplitude,
+    dy: (noiseY * 2 - 1) * amplitude,
+  };
+}

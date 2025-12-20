@@ -2,7 +2,7 @@ export type PenVariant = "normal";
 export type EraserVariant = "eraserCircle" | "eraserSquare" | "eraserLine";
 
 export const defaultPenWidth: Record<PenVariant, number> = {
-  normal: 4,
+  normal: 16,
 };
 
 export const defaultEraserWidth: Record<EraserVariant, number> = {

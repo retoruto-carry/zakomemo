@@ -18,9 +18,7 @@ export function MobileLayout({ canvas, tools }: LayoutProps) {
       </div>
 
       {/* Bottom: Tools Area */}
-      <div className="relative z-0 bg-(--ugo-body-bg) flex-1">
-        {tools}
-      </div>
+      <div className="relative z-0 bg-(--ugo-body-bg) flex-1">{tools}</div>
     </div>
   );
 }

@@ -8,7 +8,7 @@
   --color-ugomemo-panel: #ffffff;
   --color-ugomemo-border: #333333;
   --color-ugomemo-shadow: rgba(0, 0, 0, 0.15);
-  
+
   --background: var(--color-ugomemo-bg);
   --foreground: var(--color-ugomemo-dark);
 }
@@ -16,15 +16,16 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-rounded), "Inter", "Helvetica Neue", Arial, sans-serif;
-  
+  --font-sans:
+    var(--font-rounded), "Inter", "Helvetica Neue", Arial, sans-serif;
+
   /* Custom Colors */
   --color-ugo-orange: var(--color-ugomemo-orange);
   --color-ugo-bg: var(--color-ugomemo-bg);
   --color-ugo-dark: var(--color-ugomemo-dark);
   --color-ugo-panel: var(--color-ugomemo-panel);
   --color-ugo-border: var(--color-ugomemo-border);
-  
+
   --shadow-ugo: 4px 4px 0px 0px var(--color-ugomemo-shadow);
   --radius-ugo: 0.75rem;
 }
@@ -45,4 +46,3 @@ body {
   user-select: none; /* App-like feel */
   -webkit-user-select: none;
 }
-

@@ -7,11 +7,11 @@ import type { EraserVariant, PenVariant } from "@/engine/variants";
 import type { Tool, WigglyEngine } from "@/engine/WigglyEngine";
 import { CanvasRenderer } from "@/infra/CanvasRenderer";
 import { GifEncGifEncoder } from "@/infra/GifEncGifEncoder";
-
-import { WigglyCanvas } from "./WigglyCanvas";
-import { WigglyTools } from "./WigglyTools";
 import { DesktopLayout } from "./layouts/DesktopLayout";
 import { MobileLayout } from "./layouts/MobileLayout";
+import { BODY_PRESETS, PALETTE_PRESETS } from "./presets";
+import { WigglyCanvas } from "./WigglyCanvas";
+import { WigglyTools } from "./WigglyTools";
 
 const initialDrawing: Drawing = {
   width: 960,
@@ -19,13 +19,14 @@ const initialDrawing: Drawing = {
   strokes: [],
 };
 
-import { PALETTE_PRESETS, BODY_PRESETS } from "./presets";
-
 // Default palette: black, red, green, blue, yellow, purple
 const defaultPalette = PALETTE_PRESETS[0].colors;
 
 // Standard DS White body
 const defaultBodyColor = BODY_PRESETS[0].body;
+
+/** Default pen width (should match engine/variants.ts defaultPenWidth.normal) */
+const DEFAULT_PEN_WIDTH = 16;
 
 export function WigglyEditor() {
   const engineRef = useRef<WigglyEngine | null>(null);
@@ -33,9 +34,11 @@ export function WigglyEditor() {
   // State
   const [tool, setTool] = useState<Tool>("pen");
   const [color, setColor] = useState("var(--palette-0)");
-  const [width, setWidth] = useState(4);
-  const [penVariant, setPenVariant] = useState<PenVariant>("normal");
-  const [eraserVariant, setEraserVariant] = useState<EraserVariant>("eraserCircle");
+  const [width, setWidth] = useState(DEFAULT_PEN_WIDTH);
+  // penVariantは現在"normal"のみなので定数として扱う
+  const penVariant: PenVariant = "normal";
+  const [eraserVariant, setEraserVariant] =
+    useState<EraserVariant>("eraserCircle");
   const [patternId, setPatternId] = useState<BrushPatternId>("dots");
 
   const [isExporting, setIsExporting] = useState(false);
@@ -99,10 +102,12 @@ export function WigglyEditor() {
       const ctx = offscreen.getContext("2d");
       if (!ctx) throw new Error("2D context not available");
 
-      const renderer = new CanvasRenderer(ctx, {
-        amplitude: 0.5,
-        frequency: 0.001,
-      });
+      // GIF出力用にdpr=1を明示（オフスクリーンキャンバスにはDPRスケーリングなし）
+      const renderer = new CanvasRenderer(
+        ctx,
+        { amplitude: 0.5, frequency: 0.001 },
+        1,
+      );
 
       const gifEncoder = new GifEncGifEncoder();
       const blob = await exportDrawingAsGif({
@@ -136,6 +141,7 @@ export function WigglyEditor() {
   }, []);
 
   // Sync palette/body changes to engine's pattern cache
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Intentionally trigger on palette/bodyColor changes
   useEffect(() => {
     engineRef.current?.clearRendererCache();
   }, [palette, bodyColor]);
@@ -144,7 +150,10 @@ export function WigglyEditor() {
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: Static CSS, no user input
+        dangerouslySetInnerHTML={{
+          __html: `
         :root {
           ${palette.map((c, i) => `--palette-${i}: ${c};`).join("\n")}
           --ugo-body-bg: ${bodyColor.bg};
@@ -178,7 +187,9 @@ export function WigglyEditor() {
           scrollbar-width: auto;
           scrollbar-color: #ff6b00 #fdfbf7;
         }
-      `}} />
+      `,
+        }}
+      />
       <Layout
         canvas={
           <WigglyCanvas
@@ -200,8 +211,6 @@ export function WigglyEditor() {
             setColor={setColor}
             width={width}
             setWidth={setWidth}
-            penVariant={penVariant}
-            setPenVariant={setPenVariant}
             eraserVariant={eraserVariant}
             setEraserVariant={setEraserVariant}
             patternId={patternId}

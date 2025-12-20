@@ -1,12 +1,14 @@
 export function resolveCssVariable(color: string): string {
   if (typeof window === "undefined") return color;
   if (!color.startsWith("var(")) return color;
-  
+
   const match = color.match(/var\((--[^,)]+)/);
   if (!match) return color;
-  
+
   const varName = match[1];
-  const value = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+  const value = getComputedStyle(document.documentElement)
+    .getPropertyValue(varName)
+    .trim();
   return value || color;
 }
 
