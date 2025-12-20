@@ -20,15 +20,10 @@
       "recommended": true,
       "suspicious": {
         "noUnknownAtRules": "off",
-        "noArrayIndexKey": "off"
-      },
-      "a11y": {
-        "useSemanticElements": "off",
-        "useKeyWithClickEvents": "off",
-        "noStaticElementInteractions": "off"
+        "noArrayIndexKey": "warn"
       },
       "performance": {
-        "noImgElement": "off"
+        "noImgElement": "warn"
       }
     },
     "domains": {

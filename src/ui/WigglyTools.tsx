@@ -168,6 +168,7 @@ export function WigglyTools({
       {/* 1. TOP ROW: Action Buttons (Faithful Orange Beveled Style) */}
       <div className="flex items-center h-16 shrink-0 relative z-10 gap-2">
         {/* Left: Clear All (消す) */}
+        {/* biome-ignore lint/a11y/useSemanticElements: Custom styled button */}
         <div
           onClick={onClear}
           onKeyDown={handleButtonKeyDown(onClear)}
@@ -176,11 +177,13 @@ export function WigglyTools({
           className="bg-[#ff6b00] border-t-[3px] border-l-[3px] border-t-[#ff9d5c] border-l-[#ff9d5c] border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-[6px] h-full px-4 flex items-center justify-center gap-1.5 active:translate-y-0.5 active:brightness-95 transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#ff6b00]"
         >
           <div className="relative w-8 h-8 flex items-center justify-center shrink-0">
-            {[...Array(8)].map((_, i) => (
+            {[0, 1, 2, 3, 4, 5, 6, 7].map((angle) => (
               <div
-                key={i}
+                key={`sparkle-${angle}`}
                 className="absolute w-[4px] h-[4px] bg-white rounded-full"
-                style={{ transform: `rotate(${i * 45}deg) translateY(-8px)` }}
+                style={{
+                  transform: `rotate(${angle * 45}deg) translateY(-8px)`,
+                }}
               />
             ))}
           </div>
@@ -190,6 +193,7 @@ export function WigglyTools({
         </div>
 
         {/* Center-Left: Settings */}
+        {/* biome-ignore lint/a11y/useSemanticElements: Custom styled button */}
         <div
           onClick={() => setActivePopup("settings")}
           onKeyDown={handleButtonKeyDown(() => setActivePopup("settings"))}
@@ -216,6 +220,7 @@ export function WigglyTools({
         {/* Right-aligned group: Undo & Redo */}
         <div className="flex h-full items-stretch">
           {/* Undo (やり直し) */}
+          {/* biome-ignore lint/a11y/useSemanticElements: Custom styled button */}
           <div
             onClick={onUndo}
             onKeyDown={handleButtonKeyDown(onUndo)}
@@ -240,6 +245,7 @@ export function WigglyTools({
           </div>
 
           {/* Redo (進む) */}
+          {/* biome-ignore lint/a11y/useSemanticElements: Custom styled button */}
           <div
             onClick={onRedo}
             onKeyDown={handleButtonKeyDown(onRedo)}
@@ -266,6 +272,7 @@ export function WigglyTools({
       <div className="flex-1 flex flex-col justify-center min-h-0 relative z-20 py-1">
         <div className="grid grid-cols-3 gap-3 items-center">
           {/* Pen */}
+          {/* biome-ignore lint/a11y/useSemanticElements: Custom styled button with nested indicator */}
           <div
             onClick={() => handleToolClick("pen")}
             onKeyDown={handleButtonKeyDown(() => handleToolClick("pen"))}
@@ -301,6 +308,7 @@ export function WigglyTools({
           </div>
 
           {/* Paint / Pattern */}
+          {/* biome-ignore lint/a11y/useSemanticElements: Custom styled button with nested indicator */}
           <div
             onClick={() => {
               setTool("pattern");
@@ -332,13 +340,14 @@ export function WigglyTools({
               🖌️
             </div>
             {/* Corner Indicator */}
-            <div
+            <button
+              type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 setTool("pattern");
                 setActivePopup(activePopup === "pattern" ? "none" : "pattern");
               }}
-              className={`absolute bottom-2 right-2 w-11 h-11 border-[4px] rounded-[3px] flex items-center justify-center transition-all hover:scale-105 active:scale-95 z-40 ${tool === "pattern" ? "border-black bg-white" : "border-[#d2b48c] bg-white"}`}
+              className={`absolute bottom-2 right-2 w-11 h-11 border-[4px] rounded-[3px] flex items-center justify-center transition-all hover:scale-105 active:scale-95 z-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-black ${tool === "pattern" ? "border-black bg-white" : "border-[#d2b48c] bg-white"}`}
             >
               <div
                 className="w-6 h-6 shadow-inner"
@@ -355,7 +364,7 @@ export function WigglyTools({
                   imageRendering: "pixelated",
                 }}
               />
-            </div>
+            </button>
 
             {/* COMPACT POPUP: Pattern Grid (Faithful Dot Style) */}
             {activePopup === "pattern" && (
@@ -435,6 +444,7 @@ export function WigglyTools({
           </div>
 
           {/* Eraser */}
+          {/* biome-ignore lint/a11y/useSemanticElements: Custom styled button with nested indicator */}
           <div
             onClick={() => {
               setTool("eraser");
@@ -466,13 +476,14 @@ export function WigglyTools({
               🩹
             </div>
             {/* Corner Indicator */}
-            <div
+            <button
+              type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 setTool("eraser");
                 setActivePopup(activePopup === "eraser" ? "none" : "eraser");
               }}
-              className={`absolute bottom-2 right-2 w-11 h-11 border-[4px] rounded-[3px] flex items-center justify-center transition-all hover:scale-105 active:scale-95 z-40 ${tool === "eraser" ? "border-black bg-white" : "border-[#d2b48c] bg-white"}`}
+              className={`absolute bottom-2 right-2 w-11 h-11 border-[4px] rounded-[3px] flex items-center justify-center transition-all hover:scale-105 active:scale-95 z-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-black ${tool === "eraser" ? "border-black bg-white" : "border-[#d2b48c] bg-white"}`}
             >
               <div
                 className={`${
@@ -488,7 +499,7 @@ export function WigglyTools({
                     : ""
                 } bg-white border-[1.5px] ${tool === "eraser" ? "border-black" : "border-[#d2b48c]"} shadow-inner`}
               />
-            </div>
+            </button>
 
             {/* COMPACT POPUP: Eraser Grid */}
             {activePopup === "eraser" && (
@@ -564,12 +575,12 @@ export function WigglyTools({
 
         {/* Colors */}
         <div className="flex-1 h-full bg-[#fffdeb] border-[3px] border-[#d2b48c] p-1 flex items-center justify-center gap-1.5 shadow-[3px_3px_0_rgba(210,180,140,0.2)] rounded-[4px]">
-          {palette.map((_, i) => {
-            const varName = `var(--palette-${i})`;
+          {palette.map((_c, idx) => {
+            const varName = `var(--palette-${idx})`;
             return (
               <button
                 type="button"
-                key={i}
+                key={varName}
                 onClick={() => setColor(varName)}
                 style={{ backgroundColor: varName }}
                 className={`
@@ -604,6 +615,7 @@ export function WigglyTools({
               <span className="text-xl leading-none">保存</span>
             </a>
           ) : (
+            /* biome-ignore lint/a11y/useSemanticElements: Custom styled button */
             <div
               onClick={onExport}
               onKeyDown={handleButtonKeyDown(onExport)}
@@ -783,9 +795,9 @@ export function WigglyTools({
                         {p.name}
                       </span>
                       <div className="flex gap-1">
-                        {p.colors.map((c, i) => (
+                        {p.colors.map((c) => (
                           <div
-                            key={i}
+                            key={`preview-${c}`}
                             className="w-full aspect-square border-[1.5px] border-black/20 rounded-[2px]"
                             style={{ backgroundColor: c }}
                           />
@@ -801,9 +813,9 @@ export function WigglyTools({
                     カスタムパレット
                   </span>
                   <div className="grid grid-cols-6 gap-2">
-                    {palette.map((c, i) => (
+                    {palette.map((c, idx) => (
                       <div
-                        key={i}
+                        key={`custom-palette-${idx}`}
                         className="flex flex-col items-center gap-1.5 relative"
                       >
                         <div className="w-full aspect-square relative">
@@ -821,7 +833,7 @@ export function WigglyTools({
                           value={c}
                           onChange={(e) => {
                             const newPalette = [...palette];
-                            newPalette[i] = e.target.value;
+                            newPalette[idx] = e.target.value;
                             setPalette(newPalette);
                           }}
                           className="absolute inset-0 w-full h-full cursor-pointer opacity-0"
