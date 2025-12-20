@@ -94,11 +94,12 @@ export function useTouchUndoRedo({
       // 指を順番に離した場合でも、すべての指の情報を保持するため、
       // すべての指が離れるまでtouchesRefから情報を削除しない
       if (ev.touches.length === 0) {
-        const activeTouches = Array.from(touchesRef.current.values());
-
-        if (activeTouches.length === 0) {
+        // タッチ情報が空の場合は早期リターン（不要な配列生成を避ける）
+        if (touchesRef.current.size === 0) {
           return;
         }
+
+        const activeTouches = Array.from(touchesRef.current.values());
 
         const touchCount = activeTouches.length;
 
