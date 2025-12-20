@@ -858,7 +858,7 @@ export function WigglyTools({
                           />
                           <div className="absolute inset-0 border-[1.5px] border-white/30 rounded-[3px] pointer-events-none" />
                         </div>
-                        <span className="text-[9px] font-black text-[#a67c52] leading-none">
+                        <span className="text-sm font-black text-[#a67c52] leading-none">
                           {c.toUpperCase()}
                         </span>
                         <input
