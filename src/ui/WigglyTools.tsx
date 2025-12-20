@@ -257,10 +257,10 @@ export function WigglyTools({
           >
             <AnimatedGif
               ref={undoGifRef}
-              staticSrc="/images/frog_stop.png"
-              animatedSrc="/images/frog_back.gif"
+              staticSrc="/images/frog2.png"
+              animatedSrc="/images/frog2_1loop.gif"
               alt=""
-              className="w-8 h-8"
+              className={`w-10 h-10 ${!canUndo ? "opacity-50" : ""}`}
             />
             <span className="text-white font-black text-xl leading-none tracking-tighter whitespace-nowrap">
               やり直し
