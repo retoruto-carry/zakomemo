@@ -43,6 +43,8 @@ export function ShareButton({ text, imageUrl, className = "" }: ShareButtonProps
         imageUrl,
         imageName: "wiggly-ugomemo.gif",
       });
+    } catch (error) {
+      console.error("Share failed:", error);
     } finally {
       setIsSharing(false);
     }

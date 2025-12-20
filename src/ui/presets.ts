@@ -118,6 +118,10 @@ export function generateBodyColorFromBase(hex: string): BodyColor {
   // Simple logic to derive shades from a base color
   // Note: These helper functions expect 6-character hex codes (e.g., #ff0000).
   // Shorthand codes like #fff will produce incorrect results.
+  
+  /** Clamp a value to the 0-255 range */
+  const clamp = (val: number) => Math.max(0, Math.min(255, val));
+  
   const isDark = (color: string) => {
     const c = color.replace('#', '');
     const r = parseInt(c.substring(0, 2), 16);
@@ -131,20 +135,20 @@ export function generateBodyColorFromBase(hex: string): BodyColor {
     const c = color.replace('#', '');
     const num = parseInt(c, 16);
     const amt = Math.round(2.55 * percent);
-    const R = (num >> 16) - amt;
-    const G = (num >> 8 & 0x00FF) - amt;
-    const B = (num & 0x0000FF) - amt;
-    return "#" + (0x1000000 + (R < 255 ? R < 0 ? 0 : R : 255) * 0x10000 + (G < 255 ? G < 0 ? 0 : G : 255) * 0x100 + (B < 255 ? B < 0 ? 0 : B : 255)).toString(16).slice(1);
+    const R = clamp((num >> 16) - amt);
+    const G = clamp((num >> 8 & 0x00FF) - amt);
+    const B = clamp((num & 0x0000FF) - amt);
+    return "#" + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1);
   };
 
   const lighten = (color: string, percent: number) => {
     const c = color.replace('#', '');
     const num = parseInt(c, 16);
     const amt = Math.round(2.55 * percent);
-    const R = (num >> 16) + amt;
-    const G = (num >> 8 & 0x00FF) + amt;
-    const B = (num & 0x0000FF) + amt;
-    return "#" + (0x1000000 + (R < 255 ? R < 0 ? 0 : R : 255) * 0x10000 + (G < 255 ? G < 0 ? 0 : G : 255) * 0x100 + (B < 255 ? B < 0 ? 0 : B : 255)).toString(16).slice(1);
+    const R = clamp((num >> 16) + amt);
+    const G = clamp((num >> 8 & 0x00FF) + amt);
+    const B = clamp((num & 0x0000FF) + amt);
+    return "#" + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1);
   };
 
   const dark = isDark(hex);

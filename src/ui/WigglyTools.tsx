@@ -688,7 +688,7 @@ export function WigglyTools({
                     <button
                       key={b.name}
                       onClick={() => setBodyColor(b.body)}
-                      className={`aspect-square rounded-[4px] border-[3px] transition-all relative flex items-center justify-center p-1.5 ${bodyColor.bg === b.body.bg
+                      className={`aspect-square rounded-[4px] border-[3px] transition-all relative flex items-center justify-center p-1.5 ${JSON.stringify(bodyColor) === JSON.stringify(b.body)
                         ? "border-black bg-[#ffff00] shadow-[3px_3px_0_rgba(0,0,0,0.15)] z-10"
                         : "border-[#e7d1b1] bg-white hover:border-[#ff9d5c] shadow-[1px_1px_0_rgba(210,180,140,0.1)]"
                         }`}
