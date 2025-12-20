@@ -1,4 +1,3 @@
-import type { JitterOffset } from "../core/jitter";
 import {
   type PatternWiggleConfig,
   wigglePatternTile,
@@ -16,7 +15,6 @@ export class CanvasRenderer implements DrawingRenderer {
     { bucket: number; pattern: CanvasPattern }
   >();
   private dpr: number;
-  private patternOffset: JitterOffset = { dx: 0, dy: 0 };
 
   constructor(
     private ctx: CanvasRenderingContext2D,
@@ -24,10 +22,6 @@ export class CanvasRenderer implements DrawingRenderer {
     dpr?: number,
   ) {
     this.dpr = dpr ?? ((typeof window !== "undefined" ? window.devicePixelRatio : 1) || 1);
-  }
-
-  setPatternOffset(offset: JitterOffset): void {
-    this.patternOffset = offset;
   }
 
   clear(width: number, height: number): void {
@@ -87,13 +81,8 @@ export class CanvasRenderer implements DrawingRenderer {
           stroke.brush.color,
           timeMs,
         );
-        // パターンの座標系をDPRに合わせてスケールし、グローバルオフセットを適用
-        // これによりパターンがストロークと一緒にゆらぎつつ、ストローク間でずれない
-        pattern.setTransform(
-          new DOMMatrix()
-            .translate(this.patternOffset.dx, this.patternOffset.dy)
-            .scale(1 / this.dpr, 1 / this.dpr)
-        );
+        // パターンの座標系をDPRに合わせてスケール
+        pattern.setTransform(new DOMMatrix().scale(1 / this.dpr, 1 / this.dpr));
         ctx.strokeStyle = pattern;
       }
     }
