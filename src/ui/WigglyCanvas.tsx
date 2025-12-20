@@ -114,6 +114,16 @@ export function WigglyCanvas({
       // Apple Pencilの初期pointerdownイベントではpressure=0になることがあるため、
       // pointerdownでは筆圧をチェックせず、すべてのペン入力を処理します。
       // 軽い筆圧でも描画を開始できるようにするためです。
+
+      // マルチタッチ（2本指以上）の場合は描画を無効にして、undo/redoジェスチャーを優先
+      // 現在アクティブなポインター数 + 今回追加されるポインターが2本以上の場合、描画を開始しない
+      const activePointerCount = activePointersRef.current.size;
+      if (activePointerCount >= 1) {
+        // 既に1本以上のポインターがアクティブな場合、マルチタッチと判断
+        // この場合は描画を開始せず、undo/redoジェスチャーを優先
+        return;
+      }
+
       ev.preventDefault();
       canvas.setPointerCapture(ev.pointerId);
       const now = performance.now();
