@@ -33,7 +33,7 @@ export function WigglyEditor() {
   // State
   const [tool, setTool] = useState<Tool>("pen");
   const [color, setColor] = useState("var(--palette-0)");
-  const [width, setWidth] = useState(4);
+  const [width, setWidth] = useState(16);
   const [penVariant, setPenVariant] = useState<PenVariant>("normal");
   const [eraserVariant, setEraserVariant] = useState<EraserVariant>("eraserCircle");
   const [patternId, setPatternId] = useState<BrushPatternId>("dots");
