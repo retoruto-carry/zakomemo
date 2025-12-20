@@ -73,7 +73,7 @@ export function WigglyTools({
   };
 
   return (
-    <div className="flex flex-col h-full w-full bg-[#f0f0eb] select-none text-[color:var(--color-ugo-dark)] font-sans p-2 gap-2 relative overflow-hidden">
+    <div className="flex flex-col h-full w-full bg-[#f0f0eb] select-none text-[color:var(--color-ugo-dark)] font-sans p-2 gap-2 relative">
 
       {/* 1. TOP ROW: Clear | Settings | Undo/Redo */}
       <div className="flex items-center gap-2 h-14 shrink-0">
@@ -113,14 +113,14 @@ export function WigglyTools({
           <button
             onClick={() => handleToolClick("pen")}
             className={`
-                  relative border-4 rounded-xl flex flex-col items-center justify-center p-2 transition-all active:scale-[0.98] aspect-square w-full
-                  ${tool === "pen"
+                relative border-4 rounded-xl flex flex-col items-center justify-center p-2 transition-all active:scale-[0.98] aspect-square w-full
+                ${tool === "pen"
                 ? "bg-white border-[color:var(--color-ugo-orange)] shadow-[0_0_0_2px_var(--color-ugo-orange)] z-10"
                 : "bg-white border-slate-300 text-slate-400"
               }
-              `}
+            `}
           >
-            <div className="absolute top-2 left-2 text-xs font-bold opacity-50">ペン</div>
+            <div className="absolute top-2 left-2 text-lg font-black opacity-60">ペン</div>
             <div className="text-6xl rotate-45 transform origin-center drop-shadow-sm">✏️</div>
             {/* Corner Indicator */}
             <div className={`absolute bottom-2 right-2 w-8 h-8 border-2 rounded-lg flex items-center justify-center transition-colors ${tool === "pen" ? "border-orange-500 bg-orange-100" : "border-slate-300 bg-slate-100"}`}>
@@ -136,14 +136,14 @@ export function WigglyTools({
               setActivePopup("none");
             }}
             className={`
-                  relative border-4 rounded-xl flex flex-col items-center justify-center p-2 transition-all active:scale-[0.98] aspect-square w-full
-                  ${tool === "pattern"
+                relative border-4 rounded-xl flex flex-col items-center justify-center p-2 transition-all active:scale-[0.98] aspect-square w-full
+                ${tool === "pattern"
                 ? "bg-amber-50 border-[color:var(--color-ugo-orange)] shadow-[0_0_0_2px_var(--color-ugo-orange)] z-10"
                 : "bg-white border-slate-300 text-slate-400"
               }
-              `}
+            `}
           >
-            <div className="absolute top-2 left-2 text-xs font-bold opacity-50">塗る</div>
+            <div className="absolute top-2 left-2 text-lg font-black opacity-60">塗る</div>
             <div className="text-6xl drop-shadow-sm">🖌️</div>
             {/* Corner Indicator - Clicking this opens the popup immediately */}
             <div
@@ -152,10 +152,10 @@ export function WigglyTools({
                 setTool("pattern"); // Also select the tool
                 setActivePopup(activePopup === "pattern" ? "none" : "pattern");
               }}
-              className={`absolute bottom-2 right-2 w-8 h-8 border-2 rounded-lg flex items-center justify-center transition-all hover:scale-110 active:scale-90 ${tool === "pattern" ? "border-orange-500 bg-orange-100" : "border-slate-300 bg-slate-100"}`}
+              className={`absolute bottom-2 right-2 w-10 h-10 border-2 rounded-lg flex items-center justify-center transition-all hover:scale-110 active:scale-90 z-20 ${tool === "pattern" ? "border-orange-500 bg-orange-100" : "border-slate-300 bg-slate-100"}`}
             >
               {/* Tiny preview of current pattern */}
-              <div className="w-4 h-4 rounded-sm"
+              <div className="w-6 h-6 rounded-sm"
                 style={{
                   backgroundImage:
                     patternId === 'dots' ? "radial-gradient(circle, #000 1px, transparent 1.5px)"
@@ -179,7 +179,14 @@ export function WigglyTools({
 
             {/* COMPACT POPUP: Pattern Grid (3x3) */}
             {activePopup === "pattern" && (
-              <div className="absolute top-full mt-2 bg-white rounded-lg border-2 border-orange-500 p-1.5 grid grid-cols-3 gap-1.5 shadow-xl z-50 h-fit" style={{ width: '140px', left: '50%', transform: 'translateX(-50%)', maxWidth: 'calc(100% - 1rem)' }}>
+              <div
+                className="absolute bg-white rounded-lg border-2 border-orange-500 p-1 grid grid-cols-3 gap-1 shadow-xl z-50 h-fit"
+                style={{
+                  top: 'calc(100% - 48px)',
+                  left: 'calc(100% - 48px)',
+                  width: '134px'
+                }}
+              >
                 {[
                   { id: "dots", bg: "radial-gradient(circle, #000 1.5px, transparent 2px)", bgSize: "6px 6px" },
                   { id: "dotsDense", bg: "radial-gradient(circle, #000 1px, transparent 1.5px)", bgSize: "3px 3px" },
@@ -200,7 +207,7 @@ export function WigglyTools({
                         setPatternId(p.id as BrushPatternId);
                         setActivePopup("none");
                       }}
-                      className={`relative rounded border-2 aspect-square overflow-hidden bg-white hover:bg-orange-50 active:scale-95 transition-all ${patternId === p.id
+                      className={`relative rounded border-2 w-10 h-10 overflow-hidden bg-white hover:bg-orange-50 active:scale-95 transition-all ${patternId === p.id
                         ? "border-orange-500 bg-orange-100 ring-2 ring-orange-300 shadow-md"
                         : "border-slate-300 hover:border-orange-300"
                         }`}
@@ -232,14 +239,14 @@ export function WigglyTools({
               setActivePopup("none");
             }}
             className={`
-                  relative border-4 rounded-xl flex flex-col items-center justify-center p-2 transition-all active:scale-[0.98] aspect-square w-full
-                  ${tool === "eraser"
+                relative border-4 rounded-xl flex flex-col items-center justify-center p-2 transition-all active:scale-[0.98] aspect-square w-full
+                ${tool === "eraser"
                 ? "bg-white border-[color:var(--color-ugo-orange)] shadow-[0_0_0_2px_var(--color-ugo-orange)] z-10"
                 : "bg-white border-slate-300 text-slate-400"
               }
-              `}
+            `}
           >
-            <div className="absolute top-2 left-2 text-xs font-bold opacity-50">消しゴム</div>
+            <div className="absolute top-2 left-2 text-lg font-black opacity-60">消しゴム</div>
             <div className="text-6xl drop-shadow-sm">🩹</div>
             {/* Corner Indicator - Clicking this opens the popup immediately */}
             <div
@@ -248,20 +255,27 @@ export function WigglyTools({
                 setTool("eraser"); // Also select the tool
                 setActivePopup(activePopup === "eraser" ? "none" : "eraser");
               }}
-              className={`absolute bottom-2 right-2 w-8 h-8 border-2 rounded-lg flex items-center justify-center transition-all hover:scale-110 active:scale-90 ${tool === "eraser" ? "border-orange-500 bg-orange-100" : "border-slate-300 bg-slate-100"}`}
+              className={`absolute bottom-2 right-2 w-10 h-10 border-2 rounded-lg flex items-center justify-center transition-all hover:scale-110 active:scale-90 z-20 ${tool === "eraser" ? "border-orange-500 bg-orange-100" : "border-slate-300 bg-slate-100"}`}
             >
               <div
                 className={`${eraserVariant === 'eraserCircle' ? 'rounded-full' :
                   eraserVariant === 'eraserSquare' ? 'rounded-sm' :
                     'rounded-none w-4 h-1'
-                  } ${eraserVariant === 'eraserCircle' || eraserVariant === 'eraserSquare' ? 'w-3 h-3' : ''
+                  } ${eraserVariant === 'eraserCircle' || eraserVariant === 'eraserSquare' ? 'w-4 h-4' : ''
                   } ${tool === "eraser" ? "bg-orange-600" : "bg-slate-400"}`}
               />
             </div>
 
             {/* COMPACT POPUP: Eraser Grid (3x3, same size as pattern) */}
             {activePopup === "eraser" && (
-              <div className="absolute top-full mt-2 bg-white rounded-lg border-2 border-orange-500 p-1.5 grid grid-cols-3 gap-1.5 shadow-xl z-50 h-fit" style={{ width: '140px', left: '50%', transform: 'translateX(-50%)', maxWidth: 'calc(100% - 1rem)' }}>
+              <div
+                className="absolute bg-white rounded-lg border-2 border-orange-500 p-1 grid grid-cols-3 gap-1 shadow-xl z-50 h-fit"
+                style={{
+                  top: 'calc(100% - 48px)',
+                  right: '8px',
+                  width: '134px'
+                }}
+              >
                 {eraserVariants.map((v) => {
                   return (
                     <button
@@ -272,7 +286,7 @@ export function WigglyTools({
                         setEraserVariant(v.id);
                         setActivePopup("none");
                       }}
-                      className={`relative rounded border-2 aspect-square flex items-center justify-center bg-white hover:bg-orange-50 active:scale-95 transition-all
+                      className={`relative rounded border-2 w-10 h-10 flex items-center justify-center bg-white hover:bg-orange-50 active:scale-95 transition-all
                                   ${eraserVariant === v.id
                           ? "border-orange-500 bg-orange-100 ring-2 ring-orange-300 shadow-md"
                           : "border-slate-300 hover:border-orange-300"
@@ -281,8 +295,8 @@ export function WigglyTools({
                       {/* Icon for eraser type */}
                       <div
                         className={`${v.id === 'eraserCircle' ? 'rounded-full' :
-                            v.id === 'eraserSquare' ? 'rounded-sm' :
-                              'rounded-none w-6 h-1'
+                          v.id === 'eraserSquare' ? 'rounded-sm' :
+                            'rounded-none w-6 h-1'
                           } ${eraserVariant === v.id ? 'bg-orange-700' : 'bg-slate-600'
                           } ${v.id === 'eraserCircle' || v.id === 'eraserSquare' ? 'w-6 h-6' : ''
                           }`}
