@@ -91,23 +91,23 @@ export function WigglyTools({
     <div className="flex flex-col w-full h-full bg-[#fdfbf7] select-none text-(--color-ugo-dark) font-sans p-2 gap-2 relative overflow-hidden">
       {/* Faithful Scanline & Pixel Texture Overlay - Lower Z to stay behind popups */}
       <div className="absolute inset-0 pointer-events-none z-0 opacity-15"
-        style={{ 
+        style={{
           backgroundImage: `
             linear-gradient(90deg, rgba(0,0,0,0.1) 1px, transparent 1px),
             linear-gradient(0deg, rgba(255,255,255,0.05) 1px, transparent 1px)
-          `, 
-          backgroundSize: "2px 100%, 100% 2px" 
+          `,
+          backgroundSize: "2px 100%, 100% 2px"
         }}
       />
-      
+
       {/* Background Grid (Faithful Brand Color Orange) */}
       <div className="absolute inset-0 pointer-events-none opacity-[0.12]"
-        style={{ 
+        style={{
           backgroundImage: `
             linear-gradient(to right, #ff8c00 1.5px, transparent 1.5px),
             linear-gradient(to bottom, #ff8c00 1.5px, transparent 1.5px)
-          `, 
-          backgroundSize: "16px 16px" 
+          `,
+          backgroundSize: "16px 16px"
         }}
       />
 
@@ -121,10 +121,10 @@ export function WigglyTools({
         >
           <div className="relative w-8 h-8 flex items-center justify-center shrink-0">
             {[...Array(8)].map((_, i) => (
-              <div 
-                key={i} 
-                className="absolute w-[4px] h-[4px] bg-white rounded-full" 
-                style={{ transform: `rotate(${i * 45}deg) translateY(-8px)` }} 
+              <div
+                key={i}
+                className="absolute w-[4px] h-[4px] bg-white rounded-full"
+                style={{ transform: `rotate(${i * 45}deg) translateY(-8px)` }}
               />
             ))}
           </div>
@@ -132,7 +132,7 @@ export function WigglyTools({
         </div>
 
         {/* Center-Left: Settings */}
-        <div 
+        <div
           onClick={() => setActivePopup("settings")}
           role="button"
           className="bg-[#ff6b00] border-t-[3px] border-l-[3px] border-t-[#ff9d5c] border-l-[#ff9d5c] border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-[6px] h-full px-4 flex items-center justify-center gap-1.5 active:translate-y-0.5 group cursor-pointer"
@@ -157,8 +157,8 @@ export function WigglyTools({
               border-t-[3px] border-l-[3px] border-b-[3px] border-r-[1.5px] 
               rounded-l-[6px] h-full px-5 flex items-center justify-center gap-2 
               transition-all focus:outline-none cursor-pointer
-              ${!canUndo 
-                ? "bg-[#ffd6b8] border-t-white border-l-[#fffefc] border-b-[#ffb38a] border-r-[#ffb38a] pointer-events-none" 
+              ${!canUndo
+                ? "bg-[#ffd6b8] border-t-white border-l-[#fffefc] border-b-[#ffb38a] border-r-[#ffb38a] pointer-events-none"
                 : "bg-[#ff6b00] border-[#ff9d5c] border-b-[#b34700] border-r-[#b34700] active:translate-y-0.5 active:brightness-95"
               }
             `}
@@ -176,8 +176,8 @@ export function WigglyTools({
               border-t-[3px] border-l-[1.5px] border-r-[3px] border-b-[3px] 
               rounded-r-[6px] h-full px-4 flex items-center justify-center 
               transition-all focus:outline-none cursor-pointer
-              ${!canRedo 
-                ? "bg-[#ffd6b8] border-t-white border-l-[#ffb38a] border-r-[#ffb38a] border-b-[#ffb38a] pointer-events-none" 
+              ${!canRedo
+                ? "bg-[#ffd6b8] border-t-white border-l-[#ffb38a] border-r-[#ffb38a] border-b-[#ffb38a] pointer-events-none"
                 : "bg-[#ff6b00] border-t-[#ff9d5c] border-l-[#ff9d5c] border-r-[#b34700] border-b-[#b34700] active:translate-y-0.5 active:brightness-95"
               }
             `}
@@ -415,10 +415,10 @@ export function WigglyTools({
                 style={{ backgroundColor: varName }}
                 className={`
                               h-9 w-9 rounded-[2px] transition-transform shadow-sm shrink-0 relative
-                              ${color === varName 
-                                ? "border-black border-[3px] scale-110 z-10 shadow-[0_0_0_2px_rgba(255,255,255,0.8)]" 
-                                : "border-white border-[2px] hover:scale-105"
-                              }
+                              ${color === varName
+                    ? "border-black border-[3px] scale-110 z-10 shadow-[0_0_0_2px_rgba(255,255,255,0.8)]"
+                    : "border-white border-[2px] hover:scale-105"
+                  }
                           `}
               >
                 {color === varName && (
@@ -435,17 +435,31 @@ export function WigglyTools({
             <a
               href={exportUrl}
               download="wiggly-ugomemo.gif"
-              className="bg-[#ff6b00] border-t-[3px] border-l-[3px] border-t-[#ff9d5c] border-l-[#ff9d5c] border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-[6px] h-full px-5 flex items-center justify-center active:translate-y-0.5 transition-all text-white font-black text-xl"
+              className="bg-[#ff6b00] border-t-[3px] border-l-[3px] border-t-[#ff9d5c] border-l-[#ff9d5c] border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-[6px] h-full px-4 flex flex-col items-center justify-center active:translate-y-0.5 transition-all text-white font-black"
             >
-              保存
+              <div className="flex items-baseline mb-1">
+                <span className="text-base leading-none">GIF</span>
+                <span className="text-[13px] leading-none ml-0.5">を</span>
+              </div>
+              <span className="text-xl leading-none">保存</span>
             </a>
           ) : (
             <div
               onClick={onExport}
               role="button"
-              className={`bg-[#ff6b00] border-t-[3px] border-l-[3px] border-t-[#ff9d5c] border-l-[#ff9d5c] border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-[6px] h-full px-5 flex items-center justify-center active:translate-y-0.5 transition-all text-white font-black text-xl cursor-pointer ${isExporting ? "opacity-50 pointer-events-none" : ""}`}
+              className={`bg-[#ff6b00] border-t-[3px] border-l-[3px] border-t-[#ff9d5c] border-l-[#ff9d5c] border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-[6px] h-full px-4 flex flex-col items-center justify-center active:translate-y-0.5 transition-all text-white font-black cursor-pointer ${isExporting ? "opacity-50 pointer-events-none" : ""}`}
             >
-              {isExporting ? "..." : "保存"}
+              {isExporting ? (
+                <span className="text-xl">...</span>
+              ) : (
+                <>
+                  <div className="flex items-baseline mb-1">
+                    <span className="text-xs leading-none">GIF</span>
+                    <span className="text-[10px] leading-none ml-0.5">を</span>
+                  </div>
+                  <span className="text-xl leading-none">保存</span>
+                </>
+              )}
             </div>
           )}
         </div>
@@ -456,12 +470,12 @@ export function WigglyTools({
         <div className="absolute inset-0 z-[200] bg-[#fdfbf7] flex flex-col overflow-hidden">
           {/* Background Grid (Consistent with main screen) */}
           <div className="absolute inset-0 pointer-events-none opacity-[0.12] z-0"
-            style={{ 
+            style={{
               backgroundImage: `
                 linear-gradient(to right, #ff8c00 1.5px, transparent 1.5px),
                 linear-gradient(to bottom, #ff8c00 1.5px, transparent 1.5px)
-              `, 
-              backgroundSize: "16px 16px" 
+              `,
+              backgroundSize: "16px 16px"
             }}
           />
 
@@ -470,26 +484,24 @@ export function WigglyTools({
             <div className="flex-1 flex h-full items-end gap-1 pt-2">
               <button
                 onClick={() => setSettingsTab("palette")}
-                className={`px-6 py-2 rounded-t-[8px] font-black text-lg transition-all ${
-                  settingsTab === "palette" 
-                    ? "bg-[#fdfbf7] text-[#ff6b00] translate-y-px border-t-[3px] border-l-[3px] border-r-[3px] border-[#e7d1b1]" 
-                    : "bg-[#ff9d5c] text-white hover:bg-[#ff8c00]"
-                }`}
+                className={`px-6 py-2 rounded-t-[8px] font-black text-lg transition-all ${settingsTab === "palette"
+                  ? "bg-[#fdfbf7] text-[#ff6b00] translate-y-px border-t-[3px] border-l-[3px] border-r-[3px] border-[#e7d1b1]"
+                  : "bg-[#ff9d5c] text-white hover:bg-[#ff8c00]"
+                  }`}
               >
                 パレット
               </button>
               <button
                 onClick={() => setSettingsTab("body")}
-                className={`px-6 py-2 rounded-t-[8px] font-black text-lg transition-all ${
-                  settingsTab === "body" 
-                    ? "bg-[#fdfbf7] text-[#ff6b00] translate-y-px border-t-[3px] border-l-[3px] border-r-[3px] border-[#e7d1b1]" 
-                    : "bg-[#ff9d5c] text-white hover:bg-[#ff8c00]"
-                }`}
+                className={`px-6 py-2 rounded-t-[8px] font-black text-lg transition-all ${settingsTab === "body"
+                  ? "bg-[#fdfbf7] text-[#ff6b00] translate-y-px border-t-[3px] border-l-[3px] border-r-[3px] border-[#e7d1b1]"
+                  : "bg-[#ff9d5c] text-white hover:bg-[#ff8c00]"
+                  }`}
               >
                 本体色
               </button>
             </div>
-            
+
             <button
               onClick={() => setActivePopup("none")}
               className="bg-white border-[3px] border-black rounded-[6px] w-12 h-12 flex items-center justify-center text-3xl font-black active:translate-y-0.5"
@@ -507,28 +519,27 @@ export function WigglyTools({
                     <button
                       key={p.name}
                       onClick={() => setPalette(p.colors)}
-                      className={`flex flex-col p-2.5 rounded-[4px] border-[3px] transition-all relative overflow-hidden ${
-                        JSON.stringify(palette) === JSON.stringify(p.colors)
-                          ? "border-black bg-[#ffff00] shadow-[4px_4px_0_rgba(0,0,0,0.1)]"
-                          : "border-[#e7d1b1] bg-white hover:border-[#ff9d5c] shadow-[2px_2px_0_rgba(210,180,140,0.1)]"
-                      }`}
+                      className={`flex flex-col p-2.5 rounded-[4px] border-[3px] transition-all relative overflow-hidden ${JSON.stringify(palette) === JSON.stringify(p.colors)
+                        ? "border-black bg-[#ffff00] shadow-[4px_4px_0_rgba(0,0,0,0.1)]"
+                        : "border-[#e7d1b1] bg-white hover:border-[#ff9d5c] shadow-[2px_2px_0_rgba(210,180,140,0.1)]"
+                        }`}
                     >
                       <span className={`font-black text-sm mb-2 text-left ${JSON.stringify(palette) === JSON.stringify(p.colors) ? "text-black" : "text-[#a67c52]"}`}>
                         {p.name}
                       </span>
                       <div className="flex gap-1">
                         {p.colors.map((c, i) => (
-                          <div 
-                            key={i} 
-                            className="w-full aspect-square border-[1.5px] border-black/20 rounded-[2px]" 
-                            style={{ backgroundColor: c }} 
+                          <div
+                            key={i}
+                            className="w-full aspect-square border-[1.5px] border-black/20 rounded-[2px]"
+                            style={{ backgroundColor: c }}
                           />
                         ))}
                       </div>
                     </button>
                   ))}
                 </div>
-                
+
                 {/* Custom Palette Option */}
                 <div className="mt-2 p-4 bg-white border-[3px] border-[#e7d1b1] rounded-[6px] shadow-[2px_2px_0_rgba(210,180,140,0.1)]">
                   <span className="font-black text-lg mb-4 block text-center text-[#a67c52]">カスタムパレット</span>
@@ -562,11 +573,10 @@ export function WigglyTools({
                     <button
                       key={b.name}
                       onClick={() => setBodyColor(b.body)}
-                      className={`aspect-square rounded-[4px] border-[3px] transition-all relative flex items-center justify-center p-1.5 ${
-                        bodyColor.bg === b.body.bg
-                          ? "border-black bg-[#ffff00] shadow-[3px_3px_0_rgba(0,0,0,0.15)] z-10"
-                          : "border-[#e7d1b1] bg-white hover:border-[#ff9d5c] shadow-[1px_1px_0_rgba(210,180,140,0.1)]"
-                      }`}
+                      className={`aspect-square rounded-[4px] border-[3px] transition-all relative flex items-center justify-center p-1.5 ${bodyColor.bg === b.body.bg
+                        ? "border-black bg-[#ffff00] shadow-[3px_3px_0_rgba(0,0,0,0.15)] z-10"
+                        : "border-[#e7d1b1] bg-white hover:border-[#ff9d5c] shadow-[1px_1px_0_rgba(210,180,140,0.1)]"
+                        }`}
                     >
                       <div className="w-full h-full relative border-[2.5px] border-black/10 rounded-[3px] shadow-inner overflow-hidden" style={{ backgroundColor: b.body.bg }}>
                         <div className="absolute top-0 left-0 w-full h-[30%] bg-white/10" />
