@@ -227,9 +227,9 @@ export function WigglyTools({
           >
             <div className={`absolute top-2.5 left-2.5 text-base font-black ${tool === 'pen' ? 'text-black' : 'text-[#a67c52]'}`}>ペン</div>
             <div className={`text-8xl rotate-45 transform origin-center drop-shadow-sm ${tool === 'pen' ? 'opacity-100' : 'opacity-60'}`}>✏️</div>
-            {/* Corner Indicator (Dot Style) */}
+            {/* Corner Indicator (Circle) */}
             <div className={`absolute bottom-2 right-2 w-11 h-11 border-[4px] rounded-[3px] flex items-center justify-center ${tool === "pen" ? "border-black bg-white" : "border-[#d2b48c] bg-white"}`}>
-              <div className={`w-4.5 h-4.5 ${tool === "pen" ? "bg-black" : "bg-[#d2b48c]"}`} />
+              <div className={`w-4.5 h-4.5 rounded-full ${tool === "pen" ? "bg-black" : "bg-[#d2b48c]"}`} />
             </div>
           </div>
 
