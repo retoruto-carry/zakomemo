@@ -124,6 +124,10 @@ export class CanvasRenderer implements DrawingRenderer {
     return this.ctx.getImageData(0, 0, this.lastWidth, this.lastHeight);
   }
 
+  clearPatternCache(): void {
+    this.patternCache.clear();
+  }
+
   private createWigglyPattern(
     patternId: string,
     color: string,

@@ -97,6 +97,10 @@ export class WigglyEngine {
     this.onHistoryChange = listener;
   }
 
+  clearRendererCache(): void {
+    this.renderer.clearPatternCache();
+  }
+
   canUndo(): boolean {
     return this.history.past.length > 0;
   }

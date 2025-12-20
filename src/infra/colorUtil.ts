@@ -1,9 +1,22 @@
+export function resolveCssVariable(color: string): string {
+  if (typeof window === "undefined") return color;
+  if (!color.startsWith("var(")) return color;
+  
+  const match = color.match(/var\((--[^,)]+)/);
+  if (!match) return color;
+  
+  const varName = match[1];
+  const value = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+  return value || color;
+}
+
 export function parseColorToRgb(color: string): {
   r: number;
   g: number;
   b: number;
 } {
-  const hex = color.replace("#", "").trim();
+  const resolved = resolveCssVariable(color);
+  const hex = resolved.replace("#", "").trim();
 
   if (hex.length === 3) {
     const [r, g, b] = hex.split("").map((c) => parseInt(c + c, 16));

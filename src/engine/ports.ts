@@ -7,6 +7,7 @@ export interface DrawingRenderer {
     jitteredPoints: { x: number; y: number }[],
     timeMs: number,
   ): void;
+  clearPatternCache(): void;
 }
 
 export interface TimeProvider {

@@ -4,7 +4,8 @@ import type { BrushPatternId } from "@/core/types";
 import type { EraserVariant, PenVariant } from "@/engine/variants";
 import type { Tool } from "@/engine/WigglyEngine";
 import { useState } from "react";
-import { eraserVariants, penVariants } from "./variants";
+import { eraserVariants } from "./variants";
+import { PALETTE_PRESETS, BODY_PRESETS, type BodyColor } from "./presets";
 
 interface WigglyToolsProps {
   tool: Tool;
@@ -29,6 +30,11 @@ interface WigglyToolsProps {
   isExporting: boolean;
   exportUrl: string | null;
   exportError: string | null;
+
+  palette: string[];
+  setPalette: (palette: string[]) => void;
+  bodyColor: BodyColor;
+  setBodyColor: (bodyColor: BodyColor) => void;
 }
 
 export function WigglyTools({
@@ -53,9 +59,14 @@ export function WigglyTools({
   isExporting,
   exportUrl,
   exportError,
+  palette,
+  setPalette,
+  bodyColor,
+  setBodyColor,
 }: WigglyToolsProps) {
   // Track which popup is open
-  const [activePopup, setActivePopup] = useState<"none" | "pattern" | "eraser">("none");
+  const [activePopup, setActivePopup] = useState<"none" | "pattern" | "eraser" | "settings">("none");
+  const [settingsTab, setSettingsTab] = useState<"palette" | "body">("palette");
 
   // Toggle logic
   const handleToolClick = (t: Tool) => {
@@ -122,6 +133,7 @@ export function WigglyTools({
 
         {/* Center-Left: Settings */}
         <div 
+          onClick={() => setActivePopup("settings")}
           role="button"
           className="bg-[#ff6b00] border-t-[3px] border-l-[3px] border-t-[#ff9d5c] border-l-[#ff9d5c] border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-[6px] h-full px-4 flex items-center justify-center gap-1.5 active:translate-y-0.5 group cursor-pointer"
         >
@@ -394,24 +406,27 @@ export function WigglyTools({
 
         {/* Colors */}
         <div className="flex-1 h-full bg-[#fffdeb] border-[3px] border-[#d2b48c] p-1 flex items-center justify-center gap-1.5 shadow-[3px_3px_0_rgba(210,180,140,0.2)] rounded-[4px]">
-          {["#0b0b0b", "#ff3b30", "#34c759", "#007aff", "#fbbf24", "#9b51e0"].map((c) => (
-            <button
-              key={c}
-              onClick={() => setColor(c)}
-              style={{ backgroundColor: c }}
-              className={`
-                            h-9 w-9 rounded-[2px] transition-transform shadow-sm shrink-0 relative
-                            ${color === c 
-                              ? "border-black border-[3px] scale-110 z-10 shadow-[0_0_0_2px_rgba(255,255,255,0.8)]" 
-                              : "border-white border-[2px] hover:scale-105"
-                            }
-                        `}
-            >
-              {color === c && (
-                <div className="absolute inset-0 border-2 border-white opacity-80 pointer-events-none" />
-              )}
-            </button>
-          ))}
+          {palette.map((_, i) => {
+            const varName = `var(--palette-${i})`;
+            return (
+              <button
+                key={i}
+                onClick={() => setColor(varName)}
+                style={{ backgroundColor: varName }}
+                className={`
+                              h-9 w-9 rounded-[2px] transition-transform shadow-sm shrink-0 relative
+                              ${color === varName 
+                                ? "border-black border-[3px] scale-110 z-10 shadow-[0_0_0_2px_rgba(255,255,255,0.8)]" 
+                                : "border-white border-[2px] hover:scale-105"
+                              }
+                          `}
+              >
+                {color === varName && (
+                  <div className="absolute inset-0 border-2 border-white opacity-80 pointer-events-none" />
+                )}
+              </button>
+            );
+          })}
         </div>
 
         {/* Save Button (Faithful Orange Style) */}
@@ -435,6 +450,113 @@ export function WigglyTools({
           )}
         </div>
       </div>
+
+      {/* FULL SCREEN SETTINGS MODAL */}
+      {activePopup === "settings" && (
+        <div className="absolute inset-0 z-[200] bg-[#fdfbf7] flex flex-col">
+          {/* Top Bar: Tabs & Close */}
+          <div className="h-16 shrink-0 bg-[#ff6b00] border-b-[4px] border-[#b34700] flex items-center px-2 gap-2">
+            <div className="flex-1 flex h-full items-end gap-1 pt-2">
+              <button
+                onClick={() => setSettingsTab("palette")}
+                className={`px-6 py-2 rounded-t-[8px] font-black text-lg transition-all ${
+                  settingsTab === "palette" 
+                    ? "bg-[#fdfbf7] text-[#ff6b00] translate-y-px border-t-[3px] border-l-[3px] border-r-[3px] border-[#e7d1b1]" 
+                    : "bg-[#ff9d5c] text-white hover:bg-[#ff8c00]"
+                }`}
+              >
+                パレット
+              </button>
+              <button
+                onClick={() => setSettingsTab("body")}
+                className={`px-6 py-2 rounded-t-[8px] font-black text-lg transition-all ${
+                  settingsTab === "body" 
+                    ? "bg-[#fdfbf7] text-[#ff6b00] translate-y-px border-t-[3px] border-l-[3px] border-r-[3px] border-[#e7d1b1]" 
+                    : "bg-[#ff9d5c] text-white hover:bg-[#ff8c00]"
+                }`}
+              >
+                本体色
+              </button>
+            </div>
+            
+            <button
+              onClick={() => setActivePopup("none")}
+              className="bg-white border-[3px] border-black rounded-[6px] w-12 h-12 flex items-center justify-center text-3xl font-black active:translate-y-0.5"
+            >
+              ×
+            </button>
+          </div>
+
+          {/* Content Area with Custom Scrollbar */}
+          <div className="flex-1 overflow-y-auto ugo-scrollbar p-4">
+            {settingsTab === "palette" ? (
+              <div className="grid grid-cols-2 gap-4">
+                {PALETTE_PRESETS.map((p) => (
+                  <button
+                    key={p.name}
+                    onClick={() => setPalette(p.colors)}
+                    className={`flex flex-col p-3 rounded-[8px] border-[3px] transition-all ${
+                      JSON.stringify(palette) === JSON.stringify(p.colors)
+                        ? "border-[#ff6b00] bg-[#fff1e5]"
+                        : "border-[#e7d1b1] bg-white hover:border-[#ff9d5c]"
+                    }`}
+                  >
+                    <span className="font-black text-base mb-2">{p.name}</span>
+                    <div className="flex gap-1">
+                      {p.colors.map((c, i) => (
+                        <div key={i} className="w-6 h-6 rounded-full border border-black/10" style={{ backgroundColor: c }} />
+                      ))}
+                    </div>
+                  </button>
+                ))}
+                
+                {/* Custom Palette Option */}
+                <div className="col-span-2 mt-4 p-4 bg-white border-[3px] border-[#e7d1b1] rounded-[8px]">
+                  <span className="font-black text-lg mb-3 block">カスタムパレット</span>
+                  <div className="grid grid-cols-6 gap-2">
+                    {palette.map((c, i) => (
+                      <div key={i} className="flex flex-col items-center gap-1">
+                        <div className="w-10 h-10 rounded-full border-2 border-black/20" style={{ backgroundColor: c }} />
+                        <input
+                          type="color"
+                          value={c}
+                          onChange={(e) => {
+                            const newPalette = [...palette];
+                            newPalette[i] = e.target.value;
+                            setPalette(newPalette);
+                          }}
+                          className="w-8 h-8 cursor-pointer opacity-0 absolute"
+                        />
+                        <span className="text-[10px] font-mono">{c}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-4">
+                {BODY_PRESETS.map((b) => (
+                  <button
+                    key={b.name}
+                    onClick={() => setBodyColor(b.body)}
+                    className={`flex flex-col p-3 rounded-[8px] border-[3px] transition-all ${
+                      bodyColor.bg === b.body.bg
+                        ? "border-[#ff6b00] bg-[#fff1e5]"
+                        : "border-[#e7d1b1] bg-white hover:border-[#ff9d5c]"
+                    }`}
+                  >
+                    <span className="font-black text-base mb-2">{b.name}</span>
+                    <div className="flex gap-2 items-center">
+                      <div className="w-12 h-8 rounded-[4px] border border-black/10" style={{ backgroundColor: b.body.bg }} />
+                      <div className="w-6 h-6 rounded-full border border-black/10" style={{ backgroundColor: b.body.button }} />
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
