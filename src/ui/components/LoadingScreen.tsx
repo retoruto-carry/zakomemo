@@ -19,9 +19,8 @@ export function LoadingScreen({ isExiting, onExited }: LoadingScreenProps) {
 
   return (
     <div
-      className={`fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden ${
-        isExiting ? styles.exit : ""
-      }`}
+      className={`fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden ${isExiting ? styles.exit : ""
+        }`}
     >
       {/* Background Layers */}
       <div className={`${styles.layer} ${styles.layer2}`} />
@@ -32,7 +31,7 @@ export function LoadingScreen({ isExiting, onExited }: LoadingScreenProps) {
         className={`relative z-30 flex flex-col items-center gap-4 ${styles.content}`}
       >
         <img
-          src="/images/frog.gif"
+          src="/images/frog_fast.gif"
           alt="Loading"
           className="w-24 h-24"
           aria-hidden="true"
