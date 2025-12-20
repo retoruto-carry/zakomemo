@@ -1,26 +1,48 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Ugomemo Palette */
+  --color-ugomemo-orange: #ff6000;
+  --color-ugomemo-bg: #f8f8f0;
+  --color-ugomemo-dark: #1a1a1a;
+  --color-ugomemo-panel: #ffffff;
+  --color-ugomemo-border: #333333;
+  --color-ugomemo-shadow: rgba(0, 0, 0, 0.15);
+  
+  --background: var(--color-ugomemo-bg);
+  --foreground: var(--color-ugomemo-dark);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-rounded), "Inter", "Helvetica Neue", Arial, sans-serif;
+  
+  /* Custom Colors */
+  --color-ugo-orange: var(--color-ugomemo-orange);
+  --color-ugo-bg: var(--color-ugomemo-bg);
+  --color-ugo-dark: var(--color-ugomemo-dark);
+  --color-ugo-panel: var(--color-ugomemo-panel);
+  --color-ugo-border: var(--color-ugomemo-border);
+  
+  --shadow-ugo: 4px 4px 0px 0px var(--color-ugomemo-shadow);
+  --radius-ugo: 0.75rem;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* Dark mode adjustments if needed, keeping it retro-ish but usable */
+    --background: #2a2a2a;
+    --foreground: #f0f0f0;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  overscroll-behavior: none; /* Prevent bounce on mobile */
+  user-select: none; /* App-like feel */
+  -webkit-user-select: none;
 }
+
