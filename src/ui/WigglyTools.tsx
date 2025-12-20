@@ -453,9 +453,20 @@ export function WigglyTools({
 
       {/* FULL SCREEN SETTINGS MODAL */}
       {activePopup === "settings" && (
-        <div className="absolute inset-0 z-[200] bg-[#fdfbf7] flex flex-col">
+        <div className="absolute inset-0 z-[200] bg-[#fdfbf7] flex flex-col overflow-hidden">
+          {/* Background Grid (Consistent with main screen) */}
+          <div className="absolute inset-0 pointer-events-none opacity-[0.12] z-0"
+            style={{ 
+              backgroundImage: `
+                linear-gradient(to right, #ff8c00 1.5px, transparent 1.5px),
+                linear-gradient(to bottom, #ff8c00 1.5px, transparent 1.5px)
+              `, 
+              backgroundSize: "16px 16px" 
+            }}
+          />
+
           {/* Top Bar: Tabs & Close */}
-          <div className="h-16 shrink-0 bg-[#ff6b00] border-b-[4px] border-[#b34700] flex items-center px-2 gap-2">
+          <div className="h-16 shrink-0 bg-[#ff6b00] border-b-[4px] border-[#b34700] flex items-center px-2 gap-2 relative z-10">
             <div className="flex-1 flex h-full items-end gap-1 pt-2">
               <button
                 onClick={() => setSettingsTab("palette")}
@@ -488,7 +499,7 @@ export function WigglyTools({
           </div>
 
           {/* Content Area with Custom Scrollbar */}
-          <div className="flex-1 overflow-y-auto ugo-scrollbar p-4">
+          <div className="flex-1 overflow-y-auto ugo-scrollbar p-4 relative z-10">
             {settingsTab === "palette" ? (
               <div className="flex flex-col gap-4">
                 <div className="grid grid-cols-2 gap-3">
@@ -523,76 +534,68 @@ export function WigglyTools({
                   <span className="font-black text-lg mb-4 block text-center text-[#a67c52]">カスタムパレット</span>
                   <div className="grid grid-cols-6 gap-2">
                     {palette.map((c, i) => (
-                      <div key={i} className="flex flex-col items-center gap-1.5">
-                        <div className="relative w-full aspect-square">
+                      <div key={i} className="flex flex-col items-center gap-1.5 relative">
+                        <div className="w-full aspect-square relative">
                           <div className="absolute inset-0 border-[2.5px] border-black/10 rounded-[4px]" style={{ backgroundColor: c }} />
                           <div className="absolute inset-0 border-[1.5px] border-white/30 rounded-[3px] pointer-events-none" />
-                          <input
-                            type="color"
-                            value={c}
-                            onChange={(e) => {
-                              const newPalette = [...palette];
-                              newPalette[i] = e.target.value;
-                              setPalette(newPalette);
-                            }}
-                            className="absolute inset-0 w-full h-full cursor-pointer opacity-0"
-                          />
                         </div>
                         <span className="text-[9px] font-black text-[#a67c52] leading-none">{c.toUpperCase()}</span>
+                        <input
+                          type="color"
+                          value={c}
+                          onChange={(e) => {
+                            const newPalette = [...palette];
+                            newPalette[i] = e.target.value;
+                            setPalette(newPalette);
+                          }}
+                          className="absolute inset-0 w-full h-full cursor-pointer opacity-0"
+                        />
                       </div>
                     ))}
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="flex flex-col gap-4">
-                <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-col gap-3">
+                <div className="grid grid-cols-4 gap-3">
                   {BODY_PRESETS.map((b) => (
                     <button
                       key={b.name}
                       onClick={() => setBodyColor(b.body)}
-                      className={`flex flex-col p-2.5 rounded-[4px] border-[3px] transition-all relative overflow-hidden ${
+                      className={`aspect-square rounded-[6px] border-[3px] transition-all relative flex items-center justify-center p-1.5 ${
                         bodyColor.bg === b.body.bg
-                          ? "border-black bg-[#ffff00] shadow-[4px_4px_0_rgba(0,0,0,0.1)]"
+                          ? "border-black bg-[#ffff00] shadow-[4px_4px_0_rgba(0,0,0,0.15)] z-10"
                           : "border-[#e7d1b1] bg-white hover:border-[#ff9d5c] shadow-[2px_2px_0_rgba(210,180,140,0.1)]"
                       }`}
                     >
-                      <span className={`font-black text-sm mb-2 text-left ${bodyColor.bg === b.body.bg ? "text-black" : "text-[#a67c52]"}`}>
-                        {b.name}
-                      </span>
-                      <div className="flex gap-2 items-center">
-                        <div className="flex-1 h-10 rounded-[4px] border-[2px] border-black/10 relative overflow-hidden" style={{ backgroundColor: b.body.bg }}>
-                           <div className="absolute inset-0 border border-white/20" />
-                        </div>
-                        <div className="w-8 h-8 rounded-full border-[2px] border-black/10 relative" style={{ backgroundColor: b.body.button }}>
-                           <div className="absolute inset-0 border border-white/30 rounded-full" />
-                        </div>
+                      <div className="w-full h-full relative border-[2.5px] border-black/10 rounded-[3px] shadow-inner overflow-hidden" style={{ backgroundColor: b.body.bg }}>
+                        <div className="absolute top-0 left-0 w-full h-[30%] bg-white/10" />
+                        <div className="absolute inset-0 border border-white/20" />
                       </div>
                     </button>
                   ))}
                 </div>
 
-                {/* Custom Body Color Option */}
-                <div className="mt-2 p-4 bg-white border-[3px] border-[#e7d1b1] rounded-[6px] shadow-[2px_2px_0_rgba(210,180,140,0.1)]">
-                  <span className="font-black text-lg mb-4 block text-center text-[#a67c52]">カスタム本体色</span>
-                  <div className="flex flex-col items-center gap-3">
-                    <div className="relative w-32 h-20">
-                      <div className="absolute inset-0 rounded-[8px] border-[4px] border-black/20 shadow-inner" style={{ backgroundColor: bodyColor.bg }} />
-                      <div className="absolute inset-0 border-[2px] border-white/20 rounded-[6px] pointer-events-none" />
-                      <input
-                        type="color"
-                        value={bodyColor.bg}
-                        onChange={(e) => {
-                          const base = e.target.value;
-                          setBodyColor(generateBodyColorFromBase(base));
-                        }}
-                        className="absolute inset-0 w-full h-full cursor-pointer opacity-0"
-                      />
+                {/* Custom Body Color Option - More compact */}
+                <div className="p-3 bg-white border-[3px] border-[#e7d1b1] rounded-[6px] flex items-center gap-4 shadow-[2px_2px_0_rgba(210,180,140,0.1)]">
+                  <div className="flex-1">
+                    <span className="font-black text-sm block text-[#a67c52] leading-tight">カスタムカラー</span>
+                  </div>
+                  <div className="flex items-center gap-3 relative">
+                    <span className="font-black text-xs text-[#a67c52] font-mono">{bodyColor.bg.toUpperCase()}</span>
+                    <div className="w-16 h-10 shrink-0 relative">
+                      <div className="absolute inset-0 rounded-[4px] border-[3px] border-black/20 shadow-inner" style={{ backgroundColor: bodyColor.bg }} />
+                      <div className="absolute inset-0 border-[1.5px] border-white/20 rounded-[3px] pointer-events-none" />
                     </div>
-                    <span className="font-black text-sm text-[#a67c52] tracking-wider">{bodyColor.bg.toUpperCase()}</span>
-                    <p className="text-[10px] text-[#a67c52]/60 text-center font-black">
-                      ベースカラーを選ぶと、影やハイライトが自動計算されます
-                    </p>
+                    <input
+                      type="color"
+                      value={bodyColor.bg}
+                      onChange={(e) => {
+                        const base = e.target.value;
+                        setBodyColor(generateBodyColorFromBase(base));
+                      }}
+                      className="absolute inset-0 w-full h-full cursor-pointer opacity-0"
+                    />
                   </div>
                 </div>
               </div>
