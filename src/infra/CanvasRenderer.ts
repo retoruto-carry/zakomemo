@@ -142,7 +142,10 @@ export class CanvasRenderer implements DrawingRenderer {
     }
 
     const def = getPatternDefinition(patternId as BrushPatternId);
-    const tile = wigglePatternTile(def.tile, timeMs, this.wiggleConfig);
+    // 描画時は静的パターン（timeMs=0）を使用
+    // これにより同じパターンを重ねて描いてもずれない
+    // アニメーション再生時のみゆらぎを適用する場合は別途実装が必要
+    const tile = wigglePatternTile(def.tile, 0, this.wiggleConfig);
 
     // パターンスケール: 1 = 元サイズ、2 = 2倍（密度半分）
     const PATTERN_SCALE = 2;
