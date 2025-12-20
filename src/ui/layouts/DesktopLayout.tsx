@@ -20,26 +20,26 @@ export function DesktopLayout({ canvas, tools }: LayoutProps) {
 
         {/* Top Shell */}
         <div className="w-full bg-[#f2f2f2] p-8 pb-10 flex flex-col items-center relative">
-          {/* Top Screen System */}
-          <div className="relative w-full max-w-[540px] aspect-3/2 bg-[#111] rounded-sm p-4 shadow-[inset_0_2px_15px_rgba(0,0,0,1)] border-[3px] border-[#222]">
-            {/* Speaker Holes (Honeycomb Pattern - Left) */}
-            <div className="absolute left-1.5 top-1/2 -translate-y-1/2 flex flex-col gap-1 opacity-90">
-              <div className="flex gap-1 justify-center"><div className="w-1 h-1 rounded-full bg-black shadow-inner" /><div className="w-1 h-1 rounded-full bg-black shadow-inner" /></div>
-              <div className="flex gap-1 justify-center -mx-1"><div className="w-1 h-1 rounded-full bg-black shadow-inner" /><div className="w-1 h-1 rounded-full bg-black shadow-inner" /><div className="w-1 h-1 rounded-full bg-black shadow-inner" /></div>
-              <div className="flex gap-1 justify-center"><div className="w-1 h-1 rounded-full bg-black shadow-inner" /><div className="w-1 h-1 rounded-full bg-black shadow-inner" /></div>
-            </div>
+          {/* Speaker Holes (Left) */}
+          <div className="absolute left-[10%] top-[45%] flex flex-col items-center justify-center gap-1.5 opacity-40">
+            <div className="flex gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-black/40 shadow-inner" /><div className="w-1.5 h-1.5 rounded-full bg-black/40 shadow-inner" /></div>
+            <div className="flex gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-black/40 shadow-inner" /><div className="w-1.5 h-1.5 rounded-full bg-black/40 shadow-inner" /><div className="w-1.5 h-1.5 rounded-full bg-black/40 shadow-inner" /></div>
+            <div className="flex gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-black/40 shadow-inner" /><div className="w-1.5 h-1.5 rounded-full bg-black/40 shadow-inner" /></div>
+          </div>
 
+          {/* Top Screen System */}
+          <div className="relative w-full max-w-[540px] aspect-3/2 bg-[#2a2a2a] rounded-sm p-2 shadow-[inset_0_1px_8px_rgba(0,0,0,0.8)] border-[2px] border-[#333]">
             {/* Glossy Screen */}
             <div className="relative w-full h-full bg-white shadow-[0_0_40px_rgba(255,255,255,0.05)] overflow-hidden rounded-[2px]">
               {canvas}
             </div>
+          </div>
 
-            {/* Speaker Holes (Honeycomb Pattern - Right) */}
-            <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex flex-col gap-1 opacity-90">
-              <div className="flex gap-1 justify-center"><div className="w-1 h-1 rounded-full bg-black shadow-inner" /><div className="w-1 h-1 rounded-full bg-black shadow-inner" /></div>
-              <div className="flex gap-1 justify-center -mx-1"><div className="w-1 h-1 rounded-full bg-black shadow-inner" /><div className="w-1 h-1 rounded-full bg-black shadow-inner" /><div className="w-1 h-1 rounded-full bg-black shadow-inner" /></div>
-              <div className="flex gap-1 justify-center"><div className="w-1 h-1 rounded-full bg-black shadow-inner" /><div className="w-1 h-1 rounded-full bg-black shadow-inner" /></div>
-            </div>
+          {/* Speaker Holes (Right) */}
+          <div className="absolute right-[10%] top-[45%] flex flex-col items-center justify-center gap-1.5 opacity-40">
+            <div className="flex gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-black/40 shadow-inner" /><div className="w-1.5 h-1.5 rounded-full bg-black/40 shadow-inner" /></div>
+            <div className="flex gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-black/40 shadow-inner" /><div className="w-1.5 h-1.5 rounded-full bg-black/40 shadow-inner" /><div className="w-1.5 h-1.5 rounded-full bg-black/40 shadow-inner" /></div>
+            <div className="flex gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-black/40 shadow-inner" /><div className="w-1.5 h-1.5 rounded-full bg-black/40 shadow-inner" /></div>
           </div>
         </div>
 
@@ -96,7 +96,7 @@ export function DesktopLayout({ canvas, tools }: LayoutProps) {
 
             {/* Power Button */}
             <div className="flex items-center gap-2 -mt-2 pr-2">
-              <span className="text-[6px] font-black text-[#aaa] tracking-[0.1em]">POWER</span>
+              <span className="text-[9px] font-black text-[#aaa] tracking-[0.1em]">POWER</span>
               <button className="w-7 h-7 rounded-full bg-[#fdfdfd] border border-[#ccc] shadow-[0_1px_3px_rgba(0,0,0,0.1),inset_0_1px_2px_white] active:scale-90 flex items-center justify-center">
                 <div className="w-3 h-3 rounded-full border border-[#999] relative">
                   <div className="absolute top-[-3px] left-1/2 -translate-x-1/2 w-0.5 h-1.5 bg-[#999]" />
@@ -106,7 +106,7 @@ export function DesktopLayout({ canvas, tools }: LayoutProps) {
           </div>
 
           {/* Center: Bottom Screen System */}
-          <div className="shrink-0 relative w-full max-w-[540px] aspect-3/2 bg-[#111] rounded-sm p-4 shadow-[inset_0_2px_15px_rgba(0,0,0,1)] border-[3px] border-[#222]">
+          <div className="shrink-0 relative w-full max-w-[540px] aspect-3/2 bg-[#2a2a2a] rounded-sm p-2 shadow-[inset_0_1px_8px_rgba(0,0,0,0.8)] border-[2px] border-[#333]">
             <div className="relative w-full h-full bg-[#fdfdfd] shadow-[inset_0_2px_10px_rgba(0,0,0,0.1)] overflow-hidden rounded-[2px]">
               {tools}
             </div>
@@ -131,11 +131,11 @@ export function DesktopLayout({ canvas, tools }: LayoutProps) {
             <div className="flex flex-col gap-4 pl-1 -mt-2">
               <div className="flex items-center gap-2">
                 <button className="w-5 h-5 rounded-full bg-[#fdfdfd] border border-[#ccc] shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:scale-90" />
-                <span className="text-[6px] font-black text-[#bbb] tracking-tighter">START</span>
+                <span className="text-[8px] font-black text-[#bbb] tracking-tighter">START</span>
               </div>
               <div className="flex items-center gap-2">
                 <button className="w-5 h-5 rounded-full bg-[#fdfdfd] border border-[#ccc] shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:scale-90" />
-                <span className="text-[6px] font-black text-[#bbb] tracking-tighter">SELECT</span>
+                <span className="text-[8px] font-black text-[#bbb] tracking-tighter">SELECT</span>
               </div>
             </div>
           </div>
