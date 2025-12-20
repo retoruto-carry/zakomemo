@@ -274,17 +274,20 @@ export function WigglyTools({
                   width: '154px'
                 }}
               >
-                {[
-                  { id: "dots", bg: "radial-gradient(circle, #000 1.5px, transparent 2px)", bgSize: "6px 6px" },
-                  { id: "dotsDense", bg: "radial-gradient(circle, #000 1px, transparent 1.5px)", bgSize: "3px 3px" },
-                  { id: "vertical", bg: "linear-gradient(90deg, transparent 50%, #000 50%)", bgSize: "4px 100%" },
-                  { id: "horizontal", bg: "linear-gradient(0deg, transparent 50%, #000 50%)", bgSize: "100% 4px" },
-                  {
-                    id: "checker",
-                    bg: "linear-gradient(45deg, #000 25%, transparent 25%), linear-gradient(-45deg, #000 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #000 75%), linear-gradient(-45deg, transparent 75%, #000 75%)",
-                    bgSize: "6px 6px", bgPos: "0 0, 0 3px, 3px -3px, -3px 0px"
-                  },
-                ].map((p) => {
+                {(
+                  [
+                    { id: "dots", bg: "radial-gradient(circle, #000 1.5px, transparent 2px)", bgSize: "6px 6px" },
+                    { id: "dotsDense", bg: "radial-gradient(circle, #000 1px, transparent 1.5px)", bgSize: "3px 3px" },
+                    { id: "vertical", bg: "linear-gradient(90deg, transparent 50%, #000 50%)", bgSize: "4px 100%" },
+                    { id: "horizontal", bg: "linear-gradient(0deg, transparent 50%, #000 50%)", bgSize: "100% 4px" },
+                    {
+                      id: "checker",
+                      bg: "linear-gradient(45deg, #000 25%, transparent 25%), linear-gradient(-45deg, #000 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #000 75%), linear-gradient(-45deg, transparent 75%, #000 75%)",
+                      bgSize: "6px 6px",
+                      bgPos: "0 0, 0 3px, 3px -3px, -3px 0px"
+                    },
+                  ] as { id: string; bg: string; bgSize: string; bgPos?: string }[]
+                ).map((p) => {
                   return (
                     <button
                       key={p.id}
@@ -304,7 +307,7 @@ export function WigglyTools({
                         style={{
                           backgroundImage: p.bg,
                           backgroundSize: p.bgSize,
-                          backgroundPosition: (p as any).bgPos || "0 0",
+                          backgroundPosition: p.bgPos ?? "0 0",
                           imageRendering: 'pixelated'
                         }}
                       />
