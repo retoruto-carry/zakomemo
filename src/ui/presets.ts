@@ -114,10 +114,26 @@ export const BODY_PRESETS = [
   },
 ];
 
+/**
+ * 6文字のhexコードに正規化する
+ * #fff → #ffffff, fff → #ffffff, #ff0000 → #ff0000
+ */
+function normalizeHex(hex: string): string {
+  let h = hex.replace('#', '');
+  // 3文字の場合は6文字に展開
+  if (h.length === 3) {
+    h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+  }
+  // 6文字でなければデフォルト色を返す
+  if (h.length !== 6 || !/^[0-9a-fA-F]{6}$/.test(h)) {
+    return '#888888';
+  }
+  return '#' + h.toLowerCase();
+}
+
 export function generateBodyColorFromBase(hex: string): BodyColor {
-  // Simple logic to derive shades from a base color
-  // Note: These helper functions expect 6-character hex codes (e.g., #ff0000).
-  // Shorthand codes like #fff will produce incorrect results.
+  // 入力を正規化（3文字hex対応、バリデーション）
+  const normalizedHex = normalizeHex(hex);
   
   /** Clamp a value to the 0-255 range */
   const clamp = (val: number) => Math.max(0, Math.min(255, val));
@@ -151,20 +167,20 @@ export function generateBodyColorFromBase(hex: string): BodyColor {
     return "#" + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1);
   };
 
-  const dark = isDark(hex);
+  const dark = isDark(normalizedHex);
   
   return {
-    bg: hex,
-    border: darken(hex, 10),
-    bezel: dark ? darken(hex, 20) : "#2a2a2a",
-    bezelBorder: dark ? darken(hex, 30) : "#333",
-    button: lighten(hex, 15),
-    buttonBorder: hex,
-    buttonText: dark ? "#fff" : darken(hex, 40),
-    hingeFrom: darken(hex, 5),
-    hingeVia: hex,
-    hingeTo: darken(hex, 10),
-    hingeBorder: darken(hex, 15),
+    bg: normalizedHex,
+    border: darken(normalizedHex, 10),
+    bezel: dark ? darken(normalizedHex, 20) : "#2a2a2a",
+    bezelBorder: dark ? darken(normalizedHex, 30) : "#333",
+    button: lighten(normalizedHex, 15),
+    buttonBorder: normalizedHex,
+    buttonText: dark ? "#fff" : darken(normalizedHex, 40),
+    hingeFrom: darken(normalizedHex, 5),
+    hingeVia: normalizedHex,
+    hingeTo: darken(normalizedHex, 10),
+    hingeBorder: darken(normalizedHex, 15),
   };
 }
 

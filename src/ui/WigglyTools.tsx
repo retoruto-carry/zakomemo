@@ -17,6 +17,35 @@ const handleButtonKeyDown = (callback: () => void) => (e: KeyboardEvent) => {
   }
 };
 
+// パターンプレビュー用スタイル設定
+const PATTERN_STYLES: Record<BrushPatternId, { image: string; size: string; position: string }> = {
+  dots: {
+    image: "radial-gradient(circle, #000 1.5px, transparent 1.8px)",
+    size: "5px 5px",
+    position: "0 0",
+  },
+  dotsDense: {
+    image: "radial-gradient(circle, #000 1px, transparent 1.2px)",
+    size: "3px 3px",
+    position: "0 0",
+  },
+  horizontal: {
+    image: "linear-gradient(0deg, transparent 50%, #000 50%)",
+    size: "100% 3px",
+    position: "0 0",
+  },
+  vertical: {
+    image: "linear-gradient(90deg, transparent 50%, #000 50%)",
+    size: "3px 100%",
+    position: "0 0",
+  },
+  checker: {
+    image: "linear-gradient(45deg, #000 25%, transparent 25%), linear-gradient(-45deg, #000 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #000 75%), linear-gradient(-45deg, transparent 75%, #000 75%)",
+    size: "5px 5px, 5px 5px, 5px 5px, 5px 5px",
+    position: "0 0, 0 2.5px, 2.5px -2.5px, -2.5px 0px",
+  },
+};
+
 interface WigglyToolsProps {
   tool: Tool;
   setTool: (tool: Tool) => void;
@@ -266,21 +295,9 @@ export function WigglyTools({
             >
               <div className="w-6 h-6 shadow-inner"
                 style={{
-                  backgroundImage:
-                    patternId === 'dots' ? "radial-gradient(circle, #000 1.5px, transparent 1.8px)"
-                      : patternId === 'dotsDense' ? "radial-gradient(circle, #000 1px, transparent 1.2px)"
-                        : patternId === 'horizontal' ? "linear-gradient(0deg, transparent 50%, #000 50%)"
-                          : patternId === 'vertical' ? "linear-gradient(90deg, transparent 50%, #000 50%)"
-                            : patternId === 'checker' ? "linear-gradient(45deg, #000 25%, transparent 25%), linear-gradient(-45deg, #000 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #000 75%), linear-gradient(-45deg, transparent 75%, #000 75%)"
-                              : "radial-gradient(circle, #000 1.5px, transparent 1.8px)",
-                  backgroundSize:
-                    patternId === 'dots' ? "5px 5px"
-                      : patternId === 'dotsDense' ? "3px 3px"
-                        : patternId === 'horizontal' ? "100% 3px"
-                          : patternId === 'vertical' ? "3px 100%"
-                            : patternId === 'checker' ? "5px 5px, 5px 5px, 5px 5px, 5px 5px"
-                              : "5px 5px",
-                  backgroundPosition: patternId === 'checker' ? "0 0, 0 2.5px, 2.5px -2.5px, -2.5px 0px" : "0 0",
+                  backgroundImage: PATTERN_STYLES[patternId]?.image ?? PATTERN_STYLES.dots.image,
+                  backgroundSize: PATTERN_STYLES[patternId]?.size ?? PATTERN_STYLES.dots.size,
+                  backgroundPosition: PATTERN_STYLES[patternId]?.position ?? PATTERN_STYLES.dots.position,
                   opacity: tool === "pattern" ? 0.9 : 0.4,
                   imageRendering: 'pixelated'
                 }}
