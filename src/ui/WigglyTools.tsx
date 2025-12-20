@@ -1,10 +1,11 @@
 "use client";
 
-import { type KeyboardEvent, useState } from "react";
+import { type KeyboardEvent, useRef, useState } from "react";
 import type { BrushPatternId } from "@/core/types";
 import type { EraserVariant } from "@/engine/variants";
 import type { Tool } from "@/engine/WigglyEngine";
 import { isMobile } from "@/lib/share";
+import { AnimatedGif, type AnimatedGifHandle } from "./components/AnimatedGif";
 import { ShareButton } from "./components/ShareButton";
 import {
   BODY_PRESETS,
@@ -120,6 +121,12 @@ export function WigglyTools({
     "none" | "pattern" | "eraser" | "settings"
   >("none");
   const [settingsTab, setSettingsTab] = useState<"palette" | "body">("palette");
+  const undoGifRef = useRef<AnimatedGifHandle>(null);
+
+  const handleUndo = () => {
+    undoGifRef.current?.playAnimation();
+    onUndo();
+  };
 
   // Toggle logic
   const handleToolClick = (t: Tool) => {
@@ -223,8 +230,8 @@ export function WigglyTools({
           {/* Undo (やり直し) */}
           {/* biome-ignore lint/a11y/useSemanticElements: Custom styled button */}
           <div
-            onClick={onUndo}
-            onKeyDown={handleButtonKeyDown(onUndo)}
+            onClick={canUndo ? handleUndo : undefined}
+            onKeyDown={canUndo ? handleButtonKeyDown(handleUndo) : undefined}
             role="button"
             tabIndex={canUndo ? 0 : -1}
             aria-disabled={!canUndo}
@@ -239,7 +246,13 @@ export function WigglyTools({
               }
             `}
           >
-            <div className="text-white text-3xl font-black leading-none">⤺</div>
+            <AnimatedGif
+              ref={undoGifRef}
+              staticSrc="/images/frog2.png"
+              animatedSrc="/images/frog2_1loop.gif"
+              alt=""
+              className={`w-10 h-10 ${!canUndo ? "opacity-50" : ""}`}
+            />
             <span className="text-white font-black text-xl leading-none tracking-tighter whitespace-nowrap">
               やり直し
             </span>
@@ -293,11 +306,15 @@ export function WigglyTools({
             >
               ペン
             </div>
-            <div
-              className={`text-8xl rotate-45 transform origin-center drop-shadow-sm ${tool === "pen" ? "opacity-100" : "opacity-60"}`}
-            >
-              ✏️
-            </div>
+            {/* biome-ignore lint/performance/noImgElement: ツールアイコン表示のため */}
+            <img
+              src={
+                tool === "pen" ? "/images/pen_on.png" : "/images/pen_off.png"
+              }
+              alt="ペン"
+              className="w-24 h-24 object-contain drop-shadow-sm"
+              aria-hidden="true"
+            />
             {/* Corner Indicator (Circle) */}
             <div
               className={`absolute bottom-2 right-2 w-11 h-11 border-[4px] rounded-[3px] flex items-center justify-center ${tool === "pen" ? "border-black bg-white" : "border-[#d2b48c] bg-white"}`}
@@ -335,11 +352,17 @@ export function WigglyTools({
             >
               塗る
             </div>
-            <div
-              className={`text-8xl drop-shadow-sm ${tool === "pattern" ? "opacity-100" : "opacity-60"}`}
-            >
-              🖌️
-            </div>
+            {/* biome-ignore lint/performance/noImgElement: ツールアイコン表示のため */}
+            <img
+              src={
+                tool === "pattern"
+                  ? "/images/pattern_on.png"
+                  : "/images/pattern_off.png"
+              }
+              alt="塗る"
+              className="w-24 h-24 object-contain drop-shadow-sm"
+              aria-hidden="true"
+            />
             {/* Corner Indicator */}
             <button
               type="button"
@@ -471,11 +494,17 @@ export function WigglyTools({
             >
               消しゴム
             </div>
-            <div
-              className={`text-8xl drop-shadow-sm ${tool === "eraser" ? "opacity-100" : "opacity-60"}`}
-            >
-              🩹
-            </div>
+            {/* biome-ignore lint/performance/noImgElement: ツールアイコン表示のため */}
+            <img
+              src={
+                tool === "eraser"
+                  ? "/images/eraser_on.png"
+                  : "/images/eraser_off.png"
+              }
+              alt="消しゴム"
+              className="w-24 h-24 object-contain drop-shadow-sm"
+              aria-hidden="true"
+            />
             {/* Corner Indicator */}
             <button
               type="button"
@@ -687,11 +716,14 @@ export function WigglyTools({
               <div className="flex flex-col items-center w-full gap-3">
                 <div className="bg-white p-1 rounded-[6px] border-[3px] border-black shadow-[6px_6px_0_rgba(0,0,0,0.2)] w-[75%] aspect-[3/2] flex items-center justify-center overflow-hidden">
                   {exportUrl && (
-                    <img
-                      src={exportUrl}
-                      alt="Generated GIF"
-                      className="w-full h-full object-contain image-rendering-pixelated"
-                    />
+                    <>
+                      {/* biome-ignore lint/performance/noImgElement: エクスポートされたGIF表示のため */}
+                      <img
+                        src={exportUrl}
+                        alt="Generated GIF"
+                        className="w-full h-full object-contain image-rendering-pixelated"
+                      />
+                    </>
                   )}
                 </div>
 
