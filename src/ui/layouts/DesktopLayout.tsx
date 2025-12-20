@@ -115,28 +115,20 @@ export function DesktopLayout({ canvas, tools }: LayoutProps) {
                 </div>
 
                 {/* Clickable regions for D-pad - Purely decorative */}
-                <button
+                <div
                   className="absolute top-0 left-[34%] w-[32%] h-[34%] active:bg-black/5 rounded-t-sm"
-                  title="Up"
-                  tabIndex={-1}
                   aria-hidden="true"
                 />
-                <button
+                <div
                   className="absolute bottom-0 left-[34%] w-[32%] h-[34%] active:bg-black/5 rounded-b-sm"
-                  title="Down"
-                  tabIndex={-1}
                   aria-hidden="true"
                 />
-                <button
+                <div
                   className="absolute top-[34%] left-0 w-[34%] h-[32%] active:bg-black/5 rounded-l-sm"
-                  title="Left"
-                  tabIndex={-1}
                   aria-hidden="true"
                 />
-                <button
+                <div
                   className="absolute top-[34%] right-0 w-[34%] h-[32%] active:bg-black/5 rounded-r-sm"
-                  title="Right"
-                  tabIndex={-1}
                   aria-hidden="true"
                 />
               </div>
@@ -145,11 +137,11 @@ export function DesktopLayout({ canvas, tools }: LayoutProps) {
             {/* Power Button - Decorative */}
             <div className="flex items-center gap-2 -mt-2 pr-2">
               <span className="text-[9px] font-black text-[#aaa] tracking-[0.1em]">POWER</span>
-              <button tabIndex={-1} aria-hidden="true" className="w-7 h-7 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_1px_3px_rgba(0,0,0,0.1),inset_0_1px_2px_white] active:scale-90 flex items-center justify-center">
+              <div aria-hidden="true" className="w-7 h-7 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_1px_3px_rgba(0,0,0,0.1),inset_0_1px_2px_white] active:scale-90 flex items-center justify-center">
                 <div className="w-3 h-3 rounded-full border border-[#999] relative">
                   <div className="absolute top-[-3px] left-1/2 -translate-x-1/2 w-0.5 h-1.5 bg-[#999]" />
                 </div>
-              </button>
+              </div>
             </div>
           </div>
 
@@ -168,21 +160,21 @@ export function DesktopLayout({ canvas, tools }: LayoutProps) {
 
               {/* Diamond Layout Buttons - Decorative */}
               <div className="relative w-full h-full grid grid-cols-3 grid-rows-3 p-1">
-                <button tabIndex={-1} aria-hidden="true" className="col-start-2 row-start-1 w-10 h-10 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:translate-y-px flex items-center justify-center font-bold text-(--ugo-button-text)">X</button>
-                <button tabIndex={-1} aria-hidden="true" className="col-start-1 row-start-2 w-10 h-10 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:translate-y-px flex items-center justify-center font-bold text-(--ugo-button-text)">Y</button>
-                <button tabIndex={-1} aria-hidden="true" className="col-start-3 row-start-2 w-10 h-10 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:translate-y-px flex items-center justify-center font-bold text-(--ugo-button-text)">A</button>
-                <button tabIndex={-1} aria-hidden="true" className="col-start-2 row-start-3 w-10 h-10 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:translate-y-px flex items-center justify-center font-bold text-(--ugo-button-text)">B</button>
+                <div aria-hidden="true" className="col-start-2 row-start-1 w-10 h-10 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:translate-y-px flex items-center justify-center font-bold text-(--ugo-button-text)">X</div>
+                <div aria-hidden="true" className="col-start-1 row-start-2 w-10 h-10 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:translate-y-px flex items-center justify-center font-bold text-(--ugo-button-text)">Y</div>
+                <div aria-hidden="true" className="col-start-3 row-start-2 w-10 h-10 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:translate-y-px flex items-center justify-center font-bold text-(--ugo-button-text)">A</div>
+                <div aria-hidden="true" className="col-start-2 row-start-3 w-10 h-10 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:translate-y-px flex items-center justify-center font-bold text-(--ugo-button-text)">B</div>
               </div>
             </div>
 
             {/* START/SELECT - Decorative */}
             <div className="flex flex-col gap-4 pl-1 -mt-2">
               <div className="flex items-center gap-2">
-                <button tabIndex={-1} aria-hidden="true" className="w-5 h-5 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:scale-90" />
+                <div aria-hidden="true" className="w-5 h-5 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:scale-90" />
                 <span className="text-[8px] font-black text-[#bbb] tracking-tighter">START</span>
               </div>
               <div className="flex items-center gap-2">
-                <button tabIndex={-1} aria-hidden="true" className="w-5 h-5 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:scale-90" />
+                <div aria-hidden="true" className="w-5 h-5 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:scale-90" />
                 <span className="text-[8px] font-black text-[#bbb] tracking-tighter">SELECT</span>
               </div>
             </div>
