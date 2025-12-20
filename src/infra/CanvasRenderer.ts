@@ -14,12 +14,15 @@ export class CanvasRenderer implements DrawingRenderer {
     string,
     { bucket: number; pattern: CanvasPattern }
   >();
-  private patternCacheMs = 80; // ゆらぎを間引きしてパフォーマンスを稼ぐ
+  private dpr: number;
 
   constructor(
     private ctx: CanvasRenderingContext2D,
     private wiggleConfig: PatternWiggleConfig,
-  ) {}
+    dpr?: number,
+  ) {
+    this.dpr = dpr ?? ((typeof window !== "undefined" ? window.devicePixelRatio : 1) || 1);
+  }
 
   clear(width: number, height: number): void {
     this.lastWidth = width;
@@ -173,6 +176,10 @@ export class CanvasRenderer implements DrawingRenderer {
     if (!pattern) {
       throw new Error("Failed to create canvas pattern");
     }
+
+    // パターンの座標系をDPRに合わせてスケール
+    // これにより論理座標でパターンがタイリングされ、ストローク間でずれなくなる
+    pattern.setTransform(new DOMMatrix().scale(1 / this.dpr, 1 / this.dpr));
 
     this.patternCache.set(cacheKey, { bucket: 0, pattern });
     return pattern;
