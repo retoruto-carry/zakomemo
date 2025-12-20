@@ -131,7 +131,7 @@ export function WigglyTools({
           onKeyDown={handleButtonKeyDown(onClear)}
           role="button"
           tabIndex={0}
-          className="bg-[#ff6b00] border-t-[3px] border-l-[3px] border-t-[#ff9d5c] border-l-[#ff9d5c] border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-[6px] h-full px-4 flex items-center justify-center gap-1.5 active:translate-y-0.5 active:brightness-95 transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#ff6b00]"
+          className="bg-[#ff6b00] border-t-[3px] border-l-[3px] border-t-[#ff9d5c] border-l-[#ff9d5c] border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-[6px] h-full px-4 flex items-center justify-center gap-1.5 active:translate-y-0.5 active:brightness-95 transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#ff6b00]"
         >
           <div className="relative w-8 h-8 flex items-center justify-center shrink-0">
             {[...Array(8)].map((_, i) => (
@@ -151,7 +151,7 @@ export function WigglyTools({
           onKeyDown={handleButtonKeyDown(() => setActivePopup("settings"))}
           role="button"
           tabIndex={0}
-          className="bg-[#ff6b00] border-t-[3px] border-l-[3px] border-t-[#ff9d5c] border-l-[#ff9d5c] border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-[6px] h-full px-4 flex items-center justify-center gap-1.5 active:translate-y-0.5 group cursor-pointer focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#ff6b00]"
+          className="bg-[#ff6b00] border-t-[3px] border-l-[3px] border-t-[#ff9d5c] border-l-[#ff9d5c] border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-[6px] h-full px-4 flex items-center justify-center gap-1.5 active:translate-y-0.5 group cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#ff6b00]"
         >
           <svg viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7 text-white drop-shadow-sm transition-transform group-active:rotate-45">
             <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.21.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" />
@@ -174,7 +174,7 @@ export function WigglyTools({
             className={`
               border-t-[3px] border-l-[3px] border-b-[3px] border-r-[1.5px] 
               rounded-l-[6px] h-full px-5 flex items-center justify-center gap-2 
-              transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#ff6b00]
+              transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#ff6b00]
               ${!canUndo
                 ? "bg-[#ffd6b8] border-t-white border-l-[#fffefc] border-b-[#ffb38a] border-r-[#ffb38a] pointer-events-none"
                 : "bg-[#ff6b00] border-[#ff9d5c] border-b-[#b34700] border-r-[#b34700] active:translate-y-0.5 active:brightness-95"
@@ -195,7 +195,7 @@ export function WigglyTools({
             className={`
               border-t-[3px] border-l-[1.5px] border-r-[3px] border-b-[3px] 
               rounded-r-[6px] h-full px-4 flex items-center justify-center 
-              transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#ff6b00]
+              transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#ff6b00]
               ${!canRedo
                 ? "bg-[#ffd6b8] border-t-white border-l-[#ffb38a] border-r-[#ffb38a] border-b-[#ffb38a] pointer-events-none"
                 : "bg-[#ff6b00] border-t-[#ff9d5c] border-l-[#ff9d5c] border-r-[#b34700] border-b-[#b34700] active:translate-y-0.5 active:brightness-95"
@@ -218,7 +218,7 @@ export function WigglyTools({
             role="button"
             tabIndex={0}
             className={`
-                  relative flex flex-col items-center justify-center p-2 transition-all active:scale-[0.98] aspect-square w-full rounded-[8px] cursor-pointer focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2
+                  relative flex flex-col items-center justify-center p-2 transition-all active:scale-[0.98] aspect-square w-full rounded-[8px] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2
                   ${tool === "pen"
                 ? "bg-[#fff700] border-[5px] border-black shadow-[6px_6px_0_#000] z-30"
                 : "bg-[#fffdeb] border-[4px] border-[#d2b48c] shadow-[4px_4px_0_rgba(210,180,140,0.3)]"
@@ -246,7 +246,7 @@ export function WigglyTools({
             role="button"
             tabIndex={0}
             className={`
-                  relative flex flex-col items-center justify-center p-2 transition-all active:scale-[0.98] aspect-square w-full rounded-[8px] cursor-pointer focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2
+                  relative flex flex-col items-center justify-center p-2 transition-all active:scale-[0.98] aspect-square w-full rounded-[8px] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2
                   ${tool === "pattern"
                 ? "bg-[#fff700] border-[5px] border-black shadow-[6px_6px_0_#000] z-30"
                 : "bg-[#fffdeb] border-[4px] border-[#d2b48c] shadow-[4px_4px_0_rgba(210,180,140,0.3)]"
@@ -354,7 +354,7 @@ export function WigglyTools({
             role="button"
             tabIndex={0}
             className={`
-                  relative flex flex-col items-center justify-center p-2 transition-all active:scale-[0.98] aspect-square w-full rounded-[8px] cursor-pointer focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2
+                  relative flex flex-col items-center justify-center p-2 transition-all active:scale-[0.98] aspect-square w-full rounded-[8px] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2
                   ${tool === "eraser"
                 ? "bg-[#fff700] border-[5px] border-black shadow-[6px_6px_0_#000] z-30"
                 : "bg-[#fffdeb] border-[4px] border-[#d2b48c] shadow-[4px_4px_0_rgba(210,180,140,0.3)]"
@@ -484,7 +484,7 @@ export function WigglyTools({
               onKeyDown={handleButtonKeyDown(onExport)}
               role="button"
               tabIndex={isExporting ? -1 : 0}
-              className={`bg-[#ff6b00] border-t-[3px] border-l-[3px] border-t-[#ff9d5c] border-l-[#ff9d5c] border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-[6px] h-full px-4 flex flex-col items-center justify-center active:translate-y-0.5 transition-all text-white font-black cursor-pointer focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#ff6b00] ${isExporting ? "opacity-50 pointer-events-none" : ""}`}
+              className={`bg-[#ff6b00] border-t-[3px] border-l-[3px] border-t-[#ff9d5c] border-l-[#ff9d5c] border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-[6px] h-full px-4 flex flex-col items-center justify-center active:translate-y-0.5 transition-all text-white font-black cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#ff6b00] ${isExporting ? "opacity-50 pointer-events-none" : ""}`}
             >
               {isExporting ? (
                 <span className="text-xl">...</span>
