@@ -1,3 +1,4 @@
+import type { JitterOffset } from "../core/jitter";
 import type { Stroke } from "../core/types";
 
 export interface DrawingRenderer {
@@ -8,6 +9,8 @@ export interface DrawingRenderer {
     timeMs: number,
   ): void;
   clearPatternCache(): void;
+  /** パターン描画用のグローバルオフセットを設定 */
+  setPatternOffset?(offset: JitterOffset): void;
 }
 
 export interface TimeProvider {

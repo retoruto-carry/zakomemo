@@ -33,3 +33,23 @@ export function computeJitter(
     dy: (noiseY * 2 - 1) * amplitude,
   };
 }
+
+/**
+ * 時間ベースのグローバルオフセットを計算（全ストローク共通）
+ * パターン描画で使用し、ストローク間でパターンがずれないようにする
+ */
+export function computeGlobalJitter(
+  timeMs: number,
+  config: JitterConfig,
+): JitterOffset {
+  const bucket = Math.floor(timeMs * config.frequency);
+  const amplitude = config.amplitude;
+
+  const noiseX = hashNoise(0, 0, bucket);
+  const noiseY = hashNoise(0, 0, bucket + 1);
+
+  return {
+    dx: (noiseX * 2 - 1) * amplitude,
+    dy: (noiseY * 2 - 1) * amplitude,
+  };
+}

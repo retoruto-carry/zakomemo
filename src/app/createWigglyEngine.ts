@@ -48,6 +48,6 @@ export function createWigglyEngine(
     time,
     raf,
     sound,
-    jitterConfig: { amplitude: 0, frequency: 0.008 }, // テスト: ゆらぎ無効
+    jitterConfig: { amplitude: 1.2, frequency: 0.008 },
   });
 }
