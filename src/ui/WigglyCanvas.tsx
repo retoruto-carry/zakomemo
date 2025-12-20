@@ -48,7 +48,6 @@ export function WigglyCanvas({
   const engineRef = useRef<WigglyEngine | null>(null);
   const primaryPointerIdRef = useRef<number | null>(null);
   const activePointersRef = useRef<Map<number, PointerInfo>>(new Map());
-  const tapCandidateRef = useRef<PointerInfo | null>(null);
   const [eraserPos, setEraserPos] = useState<{ x: number; y: number } | null>(
     null,
   );
@@ -168,31 +167,8 @@ export function WigglyCanvas({
 
     const handlePointerUp = (ev: PointerEvent) => {
       const info = activePointersRef.current.get(ev.pointerId);
-      const { internal } = toCanvasPos(ev);
-      const now = performance.now();
 
       if (info) {
-        const dt = now - info.startTime;
-        const dist = Math.hypot(
-          internal.x - info.startX,
-          internal.y - info.startY,
-        );
-        const wasTap = dt < 220 && dist < 10;
-
-        if (wasTap) {
-          const prev = tapCandidateRef.current;
-          if (prev && Math.abs(info.startTime - prev.startTime) < 150) {
-            engine.undo();
-            tapCandidateRef.current = null;
-          } else {
-            tapCandidateRef.current = info;
-            setTimeout(() => {
-              if (tapCandidateRef.current?.id === info.id) {
-                tapCandidateRef.current = null;
-              }
-            }, 180);
-          }
-        }
         activePointersRef.current.delete(ev.pointerId);
       }
 
