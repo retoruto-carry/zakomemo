@@ -2,6 +2,11 @@
 
 import { useEffect, useRef } from "react";
 
+/** 連続タップ防止のための最小間隔（ミリ秒） */
+const MIN_TAP_INTERVAL = 500;
+/** タップ後のクールダウン時間（ミリ秒） */
+const TAP_COOLDOWN = 300;
+
 interface TouchInfo {
   id: number;
   startX: number;
@@ -55,8 +60,9 @@ export function useTouchUndoRedo({
         touchesRef.current.clear();
       }
 
-      for (let i = 0; i < ev.touches.length; i += 1) {
-        const touch = ev.touches[i];
+      // changedTouchesを使用して、新しく追加されたタッチのみを処理
+      for (let i = 0; i < ev.changedTouches.length; i += 1) {
+        const touch = ev.changedTouches[i];
         const now = performance.now();
 
         touchesRef.current.set(touch.identifier, {
@@ -72,8 +78,9 @@ export function useTouchUndoRedo({
     };
 
     const handleTouchMove = (ev: TouchEvent) => {
-      for (let i = 0; i < ev.touches.length; i += 1) {
-        const touch = ev.touches[i];
+      // changedTouchesを使用して、移動したタッチのみを処理
+      for (let i = 0; i < ev.changedTouches.length; i += 1) {
+        const touch = ev.changedTouches[i];
         const info = touchesRef.current.get(touch.identifier);
 
         if (info) {
@@ -98,15 +105,12 @@ export function useTouchUndoRedo({
 
       // すべてのタッチが終了したか確認
       const activeTouches = Array.from(touchesRef.current.values());
-      const endedTouches = activeTouches.filter((info) => {
-        // このタッチがまだ存在するか確認
-        for (let i = 0; i < ev.touches.length; i += 1) {
-          if (ev.touches[i].identifier === info.id) {
-            return false;
-          }
-        }
-        return true;
-      });
+      const activeTouchIds = new Set(
+        Array.from(ev.touches, (t) => t.identifier),
+      );
+      const endedTouches = activeTouches.filter(
+        (info) => !activeTouchIds.has(info.id),
+      );
 
       // すべてのタッチが終了した場合のみ処理
       if (ev.touches.length === 0 && endedTouches.length > 0) {
@@ -141,13 +145,13 @@ export function useTouchUndoRedo({
 
           if (allTaps) {
             // 連続タップの防止（前回のタップから一定時間以内は無視）
-            if (now - lastTapTimeRef.current < 500) {
+            if (now - lastTapTimeRef.current < MIN_TAP_INTERVAL) {
               touchesRef.current.clear();
               return;
             }
 
             lastTapTimeRef.current = now;
-            tapCooldownRef.current = now + 300; // 300msのクールダウン
+            tapCooldownRef.current = now + TAP_COOLDOWN;
 
             if (touchCount === 2) {
               // 二本指タップ: undo
@@ -158,12 +162,14 @@ export function useTouchUndoRedo({
             }
           }
         }
+        // ジェスチャーの評価が完了したので、次のジェスチャーのためにタッチ情報をクリア
+        touchesRef.current.clear();
+      } else {
+        // 終了したタッチを削除（まだ他のタッチが残っている場合）
+        endedTouches.forEach((t) => {
+          touchesRef.current.delete(t.id);
+        });
       }
-
-      // 終了したタッチを削除
-      endedTouches.forEach((t) => {
-        touchesRef.current.delete(t.id);
-      });
     };
 
     const handleTouchCancel = () => {

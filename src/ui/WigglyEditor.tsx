@@ -7,7 +7,7 @@ import type { EraserVariant, PenVariant } from "@/engine/variants";
 import type { Tool, WigglyEngine } from "@/engine/WigglyEngine";
 import { CanvasRenderer } from "@/infra/CanvasRenderer";
 import { GifEncGifEncoder } from "@/infra/GifEncGifEncoder";
-import { useTouchUndoRedo } from "./hooks/useTouchUndoRedo";
+import { useTouchUndoRedo } from "@/ui/hooks/useTouchUndoRedo";
 import { DesktopLayout } from "./layouts/DesktopLayout";
 import { MobileLayout } from "./layouts/MobileLayout";
 import { BODY_PRESETS, PALETTE_PRESETS } from "./presets";
