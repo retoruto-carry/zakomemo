@@ -98,9 +98,9 @@ export class WebAudioStrokeSound implements StrokeSound {
       case "pen":
         return { type: "bandpass", frequency: 2800, Q: 0.8 };
       case "pattern":
-        return { type: "lowpass", frequency: 1200, Q: 0.2 };
+        return { type: "bandpass", frequency: 2400, Q: 0.5 };
       case "eraser":
-        return { type: "bandpass", frequency: 3200, Q: 0.7 };
+        return { type: "bandpass", frequency: 4000, Q: 0.7 };
     }
   }
 
@@ -214,8 +214,8 @@ export class WebAudioStrokeSound implements StrokeSound {
       return;
     }
 
-    // 音量: 0.1 + speed * 0.5 (最大1.0)
-    const volume = Math.min(0.1 + speed * 0.5, 1.0);
+    // 音量: 0.2 + speed * 0.6 (最大1.0)
+    const volume = Math.min(0.2 + speed * 0.6, 1.0);
     gainNode.gain.cancelScheduledValues(context.currentTime);
     gainNode.gain.setValueAtTime(gainNode.gain.value, context.currentTime);
     gainNode.gain.linearRampToValueAtTime(volume, context.currentTime + 0.1);
@@ -266,7 +266,7 @@ export class WebAudioStrokeSound implements StrokeSound {
     if (gainNode) {
       gainNode.gain.cancelScheduledValues(context.currentTime);
       gainNode.gain.setValueAtTime(0, context.currentTime);
-      gainNode.gain.linearRampToValueAtTime(0.3, context.currentTime + 0.12);
+      gainNode.gain.linearRampToValueAtTime(0.5, context.currentTime + 0.12);
     }
 
     this.updateVolumeAndFrequency(info.tool, 0.1);
