@@ -13,7 +13,7 @@ export class CanvasRenderer implements DrawingRenderer {
   constructor(
     private ctx: CanvasRenderingContext2D,
     dpr?: number,
-    backgroundColor: string = "#ffffff",
+    backgroundColor: string = "#fdfbf7",
   ) {
     this.dpr =
       dpr ??

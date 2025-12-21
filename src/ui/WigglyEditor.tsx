@@ -119,6 +119,7 @@ export function WigglyEditor() {
       if (!ctx) throw new Error("2D context not available");
 
       // GIF出力用にdpr=1を明示（オフスクリーンキャンバスにはDPRスケーリングなし）
+      // 現在の背景色を使用
       const renderer = new CanvasRenderer(ctx, 1, backgroundColor);
 
       const gifEncoder = new GifEncGifEncoder();

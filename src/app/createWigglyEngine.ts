@@ -23,7 +23,7 @@ function setupCanvasContext(
 export function createWigglyEngine(
   canvas: HTMLCanvasElement,
   initialDrawing: Drawing,
-  backgroundColor: string = "#ffffff",
+  backgroundColor: string = "#fdfbf7",
 ): WigglyEngine {
   const logicalWidth = initialDrawing.width;
   const logicalHeight = initialDrawing.height;

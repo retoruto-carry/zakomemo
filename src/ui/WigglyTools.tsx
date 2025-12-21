@@ -155,7 +155,7 @@ export function WigglyTools({
   };
 
   return (
-    <div className="flex flex-col w-full select-none text-(--color-ugo-dark) font-sans p-2 gap-2 relative overflow-hidden" style={{ backgroundColor }}>
+    <div className="flex flex-col w-full bg-[#fdfbf7] select-none text-(--color-ugo-dark) font-sans p-2 gap-2 relative overflow-hidden">
       {/* Faithful Scanline & Pixel Texture Overlay - Lower Z to stay behind popups */}
       <div
         className="absolute inset-0 pointer-events-none z-0 opacity-15"
@@ -913,10 +913,7 @@ export function WigglyTools({
                       key={color}
                       onClick={() => setBackgroundColor(color)}
                       className={`aspect-square rounded-[4px] border-[3px] transition-all relative flex items-center justify-center p-1 ${
-                        backgroundColor === color &&
-                        BACKGROUND_COLOR_PRESETS.includes(
-                          backgroundColor as (typeof BACKGROUND_COLOR_PRESETS)[number],
-                        )
+                        backgroundColor === color
                           ? "border-black bg-[#ffff00] shadow-[3px_3px_0_rgba(0,0,0,0.15)] z-10"
                           : "border-[#e7d1b1] bg-white hover:border-[#ff9d5c] shadow-[1px_1px_0_rgba(210,180,140,0.1)]"
                       }`}
