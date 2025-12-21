@@ -341,6 +341,41 @@ export function WigglyEditor() {
           scrollbar-width: auto;
           scrollbar-color: #ff6b00 #fdfbf7;
         }
+
+        /* スライダーのつまみを大きくする */
+        input[type="range"]::-webkit-slider-thumb {
+          appearance: none;
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          background: #ff6b00;
+          border: 3px solid #fff;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+          cursor: pointer;
+          margin-top: -8px;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          background: #ff6b00;
+          border: 3px solid #fff;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+          cursor: pointer;
+        }
+
+        /* 太さスライダー用のより大きなつまみ */
+        input[type="range"].pen-width-slider::-webkit-slider-thumb {
+          width: 24px;
+          height: 24px;
+          margin-top: -10px;
+        }
+
+        input[type="range"].pen-width-slider::-moz-range-thumb {
+          width: 24px;
+          height: 24px;
+        }
       `,
         }}
       />

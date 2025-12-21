@@ -62,22 +62,24 @@ function JitterControlSlider({
           {value.toFixed(toFixed)}
         </span>
       </div>
-      <input
-        type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        onChange={(e) => {
-          const newValue = parseFloat(e.target.value);
-          onChange(newValue);
-          playSliderSoundThrottled();
-        }}
-        className="w-full h-2 bg-[#fffdeb] rounded-lg appearance-none cursor-pointer accent-[#ff6b00]"
-        style={{
-          background: `linear-gradient(to right, #ff6b00 0%, #ff6b00 ${percentage}%, #fffdeb ${percentage}%, #fffdeb 100%)`,
-        }}
-      />
+      <div className="relative">
+        <input
+          type="range"
+          min={min}
+          max={max}
+          step={step}
+          value={value}
+          onChange={(e) => {
+            const newValue = parseFloat(e.target.value);
+            onChange(newValue);
+            playSliderSoundThrottled();
+          }}
+          className="w-full h-2 bg-[#fffdeb] rounded-lg appearance-none cursor-pointer accent-[#ff6b00] relative z-10"
+          style={{
+            background: `linear-gradient(to right, #ff6b00 0%, #ff6b00 ${percentage}%, #fffdeb ${percentage}%, #fffdeb 100%)`,
+          }}
+        />
+      </div>
     </div>
   );
 }
@@ -755,7 +757,7 @@ export const WigglyTools = React.forwardRef<
               setWidth(Number(e.target.value));
               playWidthSliderSound();
             }}
-            className="w-full h-4 relative z-10 accent-[#ff6b00] cursor-pointer mix-blend-multiply"
+            className="pen-width-slider w-full h-4 relative z-10 accent-[#ff6b00] cursor-pointer mix-blend-multiply"
           />
         </div>
       </div>
@@ -1041,11 +1043,11 @@ export const WigglyTools = React.forwardRef<
                       >
                         {p.name}
                       </span>
-                      <div className="flex gap-1">
+                      <div className="flex gap-2">
                         {p.colors.map((c) => (
                           <div
                             key={`preview-${c}`}
-                            className="w-full aspect-square border-[1.5px] border-black/20 rounded-[2px]"
+                            className="w-8 h-8 border-[2px] border-black/20 rounded-[3px] shrink-0"
                             style={{ backgroundColor: c }}
                           />
                         ))}
@@ -1059,20 +1061,20 @@ export const WigglyTools = React.forwardRef<
                   <span className="font-black text-base mb-3 block text-center text-[#a67c52]">
                     カスタムパレット
                   </span>
-                  <div className="grid grid-cols-6 gap-1.5">
+                  <div className="grid grid-cols-6 gap-3">
                     {palette.map((c, idx) => (
                       <div
                         key={`custom-palette-${idx}`}
-                        className="flex flex-col items-center gap-1 relative"
+                        className="flex flex-col items-center gap-1.5 relative"
                       >
-                        <div className="w-full aspect-square relative">
+                        <div className="w-full aspect-square relative min-w-0">
                           <div
                             className="absolute inset-0 border-[2.5px] border-black/10 rounded-[4px]"
                             style={{ backgroundColor: c }}
                           />
                           <div className="absolute inset-0 border-[1.5px] border-white/30 rounded-[3px] pointer-events-none" />
                         </div>
-                        <span className="text-xs font-black text-[#a67c52] leading-none">
+                        <span className="text-sm font-black text-[#a67c52] leading-none">
                           {c.toUpperCase()}
                         </span>
                         <input
@@ -1095,7 +1097,7 @@ export const WigglyTools = React.forwardRef<
               </div>
             ) : settingsTab === "background" ? (
               <div className="flex flex-col gap-2.5">
-                <div className="grid grid-cols-6 gap-2">
+                <div className="grid grid-cols-6 gap-2 min-w-0">
                   {BACKGROUND_COLOR_PRESETS.map((color) => (
                     <button
                       type="button"
@@ -1106,7 +1108,7 @@ export const WigglyTools = React.forwardRef<
                         });
                         setBackgroundColor(color);
                       }}
-                      className={`aspect-square rounded-[4px] border-[3px] transition-all relative flex items-center justify-center p-1 cursor-pointer ${
+                      className={`w-full aspect-square rounded-[4px] border-[3px] transition-all relative flex items-center justify-center p-1 cursor-pointer min-w-0 ${
                         backgroundColor === color
                           ? "border-black bg-[#ffff00] shadow-[3px_3px_0_rgba(0,0,0,0.15)] z-10"
                           : "border-[#e7d1b1] bg-white hover:border-[#ff9d5c] shadow-[1px_1px_0_rgba(210,180,140,0.1)]"
@@ -1182,7 +1184,7 @@ export const WigglyTools = React.forwardRef<
               </div>
             ) : (
               <div className="flex flex-col gap-2.5">
-                <div className="grid grid-cols-6 gap-2">
+                <div className="grid grid-cols-6 gap-2 min-w-0">
                   {BODY_PRESETS.map((b) => (
                     <button
                       type="button"
@@ -1193,7 +1195,7 @@ export const WigglyTools = React.forwardRef<
                         });
                         setBodyColor(b.body);
                       }}
-                      className={`aspect-square rounded-[4px] border-[3px] transition-all relative flex items-center justify-center p-1 cursor-pointer ${
+                      className={`w-full aspect-square rounded-[4px] border-[3px] transition-all relative flex items-center justify-center p-1 cursor-pointer min-w-0 ${
                         JSON.stringify(bodyColor) === JSON.stringify(b.body)
                           ? "border-black bg-[#ffff00] shadow-[3px_3px_0_rgba(0,0,0,0.15)] z-10"
                           : "border-[#e7d1b1] bg-white hover:border-[#ff9d5c] shadow-[1px_1px_0_rgba(210,180,140,0.1)]"
