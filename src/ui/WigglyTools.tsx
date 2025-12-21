@@ -148,7 +148,7 @@ export function WigglyTools({
   };
 
   return (
-    <div className="flex flex-col w-full h-full bg-[#fdfbf7] select-none text-(--color-ugo-dark) font-sans p-2 gap-2 relative overflow-hidden">
+    <div className="flex flex-col w-full bg-[#fdfbf7] select-none text-(--color-ugo-dark) font-sans p-2 gap-2 relative overflow-hidden">
       {/* Faithful Scanline & Pixel Texture Overlay - Lower Z to stay behind popups */}
       <div
         className="absolute inset-0 pointer-events-none z-0 opacity-15"
@@ -181,7 +181,7 @@ export function WigglyTools({
       {/* Left: Clear All (消す) - Top Left Corner */}
       {/* biome-ignore lint/a11y/useSemanticElements: Custom styled button */}
       <div
-        onClick={onClear}
+          onClick={onClear}
         onKeyDown={handleButtonKeyDown(onClear)}
         role="button"
         tabIndex={0}
@@ -256,7 +256,7 @@ export function WigglyTools({
           <span className="text-white font-black text-lg leading-none tracking-tighter whitespace-nowrap">
             やり直し
           </span>
-        </div>
+          </div>
 
         {/* Redo (進む) */}
         {/* biome-ignore lint/a11y/useSemanticElements: Custom styled button */}
@@ -320,7 +320,7 @@ export function WigglyTools({
             />
             {/* Corner Indicator (Circle) */}
             <div
-              className={`absolute bottom-1.5 right-1.5 w-9 h-9 border-[3px] rounded-[3px] flex items-center justify-center ${tool === "pen" ? "border-black bg-white" : "border-[#d2b48c] bg-white"}`}
+              className={`absolute bottom-1.5 right-1.5 w-9 h-9 border-[3px] rounded-[3px] flex items-center justify-center z-[90] ${tool === "pen" ? "border-black bg-white" : "border-[#d2b48c] bg-white"}`}
             >
               <div
                 className={`w-4 h-4 rounded-full ${tool === "pen" ? "bg-black" : "bg-[#d2b48c]"}`}
@@ -378,7 +378,7 @@ export function WigglyTools({
                 setTool("pattern");
                 setActivePopup(activePopup === "pattern" ? "none" : "pattern");
               }}
-              className={`absolute bottom-1.5 right-1.5 w-9 h-9 border-[3px] rounded-[3px] flex items-center justify-center transition-all hover:scale-105 active:scale-95 z-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-black ${tool === "pattern" ? "border-black bg-white" : "border-[#d2b48c] bg-white"}`}
+              className={`absolute bottom-1.5 right-1.5 w-9 h-9 border-[3px] rounded-[3px] flex items-center justify-center transition-all hover:scale-105 active:scale-95 z-[90] focus:outline-none focus-visible:ring-2 focus-visible:ring-black ${tool === "pattern" ? "border-black bg-white" : "border-[#d2b48c] bg-white"}`}
             >
               <div
                 className="w-6 h-6 shadow-inner"
@@ -398,9 +398,9 @@ export function WigglyTools({
             </button>
 
             {/* COMPACT POPUP: Pattern Grid (Faithful Dot Style) */}
-            {activePopup === "pattern" && (
+          {activePopup === "pattern" && (
               <div
-                className="absolute bg-white border-[3px] border-black p-0.5 grid grid-cols-3 gap-0.5 shadow-[8px_8px_0_rgba(0,0,0,0.2)] z-[60] h-fit rounded-[4px]"
+                className="absolute bg-white border-[3px] border-black p-0.5 grid grid-cols-3 gap-0.5 shadow-[8px_8px_0_rgba(0,0,0,0.2)] z-[150] h-fit rounded-[4px]"
                 style={{
                   top: "calc(100% - 54px)",
                   left: "calc(100% - 54px)",
@@ -431,7 +431,7 @@ export function WigglyTools({
                     },
                     {
                       id: "checker",
-                      bg: "linear-gradient(45deg, #000 25%, transparent 25%), linear-gradient(-45deg, #000 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #000 75%), linear-gradient(-45deg, transparent 75%, #000 75%)",
+                  bg: "linear-gradient(45deg, #000 25%, transparent 25%), linear-gradient(-45deg, #000 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #000 75%), linear-gradient(-45deg, transparent 75%, #000 75%)",
                       bgSize: "12px 12px",
                       bgPos: "0 0, 0 6px, 6px -6px, -6px 0px",
                     },
@@ -443,15 +443,15 @@ export function WigglyTools({
                   }[]
                 ).map((p) => {
                   return (
-                    <button
+                <button
                       type="button"
                       key={p.id}
-                      onClick={(e) => {
-                        e.stopPropagation();
+                  onClick={(e) => {
+                    e.stopPropagation();
                         setTool("pattern");
-                        setPatternId(p.id as BrushPatternId);
-                        setActivePopup("none");
-                      }}
+                    setPatternId(p.id as BrushPatternId);
+                    setActivePopup("none");
+                  }}
                       className={`relative border-[2px] w-9 h-9 overflow-hidden bg-white active:scale-95 transition-all rounded-[2px] ${
                         patternId === p.id
                           ? "border-black bg-[#ffff00]/30"
@@ -467,14 +467,14 @@ export function WigglyTools({
                           imageRendering: "pixelated",
                         }}
                       />
-                    </button>
+                </button>
                   );
                 })}
-              </div>
-            )}
+            </div>
+          )}
           </div>
 
-          {/* Eraser */}
+        {/* Eraser */}
           {/* biome-ignore lint/a11y/useSemanticElements: Custom styled button with nested indicator */}
           <div
             onClick={() => {
@@ -487,7 +487,7 @@ export function WigglyTools({
             })}
             role="button"
             tabIndex={0}
-            className={`
+          className={`
                   relative flex flex-col items-center justify-center p-1.5 transition-all active:scale-[0.98] w-full h-full rounded-[8px] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2
                   ${
                     tool === "eraser"
@@ -516,7 +516,7 @@ export function WigglyTools({
               className="w-20 h-20 object-contain drop-shadow-sm"
               aria-hidden="true"
             />
-            {/* Corner Indicator */}
+          {/* Corner Indicator */}
             <button
               type="button"
               onClick={(e) => {
@@ -524,7 +524,7 @@ export function WigglyTools({
                 setTool("eraser");
                 setActivePopup(activePopup === "eraser" ? "none" : "eraser");
               }}
-              className={`absolute bottom-1.5 right-1.5 w-9 h-9 border-[3px] rounded-[3px] flex items-center justify-center transition-all hover:scale-105 active:scale-95 z-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-black ${tool === "eraser" ? "border-black bg-white" : "border-[#d2b48c] bg-white"}`}
+              className={`absolute bottom-1.5 right-1.5 w-9 h-9 border-[3px] rounded-[3px] flex items-center justify-center transition-all hover:scale-105 active:scale-95 z-[90] focus:outline-none focus-visible:ring-2 focus-visible:ring-black ${tool === "eraser" ? "border-black bg-white" : "border-[#d2b48c] bg-white"}`}
             >
               <div
                 className={`${
@@ -545,7 +545,7 @@ export function WigglyTools({
             {/* COMPACT POPUP: Eraser Grid */}
             {activePopup === "eraser" && (
               <div
-                className="absolute bg-white border-[3px] border-black p-0.5 grid grid-cols-3 gap-0.5 shadow-[8px_8px_0_rgba(0,0,0,0.2)] z-[60] h-fit rounded-[4px]"
+                className="absolute bg-white border-[3px] border-black p-0.5 grid grid-cols-3 gap-0.5 shadow-[8px_8px_0_rgba(0,0,0,0.2)] z-[150] h-fit rounded-[4px]"
                 style={{
                   top: "calc(100% - 54px)",
                   right: "8px",
@@ -554,15 +554,15 @@ export function WigglyTools({
               >
                 {eraserVariants.map((v) => {
                   return (
-                    <button
+                <button
                       type="button"
-                      key={v.id}
-                      onClick={(e) => {
-                        e.stopPropagation();
+                  key={v.id}
+                  onClick={(e) => {
+                    e.stopPropagation();
                         setTool("eraser");
-                        setEraserVariant(v.id);
-                        setActivePopup("none");
-                      }}
+                    setEraserVariant(v.id);
+                    setActivePopup("none");
+                  }}
                       className={`relative border-[2px] w-9 h-9 flex items-center justify-center transition-all rounded-[2px]
                                     ${
                                       eraserVariant === v.id
@@ -587,11 +587,11 @@ export function WigglyTools({
                             : ""
                         }`}
                       />
-                    </button>
+                </button>
                   );
                 })}
-              </div>
-            )}
+            </div>
+          )}
           </div>
         </div>
       </div>
@@ -615,7 +615,7 @@ export function WigglyTools({
             className="w-full h-4 relative z-10 accent-[#ff6b00] cursor-pointer mix-blend-multiply"
           />
         </div>
-      </div>
+        </div>
 
       {/* 3. BOTTOM ROW: Colors */}
       <div className="h-12 shrink-0 flex items-center justify-start gap-2 relative z-10">
@@ -624,12 +624,12 @@ export function WigglyTools({
           {palette.map((_c, idx) => {
             const varName = `var(--palette-${idx})`;
             return (
-              <button
+            <button
                 type="button"
                 key={varName}
                 onClick={() => setColor(varName)}
                 style={{ backgroundColor: varName }}
-                className={`
+              className={`
                               h-8 w-8 rounded-[2px] transition-transform shadow-sm shrink-0 relative
                               ${
                                 color === varName
@@ -645,11 +645,11 @@ export function WigglyTools({
             );
           })}
         </div>
-      </div>
+        </div>
 
       {/* Save Button (Faithful Orange Style) - Bottom Right Corner */}
       <div className="absolute bottom-0 right-0 h-12 z-10">
-        {exportUrl ? (
+          {exportUrl ? (
             <a
               href={exportUrl}
               download="wiggly-ugomemo.gif"
@@ -720,7 +720,7 @@ export function WigglyTools({
               </div>
             ) : (
               <div className="flex flex-col items-center w-full gap-2.5">
-                <div className="bg-white p-0.5 rounded-[6px] border-[3px] border-black shadow-[6px_6px_0_rgba(0,0,0,0.2)] w-[75%] aspect-[3/2] flex items-center justify-center overflow-hidden">
+                <div className="bg-white p-0.5 rounded-[6px] border-[3px] border-black shadow-[6px_6px_0_rgba(0,0,0,0.2)] w-[45%] aspect-[3/2] flex items-center justify-center overflow-hidden">
                   {exportUrl && (
                     <>
                       {/* biome-ignore lint/performance/noImgElement: エクスポートされたGIF表示のため */}
@@ -741,18 +741,18 @@ export function WigglyTools({
                   </p>
                 </div>
 
-                <div className="flex flex-col gap-2 w-full px-6 mt-3">
+                <div className="flex flex-row gap-2 w-full px-6 mt-3">
                   <a
                     href={exportUrl || "#"}
                     download="wiggly-ugomemo.gif"
-                    className="bg-white text-[#ff6b00] border-t-[3px] border-l-[3px] border-t-white border-l-white border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-[6px] py-2 flex items-center justify-center active:translate-y-0.5 transition-all font-black text-lg shadow-lg"
+                    className="flex-1 bg-white text-[#ff6b00] border-t-[3px] border-l-[3px] border-t-white border-l-white border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-[6px] py-2 flex items-center justify-center active:translate-y-0.5 transition-all font-black text-lg shadow-lg"
                   >
                     保存する
                   </a>
                   <ShareButton
                     text="うごメモで絵を描いたよ！ #wigglyugomemo"
                     imageUrl={exportUrl || undefined}
-                    className="w-full"
+                    className="flex-1"
                   />
                 </div>
               </div>
@@ -905,7 +905,7 @@ export function WigglyTools({
                       </div>
                     </button>
                   ))}
-                </div>
+      </div>
 
                 {/* Custom Body Color Option - More compact */}
                 <div className="p-2.5 bg-white border-[3px] border-[#e7d1b1] rounded-[6px] flex items-center gap-3 shadow-[2px_2px_0_rgba(210,180,140,0.1)]">
