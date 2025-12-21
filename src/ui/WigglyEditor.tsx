@@ -182,21 +182,25 @@ export function WigglyEditor() {
   }, []);
 
   const handleDSButtonX = useCallback(() => {
-    if (tool === "pen") {
-      setTool("pattern");
-    } else if (tool === "pattern") {
-      setTool("eraser");
-    } else {
-      setTool("pen");
-    }
+    const toolCycle: Tool[] = ["pen", "pattern", "eraser"];
+    const currentIndex = toolCycle.indexOf(tool);
+    const nextIndex = (currentIndex + 1) % toolCycle.length;
+    setTool(toolCycle[nextIndex]);
   }, [tool]);
 
   const handleDSButtonY = useCallback(() => {
-    const currentIndex = parseInt(
-      color.replace("var(--palette-", "").replace(")", ""),
-      10,
-    );
-    const nextIndex = (currentIndex + 1) % palette.length;
+    let currentIndex = -1;
+    if (color.startsWith("var(--palette-")) {
+      const parsedIndex = parseInt(
+        color.substring("var(--palette-".length, color.length - 1),
+        10,
+      );
+      if (!Number.isNaN(parsedIndex) && parsedIndex >= 0) {
+        currentIndex = parsedIndex;
+      }
+    }
+    const safeIndex = currentIndex === -1 ? 0 : currentIndex;
+    const nextIndex = (safeIndex + 1) % palette.length;
     setColor(`var(--palette-${nextIndex})`);
   }, [color, palette]);
 
@@ -207,8 +211,7 @@ export function WigglyEditor() {
     if (currentIndex === -1) {
       setBackgroundColor(BACKGROUND_COLOR_PRESETS[0]);
     } else {
-      const nextIndex =
-        (currentIndex + 1) % BACKGROUND_COLOR_PRESETS.length;
+      const nextIndex = (currentIndex + 1) % BACKGROUND_COLOR_PRESETS.length;
       setBackgroundColor(BACKGROUND_COLOR_PRESETS[nextIndex]);
     }
   }, [backgroundColor]);

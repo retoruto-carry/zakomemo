@@ -1,6 +1,11 @@
 "use client";
 
-import React, { type KeyboardEvent, useImperativeHandle, useRef, useState } from "react";
+import React, {
+  type KeyboardEvent,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
 import type { BrushPatternId } from "@/core/types";
 import type { JitterConfig } from "@/core/jitter";
 import type { EraserVariant } from "@/engine/variants";
@@ -144,27 +149,30 @@ interface WigglyToolsProps {
   setJitterConfig: (jitterConfig: JitterConfig) => void;
 }
 
-export const WigglyTools = React.forwardRef<WigglyToolsHandle, WigglyToolsProps>(function WigglyTools(
+export const WigglyTools = React.forwardRef<
+  WigglyToolsHandle,
+  WigglyToolsProps
+>(function WigglyTools(
   {
-  tool,
-  setTool,
-  color,
-  setColor,
-  width,
-  setWidth,
-  eraserVariant,
-  setEraserVariant,
-  patternId,
-  setPatternId,
-  onUndo,
-  onRedo,
+    tool,
+    setTool,
+    color,
+    setColor,
+    width,
+    setWidth,
+    eraserVariant,
+    setEraserVariant,
+    patternId,
+    setPatternId,
+    onUndo,
+    onRedo,
     canUndo,
     canRedo,
-  onClear,
-  onExport,
-  isExporting,
-  exportUrl,
-  exportError,
+    onClear,
+    onExport,
+    isExporting,
+    exportUrl,
+    exportError,
     onCloseExport,
     palette,
     setPalette,
@@ -250,7 +258,7 @@ export const WigglyTools = React.forwardRef<WigglyToolsHandle, WigglyToolsProps>
       {/* Left: Clear All (消す) - Top Left Corner */}
       {/* biome-ignore lint/a11y/useSemanticElements: Custom styled button */}
       <div
-          onClick={onClear}
+        onClick={onClear}
         onKeyDown={handleButtonKeyDown(onClear)}
         role="button"
         tabIndex={0}
@@ -325,7 +333,7 @@ export const WigglyTools = React.forwardRef<WigglyToolsHandle, WigglyToolsProps>
           <span className="text-white font-black text-lg leading-none tracking-tighter whitespace-nowrap">
             やり直し
           </span>
-          </div>
+        </div>
 
         {/* Redo (進む) */}
         {/* biome-ignore lint/a11y/useSemanticElements: Custom styled button */}
@@ -469,7 +477,7 @@ export const WigglyTools = React.forwardRef<WigglyToolsHandle, WigglyToolsProps>
             </button>
 
             {/* COMPACT POPUP: Pattern Grid (Faithful Dot Style) */}
-          {activePopup === "pattern" && (
+            {activePopup === "pattern" && (
               <div
                 className="absolute bg-white border-[3px] border-black p-0.5 grid grid-cols-3 gap-0.5 shadow-[8px_8px_0_rgba(0,0,0,0.2)] z-[150] h-fit rounded-[4px]"
                 style={{
@@ -502,7 +510,7 @@ export const WigglyTools = React.forwardRef<WigglyToolsHandle, WigglyToolsProps>
                     },
                     {
                       id: "checker",
-                  bg: "linear-gradient(45deg, #000 25%, transparent 25%), linear-gradient(-45deg, #000 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #000 75%), linear-gradient(-45deg, transparent 75%, #000 75%)",
+                      bg: "linear-gradient(45deg, #000 25%, transparent 25%), linear-gradient(-45deg, #000 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #000 75%), linear-gradient(-45deg, transparent 75%, #000 75%)",
                       bgSize: "12px 12px",
                       bgPos: "0 0, 0 6px, 6px -6px, -6px 0px",
                     },
@@ -514,15 +522,15 @@ export const WigglyTools = React.forwardRef<WigglyToolsHandle, WigglyToolsProps>
                   }[]
                 ).map((p) => {
                   return (
-                <button
+                    <button
                       type="button"
                       key={p.id}
-                  onClick={(e) => {
-                    e.stopPropagation();
+                      onClick={(e) => {
+                        e.stopPropagation();
                         setTool("pattern");
-                    setPatternId(p.id as BrushPatternId);
-                    setActivePopup("none");
-                  }}
+                        setPatternId(p.id as BrushPatternId);
+                        setActivePopup("none");
+                      }}
                       className={`relative border-[2px] w-9 h-9 overflow-hidden bg-white active:scale-95 transition-all rounded-[2px] ${
                         patternId === p.id
                           ? "border-black bg-[#ffff00]/30"
@@ -538,14 +546,14 @@ export const WigglyTools = React.forwardRef<WigglyToolsHandle, WigglyToolsProps>
                           imageRendering: "pixelated",
                         }}
                       />
-                </button>
+                    </button>
                   );
                 })}
-            </div>
-          )}
+              </div>
+            )}
           </div>
 
-        {/* Eraser */}
+          {/* Eraser */}
           {/* biome-ignore lint/a11y/useSemanticElements: Custom styled button with nested indicator */}
           <div
             onClick={() => {
@@ -558,7 +566,7 @@ export const WigglyTools = React.forwardRef<WigglyToolsHandle, WigglyToolsProps>
             })}
             role="button"
             tabIndex={0}
-          className={`
+            className={`
                   relative flex flex-col items-center justify-center p-1.5 transition-all active:scale-[0.98] w-full h-full rounded-[8px] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2
                   ${
                     tool === "eraser"
@@ -588,7 +596,7 @@ export const WigglyTools = React.forwardRef<WigglyToolsHandle, WigglyToolsProps>
               className="w-20 h-20 object-contain drop-shadow-sm"
               aria-hidden="true"
             />
-          {/* Corner Indicator */}
+            {/* Corner Indicator */}
             <button
               type="button"
               onClick={(e) => {
@@ -614,8 +622,8 @@ export const WigglyTools = React.forwardRef<WigglyToolsHandle, WigglyToolsProps>
               />
             </button>
 
-          {/* COMPACT POPUP: Eraser Grid */}
-          {activePopup === "eraser" && (
+            {/* COMPACT POPUP: Eraser Grid */}
+            {activePopup === "eraser" && (
               <div
                 className="absolute bg-white border-[3px] border-black p-0.5 grid grid-cols-3 gap-0.5 shadow-[8px_8px_0_rgba(0,0,0,0.2)] z-[150] h-fit rounded-[4px]"
                 style={{
@@ -626,15 +634,15 @@ export const WigglyTools = React.forwardRef<WigglyToolsHandle, WigglyToolsProps>
               >
                 {eraserVariants.map((v) => {
                   return (
-                <button
+                    <button
                       type="button"
-                  key={v.id}
-                  onClick={(e) => {
-                    e.stopPropagation();
+                      key={v.id}
+                      onClick={(e) => {
+                        e.stopPropagation();
                         setTool("eraser");
-                    setEraserVariant(v.id);
-                    setActivePopup("none");
-                  }}
+                        setEraserVariant(v.id);
+                        setActivePopup("none");
+                      }}
                       className={`relative border-[2px] w-9 h-9 flex items-center justify-center transition-all rounded-[2px]
                                     ${
                                       eraserVariant === v.id
@@ -659,11 +667,11 @@ export const WigglyTools = React.forwardRef<WigglyToolsHandle, WigglyToolsProps>
                             : ""
                         }`}
                       />
-                </button>
+                    </button>
                   );
                 })}
-            </div>
-          )}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -687,7 +695,7 @@ export const WigglyTools = React.forwardRef<WigglyToolsHandle, WigglyToolsProps>
             className="w-full h-4 relative z-10 accent-[#ff6b00] cursor-pointer mix-blend-multiply"
           />
         </div>
-        </div>
+      </div>
 
       {/* 3. BOTTOM ROW: Colors */}
       <div className="h-12 shrink-0 flex items-center justify-start gap-2 relative z-10">
@@ -696,12 +704,12 @@ export const WigglyTools = React.forwardRef<WigglyToolsHandle, WigglyToolsProps>
           {palette.map((_c, idx) => {
             const varName = `var(--palette-${idx})`;
             return (
-            <button
+              <button
                 type="button"
                 key={varName}
                 onClick={() => setColor(varName)}
                 style={{ backgroundColor: varName }}
-              className={`
+                className={`
                               h-8 w-8 rounded-[2px] transition-transform shadow-sm shrink-0 relative
                               ${
                                 color === varName
@@ -717,19 +725,19 @@ export const WigglyTools = React.forwardRef<WigglyToolsHandle, WigglyToolsProps>
             );
           })}
         </div>
-        </div>
+      </div>
 
       {/* Save Button (Faithful Orange Style) - Bottom Right Corner */}
       <div className="absolute bottom-0 right-0 h-12 z-10">
-          {exportUrl ? (
-            <a
-              href={exportUrl}
-              download="wiggly-ugomemo.gif"
+        {exportUrl ? (
+          <a
+            href={exportUrl}
+            download="wiggly-ugomemo.gif"
             className="bg-[#ff6b00] border-t-[3px] border-l-[3px] border-t-[#ff9d5c] border-l-[#ff9d5c] border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-tl-[6px] rounded-tr-[6px] rounded-bl-none rounded-br-none h-full px-2 py-1 flex items-center justify-center active:translate-y-0.5 transition-all text-white font-black"
-            >
+          >
             <span className="text-lg leading-none">GIFを保存</span>
-            </a>
-          ) : (
+          </a>
+        ) : (
           /* biome-ignore lint/a11y/useSemanticElements: Custom styled button */
           <div
             onClick={onExport}
@@ -1077,7 +1085,7 @@ export const WigglyTools = React.forwardRef<WigglyToolsHandle, WigglyToolsProps>
                       </div>
                     </button>
                   ))}
-      </div>
+                </div>
 
                 {/* Custom Body Color Option - More compact */}
                 <div className="p-2.5 bg-white border-[3px] border-[#e7d1b1] rounded-[6px] flex items-center gap-3 shadow-[2px_2px_0_rgba(210,180,140,0.1)]">
