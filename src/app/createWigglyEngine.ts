@@ -3,7 +3,7 @@ import type { JitterConfig } from "@/core/jitter";
 import { WigglyEngine } from "@/engine/WigglyEngine";
 import { BrowserRafScheduler } from "@/infra/BrowserRafScheduler";
 import { CanvasRenderer } from "@/infra/CanvasRenderer";
-import { HowlerStrokeSound } from "@/infra/HowlerStrokeSound";
+import { WebAudioStrokeSound } from "@/infra/WebAudioStrokeSound";
 import { RealTimeProvider } from "@/infra/RealTimeProvider";
 
 function setupCanvasContext(
@@ -34,7 +34,7 @@ export function createWigglyEngine(
   const renderer = new CanvasRenderer(ctx, undefined, backgroundColor);
   const time = new RealTimeProvider();
   const raf = new BrowserRafScheduler();
-  const sound = new HowlerStrokeSound();
+  const sound = new WebAudioStrokeSound();
 
   return new WigglyEngine({
     initialDrawing,
