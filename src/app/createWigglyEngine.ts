@@ -1,4 +1,5 @@
 import type { Drawing } from "@/core/types";
+import type { JitterConfig } from "@/core/jitter";
 import { WigglyEngine } from "@/engine/WigglyEngine";
 import { BrowserRafScheduler } from "@/infra/BrowserRafScheduler";
 import { CanvasRenderer } from "@/infra/CanvasRenderer";
@@ -24,12 +25,12 @@ export function createWigglyEngine(
   canvas: HTMLCanvasElement,
   initialDrawing: Drawing,
   backgroundColor: string = "#fdfbf7",
+  jitterConfig: JitterConfig = { amplitude: 1.2, frequency: 0.008 },
 ): WigglyEngine {
   const logicalWidth = initialDrawing.width;
   const logicalHeight = initialDrawing.height;
   const ctx = setupCanvasContext(canvas, logicalWidth, logicalHeight);
 
-  const jitterConfig = { amplitude: 1.2, frequency: 0.008 };
   const renderer = new CanvasRenderer(ctx, undefined, backgroundColor);
   const time = new RealTimeProvider();
   const raf = new BrowserRafScheduler();

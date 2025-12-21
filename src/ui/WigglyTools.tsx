@@ -2,6 +2,7 @@
 
 import { type KeyboardEvent, useRef, useState } from "react";
 import type { BrushPatternId } from "@/core/types";
+import type { JitterConfig } from "@/core/jitter";
 import type { EraserVariant } from "@/engine/variants";
 import type { Tool } from "@/engine/WigglyEngine";
 import { isMobile } from "@/lib/share";
@@ -15,6 +16,50 @@ import {
   PALETTE_PRESETS,
 } from "./presets";
 import { eraserVariants } from "./variants";
+
+interface JitterControlSliderProps {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  toFixed: number;
+  onChange: (value: number) => void;
+}
+
+function JitterControlSlider({
+  label,
+  value,
+  min,
+  max,
+  step,
+  toFixed,
+  onChange,
+}: JitterControlSliderProps) {
+  const percentage = max > min ? ((value - min) / (max - min)) * 100 : 0;
+  return (
+    <div className="p-3 bg-white border-[3px] border-[#e7d1b1] rounded-[6px] shadow-[2px_2px_0_rgba(210,180,140,0.1)]">
+      <div className="flex items-center justify-between mb-2">
+        <span className="font-black text-sm text-[#a67c52]">{label}</span>
+        <span className="font-black text-xs text-[#a67c52] font-mono">
+          {value.toFixed(toFixed)}
+        </span>
+      </div>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => onChange(parseFloat(e.target.value))}
+        className="w-full h-2 bg-[#fffdeb] rounded-lg appearance-none cursor-pointer accent-[#ff6b00]"
+        style={{
+          background: `linear-gradient(to right, #ff6b00 0%, #ff6b00 ${percentage}%, #fffdeb ${percentage}%, #fffdeb 100%)`,
+        }}
+      />
+    </div>
+  );
+}
 
 // キーボードアクセシビリティ: Enter/Space で onClick を発火
 const handleButtonKeyDown = (callback: () => void) => (e: KeyboardEvent) => {
@@ -91,6 +136,8 @@ interface WigglyToolsProps {
   setBodyColor: (bodyColor: BodyColor) => void;
   backgroundColor: string;
   setBackgroundColor: (backgroundColor: string) => void;
+  jitterConfig: JitterConfig;
+  setJitterConfig: (jitterConfig: JitterConfig) => void;
 }
 
 export function WigglyTools({
@@ -120,13 +167,15 @@ export function WigglyTools({
   setBodyColor,
   backgroundColor,
   setBackgroundColor,
+  jitterConfig,
+  setJitterConfig,
 }: WigglyToolsProps) {
   // Track which popup is open
   const [activePopup, setActivePopup] = useState<
     "none" | "pattern" | "eraser" | "settings"
   >("none");
   const [settingsTab, setSettingsTab] = useState<
-    "palette" | "body" | "background"
+    "palette" | "body" | "background" | "jitter"
   >("palette");
   const undoGifRef = useRef<AnimatedGifHandle>(null);
 
@@ -813,6 +862,17 @@ export function WigglyTools({
               </button>
               <button
                 type="button"
+                onClick={() => setSettingsTab("jitter")}
+                className={`px-5 py-1.5 rounded-t-[8px] font-black text-base transition-all ${
+                  settingsTab === "jitter"
+                    ? "bg-[#fdfbf7] text-[#ff6b00] translate-y-px border-t-[3px] border-l-[3px] border-r-[3px] border-[#e7d1b1]"
+                    : "bg-[#ff9d5c] text-white hover:bg-[#ff8c00]"
+                }`}
+              >
+                ぶるぶる
+              </button>
+              <button
+                type="button"
                 onClick={() => setSettingsTab("body")}
                 className={`hidden sm:block px-5 py-1.5 rounded-t-[8px] font-black text-base transition-all ${
                   settingsTab === "body"
@@ -955,6 +1015,31 @@ export function WigglyTools({
                     />
                   </div>
                 </div>
+              </div>
+            ) : settingsTab === "jitter" ? (
+              <div className="flex flex-col gap-4">
+                <JitterControlSlider
+                  label="揺れの大きさ"
+                  value={jitterConfig.amplitude}
+                  min={0}
+                  max={3}
+                  step={0.1}
+                  toFixed={2}
+                  onChange={(amplitude) =>
+                    setJitterConfig({ ...jitterConfig, amplitude })
+                  }
+                />
+                <JitterControlSlider
+                  label="揺れの速さ"
+                  value={jitterConfig.frequency}
+                  min={0}
+                  max={0.02}
+                  step={0.001}
+                  toFixed={4}
+                  onChange={(frequency) =>
+                    setJitterConfig({ ...jitterConfig, frequency })
+                  }
+                />
               </div>
             ) : (
               <div className="flex flex-col gap-2.5">

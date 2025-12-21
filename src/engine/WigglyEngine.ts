@@ -105,6 +105,12 @@ export class WigglyEngine {
     }
   }
 
+  setJitterConfig(jitterConfig: JitterConfig): void {
+    this.jitterConfig = jitterConfig;
+    // Force immediate re-render with new jitter config
+    this.lastRenderAt = 0;
+  }
+
   setHistoryChangeListener(listener: () => void): void {
     this.onHistoryChange = listener;
   }

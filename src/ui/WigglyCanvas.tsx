@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createWigglyEngine } from "@/app/createWigglyEngine";
 import type { BrushPatternId, Drawing } from "@/core/types";
+import type { JitterConfig } from "@/core/jitter";
 import type { EraserVariant, PenVariant } from "@/engine/variants";
 import type { Tool, WigglyEngine } from "@/engine/WigglyEngine";
 
@@ -32,6 +33,7 @@ interface WigglyCanvasProps {
   eraserVariant: EraserVariant;
   patternId: BrushPatternId;
   backgroundColor: string;
+  jitterConfig: JitterConfig;
   onEngineInit: (engine: WigglyEngine) => void;
 }
 
@@ -44,6 +46,7 @@ export function WigglyCanvas({
   eraserVariant,
   patternId,
   backgroundColor,
+  jitterConfig,
   onEngineInit,
 }: WigglyCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -86,13 +89,23 @@ export function WigglyCanvas({
     engineRef.current?.setBackgroundColor(backgroundColor);
   }, [backgroundColor]);
 
+  // Sync jitter config to engine
+  useEffect(() => {
+    engineRef.current?.setJitterConfig(jitterConfig);
+  }, [jitterConfig]);
+
   // Initialize Engine and Event Listeners
   // biome-ignore lint/correctness/useExhaustiveDependencies: Intentionally run once on mount
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const engine = createWigglyEngine(canvas, initialDrawing, backgroundColor);
+    const engine = createWigglyEngine(
+      canvas,
+      initialDrawing,
+      backgroundColor,
+      jitterConfig,
+    );
     engineRef.current = engine;
     onEngineInit(engine);
 

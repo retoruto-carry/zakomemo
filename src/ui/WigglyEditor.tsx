@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { BrushPatternId, Drawing } from "@/core/types";
+import type { JitterConfig } from "@/core/jitter";
 import { exportDrawingAsGif } from "@/engine/exportGif";
 import type { EraserVariant, PenVariant } from "@/engine/variants";
 import type { Tool, WigglyEngine } from "@/engine/WigglyEngine";
@@ -53,6 +54,10 @@ export function WigglyEditor() {
   const [palette, setPalette] = useState(defaultPalette);
   const [bodyColor, setBodyColor] = useState(defaultBodyColor);
   const [backgroundColor, setBackgroundColor] = useState("#fdfbf7");
+  const [jitterConfig, setJitterConfig] = useState<JitterConfig>({
+    amplitude: 1.2,
+    frequency: 0.008,
+  });
 
   // Layout State
   const [isDesktop, setIsDesktop] = useState(false);
@@ -127,7 +132,7 @@ export function WigglyEditor() {
         drawing,
         renderer,
         gif: gifEncoder,
-        jitterConfig: { amplitude: 1.5, frequency: 0.01 },
+        jitterConfig,
         fps: 12,
         durationMs: 2000,
       });
@@ -214,6 +219,7 @@ export function WigglyEditor() {
             eraserVariant={eraserVariant}
             patternId={patternId}
             backgroundColor={backgroundColor}
+            jitterConfig={jitterConfig}
             onEngineInit={onEngineInit}
           />
         }
@@ -248,6 +254,8 @@ export function WigglyEditor() {
             setBodyColor={setBodyColor}
             backgroundColor={backgroundColor}
             setBackgroundColor={setBackgroundColor}
+            jitterConfig={jitterConfig}
+            setJitterConfig={setJitterConfig}
           />
         }
       />
