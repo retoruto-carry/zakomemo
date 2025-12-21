@@ -2,7 +2,7 @@ import type { StrokeSound, StrokeSoundInfo } from "../engine/ports";
 
 /**
  * Web Audio APIを使用した描画音の動的生成
- * 
+ *
  * 設計:
  * - 移動平均速度 = 直近の数サンプルの平均速度（滑らかな変化のため）
  * - 速度が低い場合は音量を0に（音は自然にフェードアウト）
@@ -11,15 +11,11 @@ import type { StrokeSound, StrokeSoundInfo } from "../engine/ports";
 export class WebAudioStrokeSound implements StrokeSound {
   private audioContext: AudioContext | null = null;
   private gainNodes: Map<"pen" | "pattern" | "eraser", GainNode> = new Map();
-  private filterNodes: Map<
-    "pen" | "pattern" | "eraser",
-    BiquadFilterNode
-  > = new Map();
+  private filterNodes: Map<"pen" | "pattern" | "eraser", BiquadFilterNode> =
+    new Map();
   // 超高音域を絞るための追加ローパスフィルター（プツプツノイズ抑制）
-  private lowpassNodes: Map<
-    "pen" | "pattern" | "eraser",
-    BiquadFilterNode
-  > = new Map();
+  private lowpassNodes: Map<"pen" | "pattern" | "eraser", BiquadFilterNode> =
+    new Map();
   private noiseNodes: Map<
     "pen" | "pattern" | "eraser",
     AudioBufferSourceNode | null
@@ -103,7 +99,7 @@ export class WebAudioStrokeSound implements StrokeSound {
       b3 = 0.8665 * b3 + white * 0.3104856;
       b4 = 0.55 * b4 + white * 0.5329522;
       b5 = -0.7616 * b5 - white * 0.016898;
-      let pink = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
+      const pink = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
       b6 = white * 0.115926;
       // 2段階のローパスフィルターでプツプツノイズを抑制
       lpState1 = lpState1 * (1 - lpAlpha1) + pink * lpAlpha1;
@@ -197,23 +193,6 @@ export class WebAudioStrokeSound implements StrokeSound {
 
     this.noiseNodes.set(tool, source);
   }
-
-  /**
-   * 指定したツールの音を停止する
-   * @param tool ツールの種類
-   */
-  private stopSound(tool: "pen" | "pattern" | "eraser"): void {
-    const context = this.ensureAudioContext();
-    if (!context) return;
-
-    const gainNode = this.gainNodes.get(tool);
-    if (!gainNode) return;
-
-    gainNode.gain.cancelScheduledValues(context.currentTime);
-    gainNode.gain.setValueAtTime(gainNode.gain.value, context.currentTime);
-    gainNode.gain.linearRampToValueAtTime(0, context.currentTime + 0.05);
-  }
-
 
   /**
    * 移動平均速度を計算（滑らかな速度変化のため）
@@ -388,7 +367,6 @@ export class WebAudioStrokeSound implements StrokeSound {
    * すべてのノイズを停止し、オーディオノードを切断し、AudioContextを閉じる
    */
   destroy(): void {
-
     for (const noiseNode of this.noiseNodes.values()) {
       if (noiseNode) {
         try {

@@ -7,17 +7,13 @@ export class CanvasRenderer implements DrawingRenderer {
   private lastWidth = 0;
   private lastHeight = 0;
   private patternCache = new Map<string, CanvasPattern>();
-  private dpr: number;
   private backgroundColor: string;
 
   constructor(
     private ctx: CanvasRenderingContext2D,
-    dpr?: number,
+    _dpr?: number,
     backgroundColor: string = "#fdfbf7",
   ) {
-    this.dpr =
-      dpr ??
-      ((typeof window !== "undefined" ? window.devicePixelRatio : 1) || 1);
     this.backgroundColor = backgroundColor;
   }
 

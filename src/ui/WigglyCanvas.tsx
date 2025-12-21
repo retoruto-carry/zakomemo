@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createWigglyEngine } from "@/app/createWigglyEngine";
-import type { BrushPatternId, Drawing } from "@/core/types";
 import type { JitterConfig } from "@/core/jitter";
+import type { BrushPatternId, Drawing } from "@/core/types";
 import type { EraserVariant, PenVariant } from "@/engine/variants";
 import type { Tool, WigglyEngine } from "@/engine/WigglyEngine";
 

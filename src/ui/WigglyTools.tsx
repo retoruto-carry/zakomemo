@@ -6,13 +6,13 @@ import React, {
   useRef,
   useState,
 } from "react";
-import type { BrushPatternId } from "@/core/types";
 import type { JitterConfig } from "@/core/jitter";
+import type { BrushPatternId } from "@/core/types";
 import type { EraserVariant } from "@/engine/variants";
 import type { Tool } from "@/engine/WigglyEngine";
 import { uiSoundManager } from "@/infra/uiSounds";
-import { throttle } from "@/lib/throttle";
 import { isMobile } from "@/lib/share";
+import { throttle } from "@/lib/throttle";
 import { AnimatedGif, type AnimatedGifHandle } from "./components/AnimatedGif";
 import { ShareButton } from "./components/ShareButton";
 import {
@@ -261,7 +261,6 @@ export const WigglyTools = React.forwardRef<
       setActivePopup("none");
     }
   };
-
 
   return (
     <div className="flex flex-col w-full bg-[#fdfbf7] select-none text-(--color-ugo-dark) font-sans p-2 gap-2 relative overflow-hidden">
@@ -579,7 +578,9 @@ export const WigglyTools = React.forwardRef<
                       key={p.id}
                       onClick={(e) => {
                         e.stopPropagation();
-                        uiSoundManager.play("pattern-select", { stopPrevious: true });
+                        uiSoundManager.play("pattern-select", {
+                          stopPrevious: true,
+                        });
                         setTool("pattern");
                         setPatternId(p.id as BrushPatternId);
                         setActivePopup("none");
@@ -695,7 +696,9 @@ export const WigglyTools = React.forwardRef<
                       key={v.id}
                       onClick={(e) => {
                         e.stopPropagation();
-                        uiSoundManager.play("eraser-variant-select", { stopPrevious: true });
+                        uiSoundManager.play("eraser-variant-select", {
+                          stopPrevious: true,
+                        });
                         setTool("eraser");
                         setEraserVariant(v.id);
                         setActivePopup("none");
@@ -903,7 +906,9 @@ export const WigglyTools = React.forwardRef<
                     href={exportUrl || "#"}
                     download="wiggly-ugomemo.gif"
                     onClick={() => {
-                      uiSoundManager.play("export-save", { stopPrevious: true });
+                      uiSoundManager.play("export-save", {
+                        stopPrevious: true,
+                      });
                     }}
                     className="flex-1 bg-white text-[#ff6b00] border-t-[3px] border-l-[3px] border-t-white border-l-white border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-[6px] py-2 flex items-center justify-center active:translate-y-0.5 transition-all font-black text-lg shadow-lg cursor-pointer"
                   >
@@ -1020,7 +1025,9 @@ export const WigglyTools = React.forwardRef<
                       type="button"
                       key={p.name}
                       onClick={() => {
-                        uiSoundManager.play("palette-preset-select", { stopPrevious: true });
+                        uiSoundManager.play("palette-preset-select", {
+                          stopPrevious: true,
+                        });
                         setPalette(p.colors);
                       }}
                       className={`flex flex-col p-2 rounded-[4px] border-[3px] transition-all relative overflow-hidden cursor-pointer ${
@@ -1072,7 +1079,9 @@ export const WigglyTools = React.forwardRef<
                           type="color"
                           value={c}
                           onChange={(e) => {
-                            uiSoundManager.play("custom-palette-color", { stopPrevious: true });
+                            uiSoundManager.play("custom-palette-color", {
+                              stopPrevious: true,
+                            });
                             const newPalette = [...palette];
                             newPalette[idx] = e.target.value;
                             setPalette(newPalette);
@@ -1092,7 +1101,9 @@ export const WigglyTools = React.forwardRef<
                       type="button"
                       key={color}
                       onClick={() => {
-                        uiSoundManager.play("color-select", { stopPrevious: true });
+                        uiSoundManager.play("color-select", {
+                          stopPrevious: true,
+                        });
                         setBackgroundColor(color);
                       }}
                       className={`aspect-square rounded-[4px] border-[3px] transition-all relative flex items-center justify-center p-1 cursor-pointer ${
@@ -1177,7 +1188,9 @@ export const WigglyTools = React.forwardRef<
                       type="button"
                       key={b.name}
                       onClick={() => {
-                        uiSoundManager.play("color-select", { stopPrevious: true });
+                        uiSoundManager.play("color-select", {
+                          stopPrevious: true,
+                        });
                         setBodyColor(b.body);
                       }}
                       className={`aspect-square rounded-[4px] border-[3px] transition-all relative flex items-center justify-center p-1 cursor-pointer ${
@@ -1219,7 +1232,9 @@ export const WigglyTools = React.forwardRef<
                       type="color"
                       value={bodyColor.bg}
                       onChange={(e) => {
-                        uiSoundManager.play("color-select", { stopPrevious: true });
+                        uiSoundManager.play("color-select", {
+                          stopPrevious: true,
+                        });
                         const base = e.target.value;
                         setBodyColor(generateBodyColorFromBase(base));
                       }}

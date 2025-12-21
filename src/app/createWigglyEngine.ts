@@ -1,10 +1,10 @@
-import type { Drawing } from "@/core/types";
 import type { JitterConfig } from "@/core/jitter";
+import type { Drawing } from "@/core/types";
 import { WigglyEngine } from "@/engine/WigglyEngine";
 import { BrowserRafScheduler } from "@/infra/BrowserRafScheduler";
 import { CanvasRenderer } from "@/infra/CanvasRenderer";
-import { WebAudioStrokeSound } from "@/infra/WebAudioStrokeSound";
 import { RealTimeProvider } from "@/infra/RealTimeProvider";
+import { WebAudioStrokeSound } from "@/infra/WebAudioStrokeSound";
 
 function setupCanvasContext(
   canvas: HTMLCanvasElement,

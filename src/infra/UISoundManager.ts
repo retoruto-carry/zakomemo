@@ -148,4 +148,3 @@ export class UISoundManager {
     this.maxConcurrentSounds = Math.max(1, max);
   }
 }
-

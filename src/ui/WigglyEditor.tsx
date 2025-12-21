@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { BrushPatternId, Drawing } from "@/core/types";
 import type { JitterConfig } from "@/core/jitter";
+import type { BrushPatternId, Drawing } from "@/core/types";
 import { exportDrawingAsGif } from "@/engine/exportGif";
 import type { EraserVariant, PenVariant } from "@/engine/variants";
 import type { Tool, WigglyEngine } from "@/engine/WigglyEngine";
