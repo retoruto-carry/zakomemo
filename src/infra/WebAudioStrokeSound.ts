@@ -15,6 +15,11 @@ export class WebAudioStrokeSound implements StrokeSound {
     "pen" | "pattern" | "eraser",
     BiquadFilterNode
   > = new Map();
+  // 超高音域を絞るための追加ローパスフィルター（プツプツノイズ抑制）
+  private lowpassNodes: Map<
+    "pen" | "pattern" | "eraser",
+    BiquadFilterNode
+  > = new Map();
   private noiseNodes: Map<
     "pen" | "pattern" | "eraser",
     AudioBufferSourceNode | null
@@ -69,8 +74,11 @@ export class WebAudioStrokeSound implements StrokeSound {
       b4 = 0,
       b5 = 0,
       b6 = 0;
-    let lpState = 0;
-    const lpAlpha = 0.1;
+    // 複数のローパスフィルターでより滑らかに（プツプツノイズを抑制）
+    let lpState1 = 0;
+    let lpState2 = 0;
+    const lpAlpha1 = 0.15; // 第1段階のスムージング
+    const lpAlpha2 = 0.2; // 第2段階のスムージング（より強力）
 
     for (let i = 0; i < data.length; i++) {
       const white = Math.random() * 2 - 1;
@@ -82,8 +90,10 @@ export class WebAudioStrokeSound implements StrokeSound {
       b5 = -0.7616 * b5 - white * 0.016898;
       let pink = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
       b6 = white * 0.115926;
-      lpState = lpState * (1 - lpAlpha) + pink * lpAlpha;
-      data[i] = lpState * 0.11;
+      // 2段階のローパスフィルターでプツプツノイズを抑制
+      lpState1 = lpState1 * (1 - lpAlpha1) + pink * lpAlpha1;
+      lpState2 = lpState2 * (1 - lpAlpha2) + lpState1 * lpAlpha2;
+      data[i] = lpState2 * 0.11;
     }
 
     return buffer;
@@ -96,11 +106,11 @@ export class WebAudioStrokeSound implements StrokeSound {
   } {
     switch (tool) {
       case "pen":
-        return { type: "bandpass", frequency: 2800, Q: 0.8 };
+        return { type: "bandpass", frequency: 2800, Q: 0.6 };
       case "pattern":
-        return { type: "bandpass", frequency: 2400, Q: 0.5 };
+        return { type: "bandpass", frequency: 2400, Q: 0.4 };
       case "eraser":
-        return { type: "bandpass", frequency: 4000, Q: 0.7 };
+        return { type: "bandpass", frequency: 4000, Q: 0.5 };
     }
   }
 
@@ -121,6 +131,7 @@ export class WebAudioStrokeSound implements StrokeSound {
     // ノードを取得または作成
     let gainNode = this.gainNodes.get(tool);
     let filterNode = this.filterNodes.get(tool);
+    let lowpassNode = this.lowpassNodes.get(tool);
 
     if (!gainNode) {
       gainNode = context.createGain();
@@ -135,9 +146,21 @@ export class WebAudioStrokeSound implements StrokeSound {
       filterNode.type = settings.type;
       filterNode.frequency.value = settings.frequency;
       filterNode.Q.value = settings.Q;
-      filterNode.connect(gainNode);
       this.filterNodes.set(tool, filterNode);
     }
+
+    // 超高音域を絞る追加ローパスフィルター（プツプツノイズ抑制）
+    if (!lowpassNode) {
+      lowpassNode = context.createBiquadFilter();
+      lowpassNode.type = "lowpass";
+      lowpassNode.frequency.value = 8000; // 8kHz以上をカット（超高音域を絞る）
+      lowpassNode.Q.value = 0.7; // 滑らかなカットオフ
+      lowpassNode.connect(gainNode);
+      this.lowpassNodes.set(tool, lowpassNode);
+    }
+
+    // フィルターチェーン: source -> filterNode -> lowpassNode -> gainNode
+    filterNode.connect(lowpassNode);
 
     // ノイズバッファを作成（0.3秒ループ）
     const buffer = this.createPinkNoiseBuffer(0.3, context.sampleRate);
@@ -327,6 +350,9 @@ export class WebAudioStrokeSound implements StrokeSound {
     }
     for (const filterNode of this.filterNodes.values()) {
       filterNode.disconnect();
+    }
+    for (const lowpassNode of this.lowpassNodes.values()) {
+      lowpassNode.disconnect();
     }
 
     if (this.audioContext) {
