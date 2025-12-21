@@ -4,9 +4,6 @@ import type { BrushPatternId, BrushVariant, Stroke } from "../core/types";
 import type { DrawingRenderer } from "../engine/ports";
 import { parseColorToRgb, resolveCssVariable } from "./colorUtil";
 
-/** パターンタイルを2倍にスケールして密度を下げる */
-const PATTERN_SCALE = 2;
-
 export class CanvasRenderer implements DrawingRenderer {
   private lastWidth = 0;
   private lastHeight = 0;
@@ -80,10 +77,6 @@ export class CanvasRenderer implements DrawingRenderer {
           stroke.brush.color,
           _elapsedTimeMs,
         );
-        // パターンを論理座標でPATTERN_SCALE倍に見せる
-        // 物理座標ではPATTERN_SCALE * dpr倍にする必要がある
-        const patternScale = PATTERN_SCALE * this.dpr;
-        pattern.setTransform(new DOMMatrix().scale(patternScale, patternScale));
         ctx.strokeStyle = pattern;
       }
     }
@@ -152,7 +145,7 @@ export class CanvasRenderer implements DrawingRenderer {
     const def = getPatternDefinition(patternId as BrushPatternId);
     const tile = def.tile;
 
-    // 1xサイズでタイルを作成（setTransformでスケール適用するため）
+    // オフスクリーンキャンバスでタイルを作成
     const offscreen = document.createElement("canvas");
     offscreen.width = tile.width;
     offscreen.height = tile.height;
