@@ -36,6 +36,10 @@ export class WebAudioStrokeSound implements StrokeSound {
     this.initializeAudioContext();
   }
 
+  /**
+   * AudioContextを初期化する
+   * ブラウザの互換性を考慮して、webkitAudioContextにも対応
+   */
   private initializeAudioContext(): void {
     try {
       const AudioContextClass =
@@ -47,6 +51,10 @@ export class WebAudioStrokeSound implements StrokeSound {
     }
   }
 
+  /**
+   * AudioContextを取得し、必要に応じて初期化・再開する
+   * @returns AudioContext、または利用できない場合はnull
+   */
   private ensureAudioContext(): AudioContext | null {
     if (!this.audioContext) {
       this.initializeAudioContext();
@@ -57,6 +65,13 @@ export class WebAudioStrokeSound implements StrokeSound {
     return this.audioContext;
   }
 
+  /**
+   * ピンクノイズのAudioBufferを生成する
+   * 2段階のローパスフィルターでプツプツノイズを抑制
+   * @param duration バッファの長さ（秒）
+   * @param sampleRate サンプルレート
+   * @returns ピンクノイズのAudioBuffer
+   */
   private createPinkNoiseBuffer(
     duration: number,
     sampleRate: number,
@@ -99,6 +114,11 @@ export class WebAudioStrokeSound implements StrokeSound {
     return buffer;
   }
 
+  /**
+   * ツールごとのフィルター設定を取得する
+   * @param tool ツールの種類
+   * @returns フィルターの設定（タイプ、周波数、Q値）
+   */
   private getFilterSettings(tool: "pen" | "pattern" | "eraser"): {
     type: BiquadFilterType;
     frequency: number;
@@ -114,6 +134,11 @@ export class WebAudioStrokeSound implements StrokeSound {
     }
   }
 
+  /**
+   * ノイズを生成して再生する
+   * フィルターチェーン（bandpass → lowpass → gain）を構築し、ピンクノイズをループ再生
+   * @param tool ツールの種類
+   */
   private createAndPlayNoise(tool: "pen" | "pattern" | "eraser"): void {
     const context = this.ensureAudioContext();
     if (!context) return;
@@ -173,6 +198,10 @@ export class WebAudioStrokeSound implements StrokeSound {
     this.noiseNodes.set(tool, source);
   }
 
+  /**
+   * 指定したツールの音を停止する
+   * @param tool ツールの種類
+   */
   private stopSound(tool: "pen" | "pattern" | "eraser"): void {
     const context = this.ensureAudioContext();
     if (!context) return;
@@ -217,6 +246,12 @@ export class WebAudioStrokeSound implements StrokeSound {
     return dx / dt;
   }
 
+  /**
+   * 音量と周波数を速度に応じて更新する
+   * 速度が閾値以下の場合は音量を0にし、それ以外は速度に応じて音量と周波数を調整
+   * @param tool ツールの種類
+   * @param speed 描画速度（ピクセル/ミリ秒）
+   */
   private updateVolumeAndFrequency(
     tool: "pen" | "pattern" | "eraser",
     speed: number,
@@ -262,6 +297,11 @@ export class WebAudioStrokeSound implements StrokeSound {
     );
   }
 
+  /**
+   * ストローク開始時に呼ばれる
+   * ノイズを生成して再生を開始し、フェードインを適用
+   * @param info ストローク情報
+   */
   onStrokeStart(info: StrokeSoundInfo): void {
     const context = this.ensureAudioContext();
     if (!context) return;
@@ -295,6 +335,11 @@ export class WebAudioStrokeSound implements StrokeSound {
     this.updateVolumeAndFrequency(info.tool, 0.1);
   }
 
+  /**
+   * ストローク更新時に呼ばれる
+   * 移動平均速度を計算し、音量と周波数を更新
+   * @param info ストローク情報
+   */
   onStrokeUpdate(info: StrokeSoundInfo): void {
     const now = performance.now();
     this.smoothedSpeed = this.calculateSmoothedSpeed(info.length, now);
@@ -304,6 +349,11 @@ export class WebAudioStrokeSound implements StrokeSound {
     }
   }
 
+  /**
+   * ストローク終了時に呼ばれる
+   * フェードアウトを適用し、一定時間後にノイズを停止
+   * @param _info ストローク情報
+   */
   onStrokeEnd(_info: StrokeSoundInfo): void {
     const context = this.ensureAudioContext();
     if (!context) return;
@@ -333,6 +383,10 @@ export class WebAudioStrokeSound implements StrokeSound {
     }, 200);
   }
 
+  /**
+   * リソースをクリーンアップする
+   * すべてのノイズを停止し、オーディオノードを切断し、AudioContextを閉じる
+   */
   destroy(): void {
 
     for (const noiseNode of this.noiseNodes.values()) {
