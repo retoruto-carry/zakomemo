@@ -70,7 +70,7 @@ export class WebAudioStrokeSound implements StrokeSound {
    */
   private createPinkNoiseBuffer(
     duration: number,
-    sampleRate: number
+    sampleRate: number,
   ): AudioBuffer {
     const context = this.ensureAudioContext();
     if (!context) throw new Error("AudioContext unavailable");
@@ -200,7 +200,7 @@ export class WebAudioStrokeSound implements StrokeSound {
    */
   private calculateSmoothedSpeed(
     currentLength: number,
-    currentTime: number
+    currentTime: number,
   ): number {
     // 新しいサンプルを追加
     this.speedSamples.push({ length: currentLength, time: currentTime });
@@ -233,7 +233,7 @@ export class WebAudioStrokeSound implements StrokeSound {
    */
   private updateVolumeAndFrequency(
     tool: "pen" | "pattern" | "eraser",
-    speed: number
+    speed: number,
   ): void {
     const context = this.ensureAudioContext();
     if (!context) return;
@@ -268,11 +268,11 @@ export class WebAudioStrokeSound implements StrokeSound {
     filterNode.frequency.cancelScheduledValues(context.currentTime);
     filterNode.frequency.setValueAtTime(
       filterNode.frequency.value,
-      context.currentTime
+      context.currentTime,
     );
     filterNode.frequency.linearRampToValueAtTime(
       targetFreq,
-      context.currentTime + 0.1
+      context.currentTime + 0.1,
     );
   }
 
