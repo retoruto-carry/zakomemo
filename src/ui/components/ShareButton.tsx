@@ -84,6 +84,7 @@ export function ShareButton({
         active:translate-y-0.5 transition-all 
         font-black text-lg
         disabled:opacity-50 disabled:pointer-events-none
+        cursor-pointer
         ${className}
       `}
     >
