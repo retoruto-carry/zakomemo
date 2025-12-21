@@ -11,9 +11,13 @@ import { GifEncGifEncoder } from "@/infra/GifEncGifEncoder";
 import { useTouchUndoRedo } from "@/ui/hooks/useTouchUndoRedo";
 import { DesktopLayout } from "./layouts/DesktopLayout";
 import { MobileLayout } from "./layouts/MobileLayout";
-import { BODY_PRESETS, PALETTE_PRESETS } from "./presets";
+import {
+  BACKGROUND_COLOR_PRESETS,
+  BODY_PRESETS,
+  PALETTE_PRESETS,
+} from "./presets";
 import { WigglyCanvas } from "./WigglyCanvas";
-import { WigglyTools } from "./WigglyTools";
+import { WigglyTools, type WigglyToolsHandle } from "./WigglyTools";
 
 const initialDrawing: Drawing = {
   width: 960,
@@ -32,6 +36,7 @@ const DEFAULT_PEN_WIDTH = 16;
 
 export function WigglyEditor() {
   const engineRef = useRef<WigglyEngine | null>(null);
+  const toolsRef = useRef<WigglyToolsHandle | null>(null);
 
   // State
   const [tool, setTool] = useState<Tool>("pen");
@@ -69,7 +74,7 @@ export function WigglyEditor() {
     return () => window.removeEventListener("resize", check);
   }, []);
 
-  // Global Keyboard Shortcuts
+  // Global Keyboard Shortcuts (Ctrl/Cmd + Z/Y for undo/redo only)
   useEffect(() => {
     const handleKey = (ev: KeyboardEvent) => {
       const engine = engineRef.current;
@@ -166,6 +171,117 @@ export function WigglyEditor() {
 
   const Layout = isDesktop ? DesktopLayout : MobileLayout;
 
+  // DS Button Handlers
+  const handleDSButtonA = useCallback(() => {
+    engineRef.current?.redo();
+  }, []);
+
+  const handleDSButtonB = useCallback(() => {
+    toolsRef.current?.playUndoAnimation();
+    engineRef.current?.undo();
+  }, []);
+
+  const handleDSButtonX = useCallback(() => {
+    if (tool === "pen") {
+      setTool("pattern");
+    } else if (tool === "pattern") {
+      setTool("eraser");
+    } else {
+      setTool("pen");
+    }
+  }, [tool]);
+
+  const handleDSButtonY = useCallback(() => {
+    const currentIndex = parseInt(
+      color.replace("var(--palette-", "").replace(")", ""),
+      10,
+    );
+    const nextIndex = (currentIndex + 1) % palette.length;
+    setColor(`var(--palette-${nextIndex})`);
+  }, [color, palette]);
+
+  const handleDSButtonUp = useCallback(() => {
+    const currentIndex = BACKGROUND_COLOR_PRESETS.indexOf(
+      backgroundColor as (typeof BACKGROUND_COLOR_PRESETS)[number],
+    );
+    if (currentIndex === -1) {
+      setBackgroundColor(BACKGROUND_COLOR_PRESETS[0]);
+    } else {
+      const nextIndex =
+        (currentIndex + 1) % BACKGROUND_COLOR_PRESETS.length;
+      setBackgroundColor(BACKGROUND_COLOR_PRESETS[nextIndex]);
+    }
+  }, [backgroundColor]);
+
+  const handleDSButtonDown = useCallback(() => {
+    const currentIndex = BACKGROUND_COLOR_PRESETS.indexOf(
+      backgroundColor as (typeof BACKGROUND_COLOR_PRESETS)[number],
+    );
+    if (currentIndex === -1) {
+      setBackgroundColor(
+        BACKGROUND_COLOR_PRESETS[BACKGROUND_COLOR_PRESETS.length - 1],
+      );
+    } else {
+      const prevIndex =
+        currentIndex === 0
+          ? BACKGROUND_COLOR_PRESETS.length - 1
+          : currentIndex - 1;
+      setBackgroundColor(BACKGROUND_COLOR_PRESETS[prevIndex]);
+    }
+  }, [backgroundColor]);
+
+  const handleDSButtonRight = useCallback(() => {
+    const currentPaletteIndex = PALETTE_PRESETS.findIndex(
+      (p) => JSON.stringify(p.colors) === JSON.stringify(palette),
+    );
+    if (currentPaletteIndex === -1) {
+      setPalette(PALETTE_PRESETS[0].colors);
+    } else {
+      const nextIndex = (currentPaletteIndex + 1) % PALETTE_PRESETS.length;
+      setPalette(PALETTE_PRESETS[nextIndex].colors);
+    }
+  }, [palette]);
+
+  const handleDSButtonLeft = useCallback(() => {
+    const currentPaletteIndex = PALETTE_PRESETS.findIndex(
+      (p) => JSON.stringify(p.colors) === JSON.stringify(palette),
+    );
+    if (currentPaletteIndex === -1) {
+      setPalette(PALETTE_PRESETS[PALETTE_PRESETS.length - 1].colors);
+    } else {
+      const prevIndex =
+        currentPaletteIndex === 0
+          ? PALETTE_PRESETS.length - 1
+          : currentPaletteIndex - 1;
+      setPalette(PALETTE_PRESETS[prevIndex].colors);
+    }
+  }, [palette]);
+
+  const handleDSButtonStart = useCallback(() => {
+    const currentBodyIndex = BODY_PRESETS.findIndex(
+      (b) => JSON.stringify(b.body) === JSON.stringify(bodyColor),
+    );
+    if (currentBodyIndex === -1) {
+      setBodyColor(BODY_PRESETS[0].body);
+    } else {
+      const nextIndex = (currentBodyIndex + 1) % BODY_PRESETS.length;
+      setBodyColor(BODY_PRESETS[nextIndex].body);
+    }
+  }, [bodyColor]);
+
+  const handleDSButtonSelect = useCallback(() => {
+    const currentBodyIndex = BODY_PRESETS.findIndex(
+      (b) => JSON.stringify(b.body) === JSON.stringify(bodyColor),
+    );
+    if (currentBodyIndex === -1) {
+      setBodyColor(BODY_PRESETS[BODY_PRESETS.length - 1].body);
+    } else {
+      const prevIndex =
+        currentBodyIndex === 0 ? BODY_PRESETS.length - 1 : currentBodyIndex - 1;
+      setBodyColor(BODY_PRESETS[prevIndex].body);
+    }
+  }, [bodyColor]);
+
   return (
     <>
       <style
@@ -209,6 +325,22 @@ export function WigglyEditor() {
         }}
       />
       <Layout
+        dsButtons={
+          isDesktop
+            ? {
+                onA: handleDSButtonA,
+                onB: handleDSButtonB,
+                onX: handleDSButtonX,
+                onY: handleDSButtonY,
+                onUp: handleDSButtonUp,
+                onDown: handleDSButtonDown,
+                onLeft: handleDSButtonLeft,
+                onRight: handleDSButtonRight,
+                onStart: handleDSButtonStart,
+                onSelect: handleDSButtonSelect,
+              }
+            : undefined
+        }
         canvas={
           <WigglyCanvas
             initialDrawing={initialDrawing}
@@ -225,6 +357,7 @@ export function WigglyEditor() {
         }
         tools={
           <WigglyTools
+            ref={toolsRef}
             tool={tool}
             setTool={setTool}
             color={color}
