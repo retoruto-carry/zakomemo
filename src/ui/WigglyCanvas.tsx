@@ -109,7 +109,10 @@ export function WigglyCanvas({
     engineRef.current = engine;
     onEngineInit(engine);
 
-    canvas.style.touchAction = "none";
+    // ピンチジェスチャーを許可しつつ、描画のためにパンも制御
+    // pan-x pan-y: パンジェスチャーを許可（描画のため）
+    // pinch-zoom: ピンチズームを許可（ブラウザのデフォルト動作）
+    canvas.style.touchAction = "pan-x pan-y pinch-zoom";
 
     // 座標変換: client座標→キャンバス論理座標
     const toCanvasPos = (ev: PointerEvent) => {
@@ -138,14 +141,14 @@ export function WigglyCanvas({
 
       // マルチタッチ（2本指以上）の検出
       // pointerdownイベントが発火した時点で、既にアクティブなポインターが1本以上ある場合、
-      // マルチタッチと判断して描画を無効にし、undo/redoジェスチャーを優先します
+      // マルチタッチと判断して描画を無効にし、undo/redoジェスチャーやピンチジェスチャーを優先します
       const activePointerCount = activePointersRef.current.size;
       if (activePointerCount >= 1) {
-        ev.preventDefault();
         // マルチタッチ状態を記録
         isMultiTouchRef.current = true;
-        // 描画を開始せず、undo/redoジェスチャーを優先
+        // 描画を開始せず、undo/redoジェスチャーやピンチジェスチャーを優先
         // ポインター情報は記録するが、描画は開始しない
+        // preventDefaultは呼ばない（ピンチジェスチャーを許可するため）
         const { internal } = toCanvasPos(ev);
         activePointersRef.current.set(ev.pointerId, {
           id: ev.pointerId,
@@ -227,6 +230,7 @@ export function WigglyCanvas({
       // すべてのポインターが離れた場合、マルチタッチ状態をリセット
       if (activePointersRef.current.size === 0) {
         isMultiTouchRef.current = false;
+        primaryPointerIdRef.current = null;
       }
 
       if (ev.pointerId === primaryPointerIdRef.current) {
@@ -235,6 +239,28 @@ export function WigglyCanvas({
         if (toolRef.current !== "eraser" || ev.pointerType === "touch") {
           setEraserPos(null);
         }
+      }
+      canvas.releasePointerCapture(ev.pointerId);
+    };
+
+    const handlePointerCancel = (ev: PointerEvent) => {
+      // ポインターがキャンセルされた場合（例: 共有ダイアログが開いた後など）
+      // すべての状態をリセット
+      const info = activePointersRef.current.get(ev.pointerId);
+      if (info) {
+        activePointersRef.current.delete(ev.pointerId);
+      }
+
+      if (activePointersRef.current.size === 0) {
+        isMultiTouchRef.current = false;
+        primaryPointerIdRef.current = null;
+        setEraserPos(null);
+      }
+
+      if (ev.pointerId === primaryPointerIdRef.current) {
+        engine.pointerUp();
+        primaryPointerIdRef.current = null;
+        setEraserPos(null);
       }
       canvas.releasePointerCapture(ev.pointerId);
     };
@@ -254,7 +280,7 @@ export function WigglyCanvas({
       passive: false,
     });
     canvas.addEventListener("pointerup", handlePointerUp);
-    canvas.addEventListener("pointercancel", handlePointerUp);
+    canvas.addEventListener("pointercancel", handlePointerCancel);
     canvas.addEventListener("pointerleave", handlePointerLeave);
 
     return () => {
@@ -262,7 +288,7 @@ export function WigglyCanvas({
       canvas.removeEventListener("pointerdown", handlePointerDown);
       canvas.removeEventListener("pointermove", handlePointerMove);
       canvas.removeEventListener("pointerup", handlePointerUp);
-      canvas.removeEventListener("pointercancel", handlePointerUp);
+      canvas.removeEventListener("pointercancel", handlePointerCancel);
       canvas.removeEventListener("pointerleave", handlePointerLeave);
     };
   }, []); // Run once on mount
@@ -278,7 +304,7 @@ export function WigglyCanvas({
         height={initialDrawing.height}
         className="block touch-none"
         style={{
-          touchAction: "none",
+          touchAction: "pan-x pan-y pinch-zoom",
           width: "100%",
           height: "100%",
         }}

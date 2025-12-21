@@ -106,45 +106,57 @@ export function useTouchUndoRedo({
 
         const touchCount = activeTouches.length;
 
-        // ピンチインアウトの判定
-        const maxDistance = Math.max(
-          ...activeTouches.map((t) => t.totalDistance),
-        );
-        const minDuration = Math.min(
-          ...activeTouches.map((t) => now - t.startTime),
-        );
-        const maxDistanceFromStart = Math.max(
-          ...activeTouches.map((t) =>
-            Math.hypot(t.lastX - t.startX, t.lastY - t.startY),
-          ),
-        );
+        // 2本指または3本指の場合のみundo/redoを処理
+        if (touchCount === 2 || touchCount === 3) {
+          // ピンチインアウトの判定
+          const maxDistance = Math.max(
+            ...activeTouches.map((t) => t.totalDistance),
+          );
+          const minDuration = Math.min(
+            ...activeTouches.map((t) => now - t.startTime),
+          );
+          const maxDistanceFromStart = Math.max(
+            ...activeTouches.map((t) =>
+              Math.hypot(t.lastX - t.startX, t.lastY - t.startY),
+            ),
+          );
 
-        const isPinch =
-          maxDistance >= minPinchDistance ||
-          (minDuration >= minPinchDuration &&
-            maxDistanceFromStart >= minPinchDistance);
+          const isPinch =
+            maxDistance >= minPinchDistance ||
+            (minDuration >= minPinchDuration &&
+              maxDistanceFromStart >= minPinchDistance);
 
-        // ピンチでない場合のみundo/redoを実行
-        if (!isPinch) {
-          // すべてのタッチがタップ条件を満たしているか確認
-          const allTaps = activeTouches.every((t) => {
-            const duration = now - t.startTime;
-            const distance = Math.hypot(t.lastX - t.startX, t.lastY - t.startY);
-            return duration < maxTapDuration && distance < maxTapDistance;
-          });
+          // ピンチでない場合のみundo/redoを実行
+          if (!isPinch) {
+            // すべてのタッチがタップ条件を満たしているか確認
+            const allTaps = activeTouches.every((t) => {
+              const duration = now - t.startTime;
+              const distance = Math.hypot(
+                t.lastX - t.startX,
+                t.lastY - t.startY,
+              );
+              return duration < maxTapDuration && distance < maxTapDistance;
+            });
 
-          if (allTaps) {
-            if (touchCount === 2) {
-              // 二本指タップ: undo
-              onUndo();
-            } else if (touchCount === 3) {
-              // 三本指タップ: redo
-              onRedo();
+            if (allTaps) {
+              if (touchCount === 2) {
+                // 二本指タップ: undo
+                onUndo();
+              } else if (touchCount === 3) {
+                // 三本指タップ: redo
+                onRedo();
+              }
             }
           }
         }
         // ジェスチャーの評価が完了したので、次のジェスチャーのためにタッチ情報をクリア
         touchesRef.current.clear();
+      } else {
+        // まだタッチが残っている場合、終了したタッチのみを削除
+        for (let i = 0; i < ev.changedTouches.length; i += 1) {
+          const touch = ev.changedTouches[i];
+          touchesRef.current.delete(touch.identifier);
+        }
       }
     };
 
