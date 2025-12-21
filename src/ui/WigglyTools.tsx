@@ -210,7 +210,7 @@ export function WigglyTools({
         onKeyDown={handleButtonKeyDown(() => setActivePopup("settings"))}
         role="button"
         tabIndex={0}
-        className="absolute top-0 left-[calc(94px+8px)] bg-[#ff6b00] border-t-[3px] border-l-[3px] border-t-[#ff9d5c] border-l-[#ff9d5c] border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-[6px] h-14 px-2 flex items-center justify-center gap-1 active:translate-y-0.5 group cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#ff6b00] z-10"
+        className="absolute top-0 left-[calc(94px+2px)] bg-[#ff6b00] border-t-[3px] border-l-[3px] border-t-[#ff9d5c] border-l-[#ff9d5c] border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-[6px] h-14 px-2 flex items-center justify-center gap-1 active:translate-y-0.5 group cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#ff6b00] z-10"
       >
         <svg
           viewBox="0 0 24 24"
@@ -606,9 +606,9 @@ export function WigglyTools({
       </div>
 
       {/* 3. BOTTOM ROW: Colors */}
-      <div className="h-14 shrink-0 flex items-center gap-2 relative z-10">
+      <div className="h-14 shrink-0 flex items-center justify-start gap-2 relative z-10">
         {/* Colors */}
-        <div className="flex-1 h-full bg-[#fffdeb] border-[3px] border-[#d2b48c] p-1 flex items-center justify-center gap-1 shadow-[3px_3px_0_rgba(210,180,140,0.2)] rounded-[4px]">
+        <div className="w-fit h-full bg-[#fffdeb] border-[3px] border-[#d2b48c] p-1 flex items-center justify-center gap-1 shadow-[3px_3px_0_rgba(210,180,140,0.2)] rounded-[4px]">
           {palette.map((_c, idx) => {
             const varName = `var(--palette-${idx})`;
             return (
@@ -641,13 +641,9 @@ export function WigglyTools({
             <a
               href={exportUrl}
               download="wiggly-ugomemo.gif"
-              className="bg-[#ff6b00] border-t-[3px] border-l-[3px] border-t-[#ff9d5c] border-l-[#ff9d5c] border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-tl-[6px] rounded-tr-[6px] rounded-bl-none rounded-br-none h-full px-3 flex flex-col items-center justify-center active:translate-y-0.5 transition-all text-white font-black"
+              className="bg-[#ff6b00] border-t-[3px] border-l-[3px] border-t-[#ff9d5c] border-l-[#ff9d5c] border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-tl-[6px] rounded-tr-[6px] rounded-bl-none rounded-br-none h-full px-3 flex items-center justify-center active:translate-y-0.5 transition-all text-white font-black"
             >
-              <div className="flex items-baseline mb-0.5">
-                <span className="text-sm leading-none">GIF</span>
-                <span className="text-[11px] leading-none ml-0.5">を</span>
-              </div>
-              <span className="text-lg leading-none">保存</span>
+              <span className="text-lg leading-none">GIFを保存</span>
             </a>
           ) : (
             /* biome-ignore lint/a11y/useSemanticElements: Custom styled button */
@@ -656,18 +652,12 @@ export function WigglyTools({
               onKeyDown={handleButtonKeyDown(onExport)}
               role="button"
               tabIndex={isExporting ? -1 : 0}
-              className={`bg-[#ff6b00] border-t-[3px] border-l-[3px] border-t-[#ff9d5c] border-l-[#ff9d5c] border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-tl-[6px] rounded-tr-[6px] rounded-bl-none rounded-br-none h-full px-3 flex flex-col items-center justify-center active:translate-y-0.5 transition-all text-white font-black cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#ff6b00] ${isExporting ? "opacity-50 pointer-events-none" : ""}`}
+              className={`bg-[#ff6b00] border-t-[3px] border-l-[3px] border-t-[#ff9d5c] border-l-[#ff9d5c] border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-tl-[6px] rounded-tr-[6px] rounded-bl-none rounded-br-none h-full px-3 flex items-center justify-center active:translate-y-0.5 transition-all text-white font-black cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#ff6b00] ${isExporting ? "opacity-50 pointer-events-none" : ""}`}
             >
               {isExporting ? (
                 <span className="text-lg">...</span>
               ) : (
-                <>
-                  <div className="flex items-baseline mb-0.5">
-                    <span className="text-xs leading-none">GIF</span>
-                    <span className="text-[10px] leading-none ml-0.5">を</span>
-                  </div>
-                  <span className="text-lg leading-none">保存</span>
-                </>
+                <span className="text-lg leading-none">GIFを保存</span>
               )}
             </div>
           )}
