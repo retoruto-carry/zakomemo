@@ -282,7 +282,7 @@ export function WigglyTools({
       </div>
 
       {/* 2. MIDDLE ROW: Main Tools (Faithful Dot Style) */}
-      <div className="h-24 shrink-0 flex flex-col justify-center relative z-20 py-0.5">
+      <div className="h-24 shrink-0 flex flex-col justify-center relative z-30 py-0.5">
         <div className="grid grid-cols-3 gap-2.5 items-center">
           {/* Pen */}
           {/* biome-ignore lint/a11y/useSemanticElements: Custom styled button with nested indicator */}
@@ -295,13 +295,17 @@ export function WigglyTools({
                   relative flex flex-col items-center justify-center p-1.5 transition-all active:scale-[0.98] w-full h-full rounded-[8px] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2
                   ${
                     tool === "pen"
-                      ? "bg-[#fff700] border-[5px] border-black shadow-[6px_6px_0_#000] z-30"
+                      ? "bg-[#fff700] border-[5px] border-black shadow-[6px_6px_0_#000] z-40"
                       : "bg-[#fffdeb] border-[4px] border-[#d2b48c] shadow-[4px_4px_0_rgba(210,180,140,0.3)]"
                   }
             `}
           >
             <div
-              className={`absolute top-2 left-2 text-sm font-black ${tool === "pen" ? "text-black" : "text-[#a67c52]"}`}
+              className={`absolute top-2 left-2 text-sm font-black z-50 ${tool === "pen" ? "text-black" : "text-[#a67c52]"}`}
+              style={{
+                WebkitTextStroke: tool === "pen" ? "3px #fff700" : "3px #fffdeb",
+                paintOrder: "stroke fill",
+              }}
             >
               ペン
             </div>
@@ -341,13 +345,17 @@ export function WigglyTools({
                   relative flex flex-col items-center justify-center p-1.5 transition-all active:scale-[0.98] w-full h-full rounded-[8px] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2
                   ${
                     tool === "pattern"
-                      ? "bg-[#fff700] border-[5px] border-black shadow-[6px_6px_0_#000] z-30"
+                      ? "bg-[#fff700] border-[5px] border-black shadow-[6px_6px_0_#000] z-40"
                       : "bg-[#fffdeb] border-[4px] border-[#d2b48c] shadow-[4px_4px_0_rgba(210,180,140,0.3)]"
                   }
             `}
           >
             <div
-              className={`absolute top-2 left-2 text-sm font-black ${tool === "pattern" ? "text-black" : "text-[#a67c52]"}`}
+              className={`absolute top-2 left-2 text-sm font-black z-50 ${tool === "pattern" ? "text-black" : "text-[#a67c52]"}`}
+              style={{
+                WebkitTextStroke: tool === "pattern" ? "3px #fff700" : "3px #fffdeb",
+                paintOrder: "stroke fill",
+              }}
             >
               塗る
             </div>
@@ -370,7 +378,7 @@ export function WigglyTools({
                 setTool("pattern");
                 setActivePopup(activePopup === "pattern" ? "none" : "pattern");
               }}
-              className={`absolute bottom-1.5 right-1.5 w-9 h-9 border-[3px] rounded-[3px] flex items-center justify-center transition-all hover:scale-105 active:scale-95 z-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-black ${tool === "pattern" ? "border-black bg-white" : "border-[#d2b48c] bg-white"}`}
+              className={`absolute bottom-1.5 right-1.5 w-9 h-9 border-[3px] rounded-[3px] flex items-center justify-center transition-all hover:scale-105 active:scale-95 z-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-black ${tool === "pattern" ? "border-black bg-white" : "border-[#d2b48c] bg-white"}`}
             >
               <div
                 className="w-6 h-6 shadow-inner"
@@ -392,7 +400,7 @@ export function WigglyTools({
             {/* COMPACT POPUP: Pattern Grid (Faithful Dot Style) */}
             {activePopup === "pattern" && (
               <div
-                className="absolute bg-white border-[3px] border-black p-0.5 grid grid-cols-3 gap-0.5 shadow-[8px_8px_0_rgba(0,0,0,0.2)] z-[100] h-fit rounded-[4px]"
+                className="absolute bg-white border-[3px] border-black p-0.5 grid grid-cols-3 gap-0.5 shadow-[8px_8px_0_rgba(0,0,0,0.2)] z-[60] h-fit rounded-[4px]"
                 style={{
                   top: "calc(100% - 54px)",
                   left: "calc(100% - 54px)",
@@ -483,13 +491,17 @@ export function WigglyTools({
                   relative flex flex-col items-center justify-center p-1.5 transition-all active:scale-[0.98] w-full h-full rounded-[8px] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2
                   ${
                     tool === "eraser"
-                      ? "bg-[#fff700] border-[5px] border-black shadow-[6px_6px_0_#000] z-30"
+                      ? "bg-[#fff700] border-[5px] border-black shadow-[6px_6px_0_#000] z-40"
                       : "bg-[#fffdeb] border-[4px] border-[#d2b48c] shadow-[4px_4px_0_rgba(210,180,140,0.3)]"
                   }
             `}
           >
             <div
-              className={`absolute top-2 left-2 text-sm font-black ${tool === "eraser" ? "text-black" : "text-[#a67c52]"}`}
+              className={`absolute top-2 left-2 text-sm font-black z-50 ${tool === "eraser" ? "text-black" : "text-[#a67c52]"}`}
+              style={{
+                WebkitTextStroke: tool === "eraser" ? "3px #fff700" : "3px #fffdeb",
+                paintOrder: "stroke fill",
+              }}
             >
               消しゴム
             </div>
@@ -512,7 +524,7 @@ export function WigglyTools({
                 setTool("eraser");
                 setActivePopup(activePopup === "eraser" ? "none" : "eraser");
               }}
-              className={`absolute bottom-1.5 right-1.5 w-9 h-9 border-[3px] rounded-[3px] flex items-center justify-center transition-all hover:scale-105 active:scale-95 z-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-black ${tool === "eraser" ? "border-black bg-white" : "border-[#d2b48c] bg-white"}`}
+              className={`absolute bottom-1.5 right-1.5 w-9 h-9 border-[3px] rounded-[3px] flex items-center justify-center transition-all hover:scale-105 active:scale-95 z-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-black ${tool === "eraser" ? "border-black bg-white" : "border-[#d2b48c] bg-white"}`}
             >
               <div
                 className={`${
@@ -533,7 +545,7 @@ export function WigglyTools({
             {/* COMPACT POPUP: Eraser Grid */}
             {activePopup === "eraser" && (
               <div
-                className="absolute bg-white border-[3px] border-black p-0.5 grid grid-cols-3 gap-0.5 shadow-[8px_8px_0_rgba(0,0,0,0.2)] z-[100] h-fit rounded-[4px]"
+                className="absolute bg-white border-[3px] border-black p-0.5 grid grid-cols-3 gap-0.5 shadow-[8px_8px_0_rgba(0,0,0,0.2)] z-[60] h-fit rounded-[4px]"
                 style={{
                   top: "calc(100% - 54px)",
                   right: "8px",
