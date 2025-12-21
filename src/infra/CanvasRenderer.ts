@@ -8,14 +8,21 @@ export class CanvasRenderer implements DrawingRenderer {
   private lastHeight = 0;
   private patternCache = new Map<string, CanvasPattern>();
   private dpr: number;
+  private backgroundColor: string;
 
   constructor(
     private ctx: CanvasRenderingContext2D,
     dpr?: number,
+    backgroundColor: string = "#fdfbf7",
   ) {
     this.dpr =
       dpr ??
       ((typeof window !== "undefined" ? window.devicePixelRatio : 1) || 1);
+    this.backgroundColor = backgroundColor;
+  }
+
+  setBackgroundColor(backgroundColor: string): void {
+    this.backgroundColor = backgroundColor;
   }
 
   clear(width: number, height: number): void {
@@ -25,7 +32,7 @@ export class CanvasRenderer implements DrawingRenderer {
     ctx.clearRect(0, 0, width, height);
     ctx.save();
     ctx.globalCompositeOperation = "source-over";
-    ctx.fillStyle = "#ffffff";
+    ctx.fillStyle = this.backgroundColor;
     ctx.fillRect(0, 0, width, height);
     ctx.restore();
   }

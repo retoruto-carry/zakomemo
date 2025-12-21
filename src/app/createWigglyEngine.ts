@@ -23,13 +23,14 @@ function setupCanvasContext(
 export function createWigglyEngine(
   canvas: HTMLCanvasElement,
   initialDrawing: Drawing,
+  backgroundColor: string = "#fdfbf7",
 ): WigglyEngine {
   const logicalWidth = initialDrawing.width;
   const logicalHeight = initialDrawing.height;
   const ctx = setupCanvasContext(canvas, logicalWidth, logicalHeight);
 
   const jitterConfig = { amplitude: 1.2, frequency: 0.008 };
-  const renderer = new CanvasRenderer(ctx);
+  const renderer = new CanvasRenderer(ctx, undefined, backgroundColor);
   const time = new RealTimeProvider();
   const raf = new BrowserRafScheduler();
   const sound = new HowlerStrokeSound();

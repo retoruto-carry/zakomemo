@@ -93,6 +93,18 @@ export class WigglyEngine {
     this.pendingPattern = patternId;
   }
 
+  setBackgroundColor(backgroundColor: string): void {
+    // CanvasRenderer has setBackgroundColor method
+    if (
+      "setBackgroundColor" in this.renderer &&
+      typeof this.renderer.setBackgroundColor === "function"
+    ) {
+      this.renderer.setBackgroundColor(backgroundColor);
+      // Force immediate re-render with new background color
+      this.lastRenderAt = 0;
+    }
+  }
+
   setHistoryChangeListener(listener: () => void): void {
     this.onHistoryChange = listener;
   }
