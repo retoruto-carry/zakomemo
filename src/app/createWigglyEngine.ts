@@ -1,4 +1,3 @@
-import type { PatternWiggleConfig } from "@/core/patternDeform";
 import type { Drawing } from "@/core/types";
 import { WigglyEngine } from "@/engine/WigglyEngine";
 import { BrowserRafScheduler } from "@/infra/BrowserRafScheduler";
@@ -29,13 +28,8 @@ export function createWigglyEngine(
   const logicalHeight = initialDrawing.height;
   const ctx = setupCanvasContext(canvas, logicalWidth, logicalHeight);
 
-  const wiggleConfig: PatternWiggleConfig = {
-    amplitude: 0.5,
-    frequency: 0.001,
-  };
-
   const jitterConfig = { amplitude: 1.2, frequency: 0.008 };
-  const renderer = new CanvasRenderer(ctx, wiggleConfig, jitterConfig);
+  const renderer = new CanvasRenderer(ctx, jitterConfig);
   const time = new RealTimeProvider();
   const raf = new BrowserRafScheduler();
   const sound = new HowlerStrokeSound();

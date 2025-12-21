@@ -60,8 +60,8 @@
     - `elapsedTimeMs`: エンジン開始からの経過時間（ミリ秒）。すべてのストロークで共通の値。アニメーションループで更新され、時間経過に応じた揺れを生成する。
     - `point.t`: そのストローク開始からの経過時間（ミリ秒）。ストロークごとに異なる値。ストローク内の各点が個別に揺れるために使用。
   - `computeJitter(Point, elapsedTimeMs, JitterConfig)`: ペン/消しゴム用。`point.t`（ストローク内の時間）と`elapsedTimeMs`の両方を使い、各点が個別に揺れる。
-  - `computePatternJitter(Point, elapsedTimeMs, JitterConfig)`: パターン用。`point.t`を使わず座標と`elapsedTimeMs`のみで計算。同じ座標には同じ jitter が適用され、異なるストロークでもパターンがずれない。
-- パターン: `PatternTile` と `PatternDefinition`。`getPatternDefinition` で id→ 定義取得（例: dots）。`wigglePatternTile` で時間に応じてタイルを歪ませる。
+  - `computePatternJitter(Point, elapsedTimeMs, JitterConfig)`: パターン用。`point.t`を使わず座標と`elapsedTimeMs`のみで計算。ストロークの描画位置に jitter を適用し、同じ座標には同じ jitter が適用される（同じ`elapsedTimeMs`の時点で）。異なるストロークでもパターンがずれない。
+- パターン: `PatternTile` と `PatternDefinition`。`getPatternDefinition` で id→ 定義取得（例: dots）。パターンタイルは静的で、時間による歪みは適用しない。`computePatternJitter`でストロークの描画位置をずらすことで、パターンの境界がうねうね揺れる。
 - 履歴: `History<T>` で past/present/future を保持。`create/push/undo/redoHistory` を提供。Drawing に適用。
 
 ## エンジン層（engine）

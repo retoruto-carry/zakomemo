@@ -120,7 +120,6 @@ export function WigglyEditor() {
       // GIF出力用にdpr=1を明示（オフスクリーンキャンバスにはDPRスケーリングなし）
       const renderer = new CanvasRenderer(
         ctx,
-        { amplitude: 0.5, frequency: 0.001 },
         { amplitude: 1.2, frequency: 0.008 },
         1,
       );
