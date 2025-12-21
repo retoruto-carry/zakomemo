@@ -720,7 +720,7 @@ export function WigglyTools({
               </div>
             ) : (
               <div className="flex flex-col items-center w-full gap-2.5">
-                <div className="bg-white p-0.5 rounded-[6px] border-[3px] border-black shadow-[6px_6px_0_rgba(0,0,0,0.2)] w-[75%] aspect-[3/2] flex items-center justify-center overflow-hidden">
+                <div className="bg-white p-0.5 rounded-[6px] border-[3px] border-black shadow-[6px_6px_0_rgba(0,0,0,0.2)] w-[45%] aspect-[3/2] flex items-center justify-center overflow-hidden">
                   {exportUrl && (
                     <>
                       {/* biome-ignore lint/performance/noImgElement: エクスポートされたGIF表示のため */}
@@ -741,18 +741,18 @@ export function WigglyTools({
                   </p>
                 </div>
 
-                <div className="flex flex-col gap-2 w-full px-6 mt-3">
+                <div className="flex flex-row gap-2 w-full px-6 mt-3">
                   <a
                     href={exportUrl || "#"}
                     download="wiggly-ugomemo.gif"
-                    className="bg-white text-[#ff6b00] border-t-[3px] border-l-[3px] border-t-white border-l-white border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-[6px] py-2 flex items-center justify-center active:translate-y-0.5 transition-all font-black text-lg shadow-lg"
+                    className="flex-1 bg-white text-[#ff6b00] border-t-[3px] border-l-[3px] border-t-white border-l-white border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-[6px] py-2 flex items-center justify-center active:translate-y-0.5 transition-all font-black text-lg shadow-lg"
                   >
                     保存する
                   </a>
                   <ShareButton
                     text="うごメモで絵を描いたよ！ #wigglyugomemo"
                     imageUrl={exportUrl || undefined}
-                    className="w-full"
+                    className="flex-1"
                   />
                 </div>
               </div>
