@@ -26,19 +26,19 @@ export function initializeUISounds(): void {
   uiSoundManager.registerSound("ds-button-start", selectSound);
   uiSoundManager.registerSound("ds-button-select", selectSound);
 
-  // UIボタン - cat1.mp3を使用（操作系のボタン）
+  // UIボタン - やり直しボタンのみcat1.mp3、他はselect1.mp3
   uiSoundManager.registerSound("button-undo", catSound);
   uiSoundManager.registerSound("button-redo", catSound);
-  uiSoundManager.registerSound("button-clear", catSound);
-  uiSoundManager.registerSound("button-settings", catSound);
-  uiSoundManager.registerSound("button-tool", catSound);
-  uiSoundManager.registerSound("button-export", catSound);
+  uiSoundManager.registerSound("button-clear", selectSound);
+  uiSoundManager.registerSound("button-settings", selectSound);
+  uiSoundManager.registerSound("button-tool", selectSound);
+  uiSoundManager.registerSound("button-export", selectSound);
 
   // カラーパレット - select1.mp3を使用（選択系）
   uiSoundManager.registerSound("color-select", selectSound);
 
-  // スライダー - cat1.mp3を使用（調整系）
-  uiSoundManager.registerSound("slider-change", catSound);
+  // スライダー - select1.mp3を使用
+  uiSoundManager.registerSound("slider-change", selectSound);
 
   // キャンバス描画（ツール別）- select1.mp3を使用
   uiSoundManager.registerSound("canvas-pen", selectSound);
@@ -51,11 +51,11 @@ export function initializeUISounds(): void {
   // 消しゴム種類選択 - select1.mp3を使用
   uiSoundManager.registerSound("eraser-variant-select", selectSound);
 
-  // 設定モーダルタブ - cat1.mp3を使用
-  uiSoundManager.registerSound("settings-tab", catSound);
+  // 設定モーダルタブ - select1.mp3を使用
+  uiSoundManager.registerSound("settings-tab", selectSound);
 
-  // 設定モーダル閉じる - cat1.mp3を使用
-  uiSoundManager.registerSound("settings-close", catSound);
+  // 設定モーダル閉じる - select1.mp3を使用
+  uiSoundManager.registerSound("settings-close", selectSound);
 
   // パレットプリセット選択 - select1.mp3を使用
   uiSoundManager.registerSound("palette-preset-select", selectSound);
@@ -63,15 +63,15 @@ export function initializeUISounds(): void {
   // カスタムパレット色選択 - select1.mp3を使用
   uiSoundManager.registerSound("custom-palette-color", selectSound);
 
-  // エクスポートモーダル閉じる - cat1.mp3を使用
-  uiSoundManager.registerSound("export-close", catSound);
+  // エクスポートモーダル閉じる - select1.mp3を使用
+  uiSoundManager.registerSound("export-close", selectSound);
 
-  // エクスポート保存 - cat1.mp3を使用
-  uiSoundManager.registerSound("export-save", catSound);
+  // エクスポート保存 - select1.mp3を使用
+  uiSoundManager.registerSound("export-save", selectSound);
 
-  // シェアボタン - cat1.mp3を使用
-  uiSoundManager.registerSound("share-button", catSound);
+  // シェアボタン - select1.mp3を使用
+  uiSoundManager.registerSound("share-button", selectSound);
 
-  // ポップアップ閉じる - cat1.mp3を使用
-  uiSoundManager.registerSound("popup-close", catSound);
+  // ポップアップ閉じる - select1.mp3を使用
+  uiSoundManager.registerSound("popup-close", selectSound);
 }

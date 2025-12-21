@@ -15,7 +15,9 @@
 - 消しゴム: destination-out で透明に描画。太さはペン設定と連動。プレビューは白抜きで表示。形状は円/四角/横線の 3 種。
 - Undo/Redo: 「やり直し」「進む」ボタンおよび 2 本指タップで操作可能。履歴がある場合のみ有効（disabled 状態で表示）。
 - 全消し: 「消す」ボタンで履歴に push した上でクリア。
-- 設定: 下画面を覆うフルスクリーンモーダル。「パレット」と「本体色」のタブ切り替え。カスタムスクロールバー実装。
+- 設定: 下画面を覆うフルスクリーンモーダル。「背景色」「パレット」「本体色」「ぶるぶる」のタブ切り替え。カスタムスクロールバー実装。
+  - 背景色: プリセット色またはカスタムカラーを選択可能。
+  - ぶるぶる: 揺れの振幅と周波数をスライダーで調整可能。
 - GIF 出力: 12fps・約 2 秒（24 フレーム）をループ GIF として出力。保存後、X（Twitter）へのシェア機能あり。
   - モバイル: Web Share API 対応時は画像付きシェア、非対応時は Intent URL でテキストシェア。
   - PC: Intent URL で新規タブを開く。
@@ -35,7 +37,8 @@
 - TypeScript（strict）
 - React / Next.js（Vite 等でも動かせる設計）
 - Canvas 2D API
-- Howler.js（サウンド）
+- Howler.js（UI 要素のサウンド）
+- Web Audio API（キャンバス描画音の動的生成）
 - requestAnimationFrame（アニメーションループ）
 - Pointer Events（マウス/タッチ共通）
 - GIF エンコード用ライブラリ（gifenc/gif.js などをラップ）
@@ -84,7 +87,7 @@
 ## インフラ層（infra）
 
 - CanvasRenderer: Canvas2D で Stroke を描画。erase は destination-out、solid は色、pattern は offscreen タイル →createPattern でワールド固定の模様を適用。DPR 対応。
-- その他: RealTimeProvider（performance.now）、BrowserRafScheduler（requestAnimationFrame）、HowlerStrokeSound（速度に応じたボリューム制御）、GIF エンコーダー実装（ライブラリラップ）。
+- その他: RealTimeProvider（performance.now）、BrowserRafScheduler（requestAnimationFrame）、WebAudioStrokeSound（Web Audio API による動的音源生成）、UISoundManager（Howler.js による UI 音源管理）、GIF エンコーダー実装（ライブラリラップ）。
 
 ## UI 層
 
@@ -99,9 +102,13 @@
 
 ## サウンド指針
 
-- 目的: 描画の触感を補強。ペン設置で再生開始、描画速度でボリューム変化、終了でフェードアウト。モバイルの自動再生制約に留意。
-- UI要素の音源: DSボタン、UIボタン、カラー選択、スライダー操作時に短いSEを再生。Howler.jsを使用して管理。
-- キャンバス描画音: ツール（ペン/ブラシ/消しゴム）ごとに異なる音源をサポート。描画速度に応じてボリュームを調整。
+- 目的: 描画の触感を補強。ペン設置で再生開始、描画速度でボリューム・周波数変化、終了でフェードアウト。モバイルの自動再生制約に留意。
+- UI 要素の音源: DS ボタン、UI ボタン、カラー選択、スライダー操作時に短い SE を再生。Howler.js を使用して管理。
+  - 音源ファイル: `select1.mp3` をほぼすべての UI 要素に使用。`cat1.mp3` はやり直しボタン（Undo/Redo）のみに使用。
+- キャンバス描画音: Web Audio API を使用した動的音源生成。
+  - ピンクノイズをベースに、ツール（ペン/ブラシ/消しゴム）ごとに異なるフィルター設定で音色を生成。
+  - 描画速度（移動平均速度）に応じてリアルタイムに音量と周波数を調整。
+  - バンドパスフィルター + ローパスフィルター（8kHz 以上をカット）でプツプツノイズを抑制。
 - 詳細は `docs/audio-implementation.md` を参照。
 
 ## 開発ポリシー
