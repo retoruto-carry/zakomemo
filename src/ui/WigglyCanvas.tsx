@@ -100,7 +100,12 @@ export function WigglyCanvas({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const engine = createWigglyEngine(canvas, initialDrawing, backgroundColor);
+    const engine = createWigglyEngine(
+      canvas,
+      initialDrawing,
+      backgroundColor,
+      jitterConfig,
+    );
     engineRef.current = engine;
     onEngineInit(engine);
 
