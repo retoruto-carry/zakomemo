@@ -174,7 +174,7 @@ export function WigglyTools({
       />
 
       {/* 1. TOP ROW: Action Buttons (Faithful Orange Beveled Style) - Positioned at corners */}
-      <div className="h-14 shrink-0 relative z-10">
+      <div className="h-12 shrink-0 relative z-10">
         {/* Spacer for layout */}
       </div>
 
@@ -185,7 +185,7 @@ export function WigglyTools({
         onKeyDown={handleButtonKeyDown(onClear)}
         role="button"
         tabIndex={0}
-        className="absolute top-0 left-0 bg-[#ff6b00] border-t-[3px] border-l-[3px] border-t-[#ff9d5c] border-l-[#ff9d5c] border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-tl-none rounded-tr-[6px] rounded-bl-none rounded-br-[6px] h-14 px-2 flex items-center justify-center gap-1 active:translate-y-0.5 active:brightness-95 transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#ff6b00] z-10"
+        className="absolute top-0 left-0 bg-[#ff6b00] border-t-[3px] border-l-[3px] border-t-[#ff9d5c] border-l-[#ff9d5c] border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-tl-none rounded-tr-[6px] rounded-bl-none rounded-br-[6px] h-12 px-2 py-1 flex items-center justify-center gap-1 active:translate-y-0.5 active:brightness-95 transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#ff6b00] z-10"
       >
         <div className="relative w-7 h-7 flex items-center justify-center shrink-0">
           {[0, 1, 2, 3, 4, 5, 6, 7].map((angle) => (
@@ -210,7 +210,7 @@ export function WigglyTools({
         onKeyDown={handleButtonKeyDown(() => setActivePopup("settings"))}
         role="button"
         tabIndex={0}
-        className="absolute top-0 left-[calc(94px+2px)] bg-[#ff6b00] border-t-[3px] border-l-[3px] border-t-[#ff9d5c] border-l-[#ff9d5c] border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-[6px] h-14 px-2 flex items-center justify-center gap-1 active:translate-y-0.5 group cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#ff6b00] z-10"
+        className="absolute top-0 left-[calc(94px+2px)] bg-[#ff6b00] border-t-[3px] border-l-[3px] border-t-[#ff9d5c] border-l-[#ff9d5c] border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-[6px] h-12 px-2 py-1 flex items-center justify-center gap-1 active:translate-y-0.5 group cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#ff6b00] z-10"
       >
         <svg
           viewBox="0 0 24 24"
@@ -226,7 +226,7 @@ export function WigglyTools({
       </div>
 
       {/* Right-aligned group: Undo & Redo - Top Right Corner */}
-      <div className="absolute top-0 right-0 flex h-14 items-stretch z-10">
+      <div className="absolute top-0 right-0 flex h-12 items-stretch z-10">
         {/* Undo (やり直し) */}
         {/* biome-ignore lint/a11y/useSemanticElements: Custom styled button */}
         <div
@@ -237,7 +237,7 @@ export function WigglyTools({
           aria-disabled={!canUndo}
           className={`
               border-t-[3px] border-l-[3px] border-b-[3px] border-r-[1.5px] 
-              rounded-tl-[6px] rounded-tr-none rounded-bl-[6px] rounded-br-none h-full px-2 flex items-center justify-center gap-1 
+              rounded-tl-[6px] rounded-tr-none rounded-bl-[6px] rounded-br-none h-full px-2 py-1 flex items-center justify-center gap-1 
               transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#ff6b00]
               ${
                 !canUndo
@@ -268,7 +268,7 @@ export function WigglyTools({
           aria-disabled={!canRedo}
           className={`
               border-t-[3px] border-l-[1.5px] border-r-[3px] border-b-[3px] 
-              rounded-tl-none rounded-tr-none rounded-bl-none rounded-br-none h-full px-2 flex items-center justify-center 
+              rounded-tl-none rounded-tr-none rounded-bl-none rounded-br-none h-full px-2 py-1 flex items-center justify-center 
               transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#ff6b00]
               ${
                 !canRedo
@@ -606,7 +606,7 @@ export function WigglyTools({
       </div>
 
       {/* 3. BOTTOM ROW: Colors */}
-      <div className="h-14 shrink-0 flex items-center justify-start gap-2 relative z-10">
+      <div className="h-12 shrink-0 flex items-center justify-start gap-2 relative z-10">
         {/* Colors */}
         <div className="w-fit h-full bg-[#fffdeb] border-[3px] border-[#d2b48c] p-1 flex items-center justify-center gap-1 shadow-[3px_3px_0_rgba(210,180,140,0.2)] rounded-[4px]">
           {palette.map((_c, idx) => {
@@ -636,12 +636,12 @@ export function WigglyTools({
       </div>
 
       {/* Save Button (Faithful Orange Style) - Bottom Right Corner */}
-      <div className="absolute bottom-0 right-0 h-14 z-10">
+      <div className="absolute bottom-0 right-0 h-12 z-10">
         {exportUrl ? (
             <a
               href={exportUrl}
               download="wiggly-ugomemo.gif"
-              className="bg-[#ff6b00] border-t-[3px] border-l-[3px] border-t-[#ff9d5c] border-l-[#ff9d5c] border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-tl-[6px] rounded-tr-[6px] rounded-bl-none rounded-br-none h-full px-3 flex items-center justify-center active:translate-y-0.5 transition-all text-white font-black"
+              className="bg-[#ff6b00] border-t-[3px] border-l-[3px] border-t-[#ff9d5c] border-l-[#ff9d5c] border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-tl-[6px] rounded-tr-[6px] rounded-bl-none rounded-br-none h-full px-2 py-1 flex items-center justify-center active:translate-y-0.5 transition-all text-white font-black"
             >
               <span className="text-lg leading-none">GIFを保存</span>
             </a>
@@ -652,7 +652,7 @@ export function WigglyTools({
               onKeyDown={handleButtonKeyDown(onExport)}
               role="button"
               tabIndex={isExporting ? -1 : 0}
-              className={`bg-[#ff6b00] border-t-[3px] border-l-[3px] border-t-[#ff9d5c] border-l-[#ff9d5c] border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-tl-[6px] rounded-tr-[6px] rounded-bl-none rounded-br-none h-full px-3 flex items-center justify-center active:translate-y-0.5 transition-all text-white font-black cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#ff6b00] ${isExporting ? "opacity-50 pointer-events-none" : ""}`}
+              className={`bg-[#ff6b00] border-t-[3px] border-l-[3px] border-t-[#ff9d5c] border-l-[#ff9d5c] border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-tl-[6px] rounded-tr-[6px] rounded-bl-none rounded-br-none h-full px-2 py-1 flex items-center justify-center active:translate-y-0.5 transition-all text-white font-black cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#ff6b00] ${isExporting ? "opacity-50 pointer-events-none" : ""}`}
             >
               {isExporting ? (
                 <span className="text-lg">...</span>
