@@ -2,6 +2,7 @@
 
 import { type KeyboardEvent, useRef, useState } from "react";
 import type { BrushPatternId } from "@/core/types";
+import type { JitterConfig } from "@/core/jitter";
 import type { EraserVariant } from "@/engine/variants";
 import type { Tool } from "@/engine/WigglyEngine";
 import { isMobile } from "@/lib/share";
@@ -91,6 +92,8 @@ interface WigglyToolsProps {
   setBodyColor: (bodyColor: BodyColor) => void;
   backgroundColor: string;
   setBackgroundColor: (backgroundColor: string) => void;
+  jitterConfig: JitterConfig;
+  setJitterConfig: (jitterConfig: JitterConfig) => void;
 }
 
 export function WigglyTools({
@@ -120,13 +123,15 @@ export function WigglyTools({
   setBodyColor,
   backgroundColor,
   setBackgroundColor,
+  jitterConfig,
+  setJitterConfig,
 }: WigglyToolsProps) {
   // Track which popup is open
   const [activePopup, setActivePopup] = useState<
     "none" | "pattern" | "eraser" | "settings"
   >("none");
   const [settingsTab, setSettingsTab] = useState<
-    "palette" | "body" | "background"
+    "palette" | "body" | "background" | "jitter"
   >("palette");
   const undoGifRef = useRef<AnimatedGifHandle>(null);
 
@@ -813,6 +818,17 @@ export function WigglyTools({
               </button>
               <button
                 type="button"
+                onClick={() => setSettingsTab("jitter")}
+                className={`px-5 py-1.5 rounded-t-[8px] font-black text-base transition-all ${
+                  settingsTab === "jitter"
+                    ? "bg-[#fdfbf7] text-[#ff6b00] translate-y-px border-t-[3px] border-l-[3px] border-r-[3px] border-[#e7d1b1]"
+                    : "bg-[#ff9d5c] text-white hover:bg-[#ff8c00]"
+                }`}
+              >
+                ぶるぶる
+              </button>
+              <button
+                type="button"
                 onClick={() => setSettingsTab("body")}
                 className={`hidden sm:block px-5 py-1.5 rounded-t-[8px] font-black text-base transition-all ${
                   settingsTab === "body"
@@ -954,6 +970,70 @@ export function WigglyTools({
                       className="absolute inset-0 w-full h-full cursor-pointer opacity-0"
                     />
                   </div>
+                </div>
+              </div>
+            ) : settingsTab === "jitter" ? (
+              <div className="flex flex-col gap-4">
+                {/* Amplitude (揺れの大きさ) */}
+                <div className="p-3 bg-white border-[3px] border-[#e7d1b1] rounded-[6px] shadow-[2px_2px_0_rgba(210,180,140,0.1)]">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-black text-sm text-[#a67c52]">
+                      揺れの大きさ
+                    </span>
+                    <span className="font-black text-xs text-[#a67c52] font-mono">
+                      {jitterConfig.amplitude.toFixed(2)}
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="3"
+                    step="0.1"
+                    value={jitterConfig.amplitude}
+                    onChange={(e) =>
+                      setJitterConfig({
+                        ...jitterConfig,
+                        amplitude: parseFloat(e.target.value),
+                      })
+                    }
+                    className="w-full h-2 bg-[#fffdeb] rounded-lg appearance-none cursor-pointer accent-[#ff6b00]"
+                    style={{
+                      background: `linear-gradient(to right, #ff6b00 0%, #ff6b00 ${
+                        (jitterConfig.amplitude / 3) * 100
+                      }%, #fffdeb ${(jitterConfig.amplitude / 3) * 100}%, #fffdeb 100%)`,
+                    }}
+                  />
+                </div>
+
+                {/* Frequency (揺れの速さ) */}
+                <div className="p-3 bg-white border-[3px] border-[#e7d1b1] rounded-[6px] shadow-[2px_2px_0_rgba(210,180,140,0.1)]">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-black text-sm text-[#a67c52]">
+                      揺れの速さ
+                    </span>
+                    <span className="font-black text-xs text-[#a67c52] font-mono">
+                      {jitterConfig.frequency.toFixed(4)}
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="0.02"
+                    step="0.001"
+                    value={jitterConfig.frequency}
+                    onChange={(e) =>
+                      setJitterConfig({
+                        ...jitterConfig,
+                        frequency: parseFloat(e.target.value),
+                      })
+                    }
+                    className="w-full h-2 bg-[#fffdeb] rounded-lg appearance-none cursor-pointer accent-[#ff6b00]"
+                    style={{
+                      background: `linear-gradient(to right, #ff6b00 0%, #ff6b00 ${
+                        (jitterConfig.frequency / 0.02) * 100
+                      }%, #fffdeb ${(jitterConfig.frequency / 0.02) * 100}%, #fffdeb 100%)`,
+                    }}
+                  />
                 </div>
               </div>
             ) : (
