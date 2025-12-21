@@ -10,7 +10,7 @@ export type PatternWiggleConfig = {
 /**
  * パターンタイル内の各ピクセルに座標ベースのjitterを適用して歪ませる
  * @param base 元のパターンタイル
- * @param timeMs 時間（ミリ秒）
+ * @param elapsedTimeMs エンジン開始からの経過時間（ミリ秒）
  * @param config パターンの歪み設定
  * @param jitterConfig jitter設定（座標ベースの歪み用）
  * @param tileWorldX タイルのワールド座標X（オプション、指定しない場合はタイル内相対座標を使用）
@@ -18,7 +18,7 @@ export type PatternWiggleConfig = {
  */
 export function wigglePatternTile(
   base: PatternTile,
-  timeMs: number,
+  elapsedTimeMs: number,
   config: PatternWiggleConfig,
   jitterConfig?: JitterConfig,
   tileWorldX?: number,
@@ -27,7 +27,7 @@ export function wigglePatternTile(
   const { width, height, alpha } = base;
   const outputAlpha = new Array<number>(alpha.length);
 
-  const t = timeMs * config.frequency;
+  const t = elapsedTimeMs * config.frequency;
   const amplitude = config.amplitude;
 
   // 座標ベースのjitterを使用するかどうか
@@ -49,7 +49,7 @@ export function wigglePatternTile(
         // ワールド座標が指定されている場合はそれを使用、そうでなければタイル内相対座標を使用
         const worldX = tileWorldX !== undefined ? tileWorldX + x : x;
         const worldY = tileWorldY !== undefined ? tileWorldY + y : y;
-        const bucket = Math.floor(timeMs * jitterConfig.frequency);
+        const bucket = Math.floor(elapsedTimeMs * jitterConfig.frequency);
         const noiseX = hashNoise(worldX, worldY, bucket);
         const noiseY = hashNoise(worldY, worldX, bucket + 1);
         coordDx = (noiseX * 2 - 1) * jitterConfig.amplitude;

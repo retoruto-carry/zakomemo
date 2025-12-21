@@ -43,7 +43,7 @@ export class CanvasRenderer implements DrawingRenderer {
   renderStroke(
     stroke: Stroke,
     jitteredPoints: { x: number; y: number }[],
-    _timeMs: number,
+    _elapsedTimeMs: number,
   ): void {
     if (jitteredPoints.length === 0) return;
     const ctx = this.ctx;
@@ -83,7 +83,7 @@ export class CanvasRenderer implements DrawingRenderer {
         const pattern = this.createWigglyPattern(
           stroke.brush.patternId,
           stroke.brush.color,
-          _timeMs,
+          _elapsedTimeMs,
         );
         // パターンを論理座標でPATTERN_SCALE倍に見せる
         // 物理座標ではPATTERN_SCALE * dpr倍にする必要がある
@@ -143,23 +143,23 @@ export class CanvasRenderer implements DrawingRenderer {
   /**
    * パターンタイルを生成してキャッシュ
    * 時間ベースの歪みと座標ベースのjitterを適用
-   * キャッシュキーにtimeMsを含めることで、時間ごとにパターンを再生成
+   * キャッシュキーにelapsedTimeMsを含めることで、時間ごとにパターンを再生成
    */
   private createWigglyPattern(
     patternId: string,
     color: string,
-    timeMs: number,
+    elapsedTimeMs: number,
   ): CanvasPattern {
-    // 時間ごとにパターンを再生成するため、キャッシュキーにtimeMsを含める
+    // 時間ごとにパターンを再生成するため、キャッシュキーにelapsedTimeMsを含める
     // ただし、jitterConfigが指定されている場合は、座標ベースのjitterも適用
-    const cacheKey = `${patternId}:${color}:${Math.floor(timeMs / 16)}`; // 約60fpsで更新
+    const cacheKey = `${patternId}:${color}:${Math.floor(elapsedTimeMs / 16)}`; // 約60fpsで更新
     const cached = this.patternCache.get(cacheKey);
     if (cached) return cached;
 
     const def = getPatternDefinition(patternId as BrushPatternId);
     const tile = wigglePatternTile(
       def.tile,
-      timeMs,
+      elapsedTimeMs,
       this.wiggleConfig,
       this.jitterConfig,
     );

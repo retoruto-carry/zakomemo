@@ -18,11 +18,11 @@ export function hashNoise(a: number, b: number, c: number): number {
 
 export function computeJitter(
   point: Point,
-  timeMs: number,
+  elapsedTimeMs: number,
   config: JitterConfig,
 ): JitterOffset {
   // Quantize時間ベースの揺れでジャギー感を出す
-  const bucket = Math.floor((point.t + timeMs) * config.frequency);
+  const bucket = Math.floor((point.t + elapsedTimeMs) * config.frequency);
   const amplitude = config.amplitude;
 
   const noiseX = hashNoise(point.x, point.y, bucket);
@@ -41,11 +41,11 @@ export function computeJitter(
  */
 export function computePatternJitter(
   point: Point,
-  timeMs: number,
+  elapsedTimeMs: number,
   config: JitterConfig,
 ): JitterOffset {
-  // point.tを使わず、timeMsのみで時間変化を計算
-  const bucket = Math.floor(timeMs * config.frequency);
+  // point.tを使わず、elapsedTimeMsのみで時間変化を計算
+  const bucket = Math.floor(elapsedTimeMs * config.frequency);
   const amplitude = config.amplitude;
 
   // 座標に基づいたノイズ（同じ座標なら同じ結果）

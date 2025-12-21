@@ -7,7 +7,7 @@ export function renderDrawingAtTime(
   drawing: Drawing,
   renderer: DrawingRenderer,
   jitterConfig: JitterConfig,
-  timeMs: number,
+  elapsedTimeMs: number,
 ): void {
   renderer.clear(drawing.width, drawing.height);
 
@@ -17,13 +17,13 @@ export function renderDrawingAtTime(
       if (isPattern) {
         // パターン: 座標ベースのjitter（point.tを使わない）
         // 同じ座標には同じjitterが適用され、別ストロークでもずれない
-        const jitter = computePatternJitter(point, timeMs, jitterConfig);
+        const jitter = computePatternJitter(point, elapsedTimeMs, jitterConfig);
         return { x: point.x + jitter.dx, y: point.y + jitter.dy };
       }
       // ペン/消しゴム: 点ごとのjitter（point.tを使う）
-      const jitter = computeJitter(point, timeMs, jitterConfig);
+      const jitter = computeJitter(point, elapsedTimeMs, jitterConfig);
       return { x: point.x + jitter.dx, y: point.y + jitter.dy };
     });
-    renderer.renderStroke(stroke, jittered, timeMs);
+    renderer.renderStroke(stroke, jittered, elapsedTimeMs);
   }
 }
