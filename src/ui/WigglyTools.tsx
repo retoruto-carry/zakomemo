@@ -840,19 +840,8 @@ export function WigglyTools({
             <div className="flex-1 flex h-full items-end gap-1 pt-1.5">
               <button
                 type="button"
-                onClick={() => setSettingsTab("palette")}
-                className={`px-5 py-1.5 rounded-t-[8px] font-black text-base transition-all ${
-                  settingsTab === "palette"
-                    ? "bg-[#fdfbf7] text-[#ff6b00] translate-y-px border-t-[3px] border-l-[3px] border-r-[3px] border-[#e7d1b1]"
-                    : "bg-[#ff9d5c] text-white hover:bg-[#ff8c00]"
-                }`}
-              >
-                パレット
-              </button>
-              <button
-                type="button"
                 onClick={() => setSettingsTab("background")}
-                className={`px-5 py-1.5 rounded-t-[8px] font-black text-base transition-all ${
+                className={`px-3 py-1.5 rounded-t-[8px] font-black text-sm transition-all ${
                   settingsTab === "background"
                     ? "bg-[#fdfbf7] text-[#ff6b00] translate-y-px border-t-[3px] border-l-[3px] border-r-[3px] border-[#e7d1b1]"
                     : "bg-[#ff9d5c] text-white hover:bg-[#ff8c00]"
@@ -862,25 +851,36 @@ export function WigglyTools({
               </button>
               <button
                 type="button"
-                onClick={() => setSettingsTab("jitter")}
-                className={`px-5 py-1.5 rounded-t-[8px] font-black text-base transition-all ${
-                  settingsTab === "jitter"
+                onClick={() => setSettingsTab("palette")}
+                className={`px-3 py-1.5 rounded-t-[8px] font-black text-sm transition-all ${
+                  settingsTab === "palette"
                     ? "bg-[#fdfbf7] text-[#ff6b00] translate-y-px border-t-[3px] border-l-[3px] border-r-[3px] border-[#e7d1b1]"
                     : "bg-[#ff9d5c] text-white hover:bg-[#ff8c00]"
                 }`}
               >
-                ぶるぶる
+                パレット
               </button>
               <button
                 type="button"
                 onClick={() => setSettingsTab("body")}
-                className={`hidden sm:block px-5 py-1.5 rounded-t-[8px] font-black text-base transition-all ${
+                className={`px-3 py-1.5 rounded-t-[8px] font-black text-sm transition-all ${
                   settingsTab === "body"
                     ? "bg-[#fdfbf7] text-[#ff6b00] translate-y-px border-t-[3px] border-l-[3px] border-r-[3px] border-[#e7d1b1]"
                     : "bg-[#ff9d5c] text-white hover:bg-[#ff8c00]"
                 }`}
               >
                 本体色
+              </button>
+              <button
+                type="button"
+                onClick={() => setSettingsTab("jitter")}
+                className={`px-3 py-1.5 rounded-t-[8px] font-black text-sm transition-all ${
+                  settingsTab === "jitter"
+                    ? "bg-[#fdfbf7] text-[#ff6b00] translate-y-px border-t-[3px] border-l-[3px] border-r-[3px] border-[#e7d1b1]"
+                    : "bg-[#ff9d5c] text-white hover:bg-[#ff8c00]"
+                }`}
+              >
+                ぶるぶる
               </button>
             </div>
 
@@ -966,7 +966,7 @@ export function WigglyTools({
               </div>
             ) : settingsTab === "background" ? (
               <div className="flex flex-col gap-2.5">
-                <div className="grid grid-cols-5 gap-2">
+                <div className="grid grid-cols-6 gap-2">
                   {BACKGROUND_COLOR_PRESETS.map((color) => (
                     <button
                       type="button"
@@ -1043,7 +1043,7 @@ export function WigglyTools({
               </div>
             ) : (
               <div className="flex flex-col gap-2.5">
-                <div className="grid grid-cols-5 gap-2">
+                <div className="grid grid-cols-6 gap-2">
                   {BODY_PRESETS.map((b) => (
                     <button
                       type="button"
