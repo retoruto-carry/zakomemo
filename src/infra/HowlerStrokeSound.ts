@@ -1,37 +1,104 @@
 import { Howl } from "howler";
 import type { StrokeSound, StrokeSoundInfo } from "../engine/ports";
 
+/**
+ * Howler.jsを使用した描画音の実装
+ * 各ツール（ペン、パターン、消しゴム）ごとに独立した音源を管理
+ */
 export class HowlerStrokeSound implements StrokeSound {
-  private drawLoop: Howl;
+  private drawLoops: Map<"pen" | "pattern" | "eraser", Howl> = new Map();
 
+  /**
+   * コンストラクタ
+   * 各ツール用の音源を初期化
+   */
   constructor() {
-    this.drawLoop = new Howl({
-      src: ["/sounds/draw-loop.mp3"],
-      loop: true,
-      volume: 0,
-    });
+    // 初期実装ではすべてのツールで同じ音源を使用
+    const defaultSound = "/audios/se/select1.mp3";
+
+    // 各ツール用の音源を初期化
+    this.drawLoops.set(
+      "pen",
+      new Howl({
+        src: [defaultSound],
+        loop: true,
+        volume: 0,
+      }),
+    );
+    this.drawLoops.set(
+      "pattern",
+      new Howl({
+        src: [defaultSound],
+        loop: true,
+        volume: 0,
+      }),
+    );
+    this.drawLoops.set(
+      "eraser",
+      new Howl({
+        src: [defaultSound],
+        loop: true,
+        volume: 0,
+      }),
+    );
   }
 
+  /**
+   * ストローク開始時に呼ばれる
+   * 他のツールの音をフェードアウトし、現在のツールの音をフェードイン
+   * @param info ストローク情報
+   */
   onStrokeStart(info: StrokeSoundInfo): void {
-    if (!this.drawLoop.playing()) {
-      this.drawLoop.play();
+    const drawLoop = this.drawLoops.get(info.tool);
+    if (!drawLoop) return;
+
+    // 他のツールの音を停止
+    for (const [tool, loop] of this.drawLoops) {
+      if (tool !== info.tool && loop.playing()) {
+        const current = loop.volume();
+        loop.fade(current, 0, 50);
+      }
     }
-    this.drawLoop.volume(0);
-    this.drawLoop.fade(0, 0.3, 120);
+
+    if (!drawLoop.playing()) {
+      drawLoop.play();
+    }
+    drawLoop.volume(0);
+    drawLoop.fade(0, 0.3, 120);
     this.updateVolume(info);
   }
 
+  /**
+   * ストローク更新時に呼ばれる
+   * 描画速度に応じて音量を更新
+   * @param info ストローク情報
+   */
   onStrokeUpdate(info: StrokeSoundInfo): void {
     this.updateVolume(info);
   }
 
+  /**
+   * ストローク終了時に呼ばれる
+   * 音をフェードアウト
+   * @param _info ストローク情報
+   */
   onStrokeEnd(_info: StrokeSoundInfo): void {
-    const current = this.drawLoop.volume();
-    this.drawLoop.fade(current, 0, 180);
+    const drawLoop = this.drawLoops.get(_info.tool);
+    if (!drawLoop) return;
+
+    const current = drawLoop.volume();
+    drawLoop.fade(current, 0, 180);
   }
 
+  /**
+   * 描画速度に応じて音量を更新する
+   * @param info ストローク情報
+   */
   private updateVolume(info: StrokeSoundInfo) {
+    const drawLoop = this.drawLoops.get(info.tool);
+    if (!drawLoop) return;
+
     const volume = Math.min(0.1 + info.speed * 0.5, 1);
-    this.drawLoop.volume(volume);
+    drawLoop.volume(volume);
   }
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { uiSoundManager } from "@/infra/uiSounds";
 import { shareToTwitter } from "@/lib/share";
 
 // X (Twitter) アイコン
@@ -49,6 +50,7 @@ export function ShareButton({
 
   const handleShare = async () => {
     if (isSharing) return;
+    uiSoundManager.play("share-button", { stopPrevious: true });
     setIsSharing(true);
     setShareError(false);
 
@@ -82,6 +84,7 @@ export function ShareButton({
         active:translate-y-0.5 transition-all 
         font-black text-lg
         disabled:opacity-50 disabled:pointer-events-none
+        cursor-pointer
         ${className}
       `}
     >
