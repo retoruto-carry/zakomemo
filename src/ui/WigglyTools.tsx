@@ -17,6 +17,50 @@ import {
 } from "./presets";
 import { eraserVariants } from "./variants";
 
+interface JitterControlSliderProps {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  toFixed: number;
+  onChange: (value: number) => void;
+}
+
+function JitterControlSlider({
+  label,
+  value,
+  min,
+  max,
+  step,
+  toFixed,
+  onChange,
+}: JitterControlSliderProps) {
+  const percentage = max > min ? ((value - min) / (max - min)) * 100 : 0;
+  return (
+    <div className="p-3 bg-white border-[3px] border-[#e7d1b1] rounded-[6px] shadow-[2px_2px_0_rgba(210,180,140,0.1)]">
+      <div className="flex items-center justify-between mb-2">
+        <span className="font-black text-sm text-[#a67c52]">{label}</span>
+        <span className="font-black text-xs text-[#a67c52] font-mono">
+          {value.toFixed(toFixed)}
+        </span>
+      </div>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => onChange(parseFloat(e.target.value))}
+        className="w-full h-2 bg-[#fffdeb] rounded-lg appearance-none cursor-pointer accent-[#ff6b00]"
+        style={{
+          background: `linear-gradient(to right, #ff6b00 0%, #ff6b00 ${percentage}%, #fffdeb ${percentage}%, #fffdeb 100%)`,
+        }}
+      />
+    </div>
+  );
+}
+
 // キーボードアクセシビリティ: Enter/Space で onClick を発火
 const handleButtonKeyDown = (callback: () => void) => (e: KeyboardEvent) => {
   if (e.key === "Enter" || e.key === " ") {
@@ -974,67 +1018,28 @@ export function WigglyTools({
               </div>
             ) : settingsTab === "jitter" ? (
               <div className="flex flex-col gap-4">
-                {/* Amplitude (揺れの大きさ) */}
-                <div className="p-3 bg-white border-[3px] border-[#e7d1b1] rounded-[6px] shadow-[2px_2px_0_rgba(210,180,140,0.1)]">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-black text-sm text-[#a67c52]">
-                      揺れの大きさ
-                    </span>
-                    <span className="font-black text-xs text-[#a67c52] font-mono">
-                      {jitterConfig.amplitude.toFixed(2)}
-                    </span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="3"
-                    step="0.1"
-                    value={jitterConfig.amplitude}
-                    onChange={(e) =>
-                      setJitterConfig({
-                        ...jitterConfig,
-                        amplitude: parseFloat(e.target.value),
-                      })
-                    }
-                    className="w-full h-2 bg-[#fffdeb] rounded-lg appearance-none cursor-pointer accent-[#ff6b00]"
-                    style={{
-                      background: `linear-gradient(to right, #ff6b00 0%, #ff6b00 ${
-                        (jitterConfig.amplitude / 3) * 100
-                      }%, #fffdeb ${(jitterConfig.amplitude / 3) * 100}%, #fffdeb 100%)`,
-                    }}
-                  />
-                </div>
-
-                {/* Frequency (揺れの速さ) */}
-                <div className="p-3 bg-white border-[3px] border-[#e7d1b1] rounded-[6px] shadow-[2px_2px_0_rgba(210,180,140,0.1)]">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-black text-sm text-[#a67c52]">
-                      揺れの速さ
-                    </span>
-                    <span className="font-black text-xs text-[#a67c52] font-mono">
-                      {jitterConfig.frequency.toFixed(4)}
-                    </span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="0.02"
-                    step="0.001"
-                    value={jitterConfig.frequency}
-                    onChange={(e) =>
-                      setJitterConfig({
-                        ...jitterConfig,
-                        frequency: parseFloat(e.target.value),
-                      })
-                    }
-                    className="w-full h-2 bg-[#fffdeb] rounded-lg appearance-none cursor-pointer accent-[#ff6b00]"
-                    style={{
-                      background: `linear-gradient(to right, #ff6b00 0%, #ff6b00 ${
-                        (jitterConfig.frequency / 0.02) * 100
-                      }%, #fffdeb ${(jitterConfig.frequency / 0.02) * 100}%, #fffdeb 100%)`,
-                    }}
-                  />
-                </div>
+                <JitterControlSlider
+                  label="揺れの大きさ"
+                  value={jitterConfig.amplitude}
+                  min={0}
+                  max={3}
+                  step={0.1}
+                  toFixed={2}
+                  onChange={(amplitude) =>
+                    setJitterConfig({ ...jitterConfig, amplitude })
+                  }
+                />
+                <JitterControlSlider
+                  label="揺れの速さ"
+                  value={jitterConfig.frequency}
+                  min={0}
+                  max={0.02}
+                  step={0.001}
+                  toFixed={4}
+                  onChange={(frequency) =>
+                    setJitterConfig({ ...jitterConfig, frequency })
+                  }
+                />
               </div>
             ) : (
               <div className="flex flex-col gap-2.5">
