@@ -139,6 +139,7 @@ export function WigglyEditor() {
       const renderer = new CanvasRenderer(ctx, 1, backgroundColor);
 
       const gifEncoder = new GifEncGifEncoder();
+      gifEncoder.setBackgroundColor(backgroundColor);
       const blob = await exportDrawingAsGif({
         drawing,
         renderer,
