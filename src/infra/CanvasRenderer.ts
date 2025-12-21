@@ -1,14 +1,7 @@
-import {
-  type PatternWiggleConfig,
-  wigglePatternTile,
-} from "../core/patternDeform";
 import { getPatternDefinition } from "../core/patterns";
 import type { BrushPatternId, BrushVariant, Stroke } from "../core/types";
 import type { DrawingRenderer } from "../engine/ports";
 import { parseColorToRgb, resolveCssVariable } from "./colorUtil";
-
-/** パターンタイルを2倍にスケールして密度を下げる */
-const PATTERN_SCALE = 2;
 
 export class CanvasRenderer implements DrawingRenderer {
   private lastWidth = 0;
@@ -18,7 +11,6 @@ export class CanvasRenderer implements DrawingRenderer {
 
   constructor(
     private ctx: CanvasRenderingContext2D,
-    private wiggleConfig: PatternWiggleConfig,
     dpr?: number,
   ) {
     this.dpr =
@@ -38,10 +30,16 @@ export class CanvasRenderer implements DrawingRenderer {
     ctx.restore();
   }
 
+  /**
+   * ストロークを描画
+   * @param _elapsedTimeMs エンジン開始からの経過時間（ミリ秒）
+   *   DrawingRendererインターフェースの要件として必要だが、現在の実装では未使用
+   *   （パターンタイルは静的で時間による歪みを適用しないため）
+   */
   renderStroke(
     stroke: Stroke,
     jitteredPoints: { x: number; y: number }[],
-    _timeMs: number,
+    _elapsedTimeMs: number,
   ): void {
     if (jitteredPoints.length === 0) return;
     const ctx = this.ctx;
@@ -82,10 +80,6 @@ export class CanvasRenderer implements DrawingRenderer {
           stroke.brush.patternId,
           stroke.brush.color,
         );
-        // パターンを論理座標でPATTERN_SCALE倍に見せる
-        // 物理座標ではPATTERN_SCALE * dpr倍にする必要がある
-        const patternScale = PATTERN_SCALE * this.dpr;
-        pattern.setTransform(new DOMMatrix().scale(patternScale, patternScale));
         ctx.strokeStyle = pattern;
       }
     }
@@ -139,17 +133,21 @@ export class CanvasRenderer implements DrawingRenderer {
 
   /**
    * パターンタイルを生成してキャッシュ
-   * 静的パターン（timeMs=0）を使用し、同じパターンを重ねてもずれない
+   * パターンタイルは静的で、時間による歪みは適用しない
    */
-  private createWigglyPattern(patternId: string, color: string): CanvasPattern {
+  private createWigglyPattern(
+    patternId: string,
+    color: string,
+  ): CanvasPattern {
+    // パターンタイルは静的なので、色とパターンIDのみでキャッシュ
     const cacheKey = `${patternId}:${color}`;
     const cached = this.patternCache.get(cacheKey);
     if (cached) return cached;
 
     const def = getPatternDefinition(patternId as BrushPatternId);
-    const tile = wigglePatternTile(def.tile, 0, this.wiggleConfig);
+    const tile = def.tile;
 
-    // 1xサイズでタイルを作成（setTransformでスケール適用するため）
+    // オフスクリーンキャンバスでタイルを作成
     const offscreen = document.createElement("canvas");
     offscreen.width = tile.width;
     offscreen.height = tile.height;

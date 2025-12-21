@@ -5,7 +5,7 @@ export interface DrawingRenderer {
   renderStroke(
     stroke: Stroke,
     jitteredPoints: { x: number; y: number }[],
-    timeMs: number,
+    elapsedTimeMs: number,
   ): void;
   clearPatternCache(): void;
 }

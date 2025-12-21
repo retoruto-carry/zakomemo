@@ -17,9 +17,13 @@ class MockRenderer implements DrawingRenderer {
   renderStroke(
     stroke: Stroke,
     jitteredPoints: { x: number; y: number }[],
-    timeMs: number,
+    elapsedTimeMs: number,
   ): void {
-    this.strokes.push({ stroke, jittered: jitteredPoints, time: timeMs });
+    this.strokes.push({
+      stroke,
+      jittered: jitteredPoints,
+      time: elapsedTimeMs,
+    });
   }
 
   clearPatternCache(): void {

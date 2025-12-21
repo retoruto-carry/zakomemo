@@ -22,8 +22,8 @@ export async function exportDrawingAsGif(options: {
   gif.begin(drawing.width, drawing.height, fps);
 
   for (let i = 0; i < frameCount; i += 1) {
-    const timeMs = i * frameInterval;
-    renderDrawingAtTime(drawing, renderer, jitterConfig, timeMs);
+    const elapsedTimeMs = i * frameInterval;
+    renderDrawingAtTime(drawing, renderer, jitterConfig, elapsedTimeMs);
     const imageData = renderer.getImageData?.();
     if (!imageData) {
       throw new Error(
