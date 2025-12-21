@@ -31,6 +31,7 @@ interface WigglyCanvasProps {
   penVariant: PenVariant;
   eraserVariant: EraserVariant;
   patternId: BrushPatternId;
+  backgroundColor: string;
   onEngineInit: (engine: WigglyEngine) => void;
 }
 
@@ -42,6 +43,7 @@ export function WigglyCanvas({
   penVariant,
   eraserVariant,
   patternId,
+  backgroundColor,
   onEngineInit,
 }: WigglyCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -79,13 +81,18 @@ export function WigglyCanvas({
     engineRef.current?.setEraserVariant(eraserVariant);
   }, [eraserVariant]);
 
+  // Sync background color to engine renderer
+  useEffect(() => {
+    engineRef.current?.setBackgroundColor(backgroundColor);
+  }, [backgroundColor]);
+
   // Initialize Engine and Event Listeners
   // biome-ignore lint/correctness/useExhaustiveDependencies: Intentionally run once on mount
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const engine = createWigglyEngine(canvas, initialDrawing);
+    const engine = createWigglyEngine(canvas, initialDrawing, backgroundColor);
     engineRef.current = engine;
     onEngineInit(engine);
 
@@ -248,7 +255,10 @@ export function WigglyCanvas({
   }, []); // Run once on mount
 
   return (
-    <div className="relative w-full h-full bg-white touch-none select-none overflow-hidden flex items-center justify-center">
+    <div
+      className="relative w-full h-full touch-none select-none overflow-hidden flex items-center justify-center"
+      style={{ backgroundColor }}
+    >
       <canvas
         ref={canvasRef}
         width={initialDrawing.width}

@@ -52,6 +52,7 @@ export function WigglyEditor() {
   // Palette & Body state
   const [palette, setPalette] = useState(defaultPalette);
   const [bodyColor, setBodyColor] = useState(defaultBodyColor);
+  const [backgroundColor, setBackgroundColor] = useState("#fdfbf7");
 
   // Layout State
   const [isDesktop, setIsDesktop] = useState(false);
@@ -118,7 +119,7 @@ export function WigglyEditor() {
       if (!ctx) throw new Error("2D context not available");
 
       // GIF出力用にdpr=1を明示（オフスクリーンキャンバスにはDPRスケーリングなし）
-      const renderer = new CanvasRenderer(ctx, 1);
+      const renderer = new CanvasRenderer(ctx, 1, backgroundColor);
 
       const gifEncoder = new GifEncGifEncoder();
       const blob = await exportDrawingAsGif({
@@ -211,6 +212,7 @@ export function WigglyEditor() {
             penVariant={penVariant}
             eraserVariant={eraserVariant}
             patternId={patternId}
+            backgroundColor={backgroundColor}
             onEngineInit={onEngineInit}
           />
         }
@@ -243,6 +245,8 @@ export function WigglyEditor() {
             setPalette={setPalette}
             bodyColor={bodyColor}
             setBodyColor={setBodyColor}
+            backgroundColor={backgroundColor}
+            setBackgroundColor={setBackgroundColor}
           />
         }
       />

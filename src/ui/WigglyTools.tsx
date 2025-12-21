@@ -8,6 +8,7 @@ import { isMobile } from "@/lib/share";
 import { AnimatedGif, type AnimatedGifHandle } from "./components/AnimatedGif";
 import { ShareButton } from "./components/ShareButton";
 import {
+  BACKGROUND_COLOR_PRESETS,
   BODY_PRESETS,
   type BodyColor,
   generateBodyColorFromBase,
@@ -88,6 +89,8 @@ interface WigglyToolsProps {
   setPalette: (palette: string[]) => void;
   bodyColor: BodyColor;
   setBodyColor: (bodyColor: BodyColor) => void;
+  backgroundColor: string;
+  setBackgroundColor: (backgroundColor: string) => void;
 }
 
 export function WigglyTools({
@@ -115,12 +118,16 @@ export function WigglyTools({
   setPalette,
   bodyColor,
   setBodyColor,
+  backgroundColor,
+  setBackgroundColor,
 }: WigglyToolsProps) {
   // Track which popup is open
   const [activePopup, setActivePopup] = useState<
     "none" | "pattern" | "eraser" | "settings"
   >("none");
-  const [settingsTab, setSettingsTab] = useState<"palette" | "body">("palette");
+  const [settingsTab, setSettingsTab] = useState<
+    "palette" | "body" | "background"
+  >("palette");
   const undoGifRef = useRef<AnimatedGifHandle>(null);
 
   const handleUndo = () => {
@@ -148,7 +155,7 @@ export function WigglyTools({
   };
 
   return (
-    <div className="flex flex-col w-full bg-[#fdfbf7] select-none text-(--color-ugo-dark) font-sans p-2 gap-2 relative overflow-hidden">
+    <div className="flex flex-col w-full select-none text-(--color-ugo-dark) font-sans p-2 gap-2 relative overflow-hidden" style={{ backgroundColor }}>
       {/* Faithful Scanline & Pixel Texture Overlay - Lower Z to stay behind popups */}
       <div
         className="absolute inset-0 pointer-events-none z-0 opacity-15"
@@ -795,6 +802,17 @@ export function WigglyTools({
               </button>
               <button
                 type="button"
+                onClick={() => setSettingsTab("background")}
+                className={`px-5 py-1.5 rounded-t-[8px] font-black text-base transition-all ${
+                  settingsTab === "background"
+                    ? "bg-[#fdfbf7] text-[#ff6b00] translate-y-px border-t-[3px] border-l-[3px] border-r-[3px] border-[#e7d1b1]"
+                    : "bg-[#ff9d5c] text-white hover:bg-[#ff8c00]"
+                }`}
+              >
+                背景
+              </button>
+              <button
+                type="button"
                 onClick={() => setSettingsTab("body")}
                 className={`hidden sm:block px-5 py-1.5 rounded-t-[8px] font-black text-base transition-all ${
                   settingsTab === "body"
@@ -819,6 +837,7 @@ export function WigglyTools({
           <div className="flex-1 overflow-y-auto ugo-scrollbar p-3 relative z-10">
             {settingsTab === "palette" ? (
               <div className="flex flex-col gap-3">
+                {/* Palette Presets */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   {PALETTE_PRESETS.map((p) => (
                     <button
@@ -882,6 +901,61 @@ export function WigglyTools({
                         />
                       </div>
                     ))}
+                  </div>
+                </div>
+              </div>
+            ) : settingsTab === "background" ? (
+              <div className="flex flex-col gap-2.5">
+                <div className="grid grid-cols-5 gap-2">
+                  {BACKGROUND_COLOR_PRESETS.map((color) => (
+                    <button
+                      type="button"
+                      key={color}
+                      onClick={() => setBackgroundColor(color)}
+                      className={`aspect-square rounded-[4px] border-[3px] transition-all relative flex items-center justify-center p-1 ${
+                        backgroundColor === color &&
+                        BACKGROUND_COLOR_PRESETS.includes(
+                          backgroundColor as (typeof BACKGROUND_COLOR_PRESETS)[number],
+                        )
+                          ? "border-black bg-[#ffff00] shadow-[3px_3px_0_rgba(0,0,0,0.15)] z-10"
+                          : "border-[#e7d1b1] bg-white hover:border-[#ff9d5c] shadow-[1px_1px_0_rgba(210,180,140,0.1)]"
+                      }`}
+                    >
+                      <div
+                        className="w-full h-full relative border-[2.5px] border-black/10 rounded-[3px] shadow-inner overflow-hidden"
+                        style={{ backgroundColor: color }}
+                      >
+                        <div className="absolute top-0 left-0 w-full h-[30%] bg-white/10" />
+                        <div className="absolute inset-0 border border-white/20" />
+                      </div>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Custom Background Color Option */}
+                <div className="p-2.5 bg-white border-[3px] border-[#e7d1b1] rounded-[6px] flex items-center gap-3 shadow-[2px_2px_0_rgba(210,180,140,0.1)]">
+                  <div className="flex-1">
+                    <span className="font-black text-xs block text-[#a67c52] leading-tight">
+                      カスタムカラー
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2.5 relative">
+                    <span className="font-black text-[10px] text-[#a67c52] font-mono">
+                      {backgroundColor.toUpperCase()}
+                    </span>
+                    <div className="w-14 h-8 shrink-0 relative">
+                      <div
+                        className="absolute inset-0 rounded-[4px] border-[3px] border-black/20 shadow-inner"
+                        style={{ backgroundColor }}
+                      />
+                      <div className="absolute inset-0 border-[1.5px] border-white/20 rounded-[3px] pointer-events-none" />
+                    </div>
+                    <input
+                      type="color"
+                      value={backgroundColor}
+                      onChange={(e) => setBackgroundColor(e.target.value)}
+                      className="absolute inset-0 w-full h-full cursor-pointer opacity-0"
+                    />
                   </div>
                 </div>
               </div>
