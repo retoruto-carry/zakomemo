@@ -135,10 +135,7 @@ export class CanvasRenderer implements DrawingRenderer {
    * パターンタイルを生成してキャッシュ
    * パターンタイルは静的で、時間による歪みは適用しない
    */
-  private createWigglyPattern(
-    patternId: string,
-    color: string,
-  ): CanvasPattern {
+  private createWigglyPattern(patternId: string, color: string): CanvasPattern {
     // パターンタイルは静的なので、色とパターンIDのみでキャッシュ
     const cacheKey = `${patternId}:${color}`;
     const cached = this.patternCache.get(cacheKey);
