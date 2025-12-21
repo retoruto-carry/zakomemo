@@ -809,7 +809,7 @@ export function WigglyTools({
                     : "bg-[#ff9d5c] text-white hover:bg-[#ff8c00]"
                 }`}
               >
-                背景
+                背景色
               </button>
               <button
                 type="button"
