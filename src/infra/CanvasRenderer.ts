@@ -1,3 +1,4 @@
+import type { JitterConfig } from "../core/jitter";
 import {
   type PatternWiggleConfig,
   wigglePatternTile,
@@ -19,6 +20,7 @@ export class CanvasRenderer implements DrawingRenderer {
   constructor(
     private ctx: CanvasRenderingContext2D,
     private wiggleConfig: PatternWiggleConfig,
+    private jitterConfig?: JitterConfig,
     dpr?: number,
   ) {
     this.dpr =
@@ -81,6 +83,7 @@ export class CanvasRenderer implements DrawingRenderer {
         const pattern = this.createWigglyPattern(
           stroke.brush.patternId,
           stroke.brush.color,
+          _timeMs,
         );
         // パターンを論理座標でPATTERN_SCALE倍に見せる
         // 物理座標ではPATTERN_SCALE * dpr倍にする必要がある
@@ -139,15 +142,27 @@ export class CanvasRenderer implements DrawingRenderer {
 
   /**
    * パターンタイルを生成してキャッシュ
-   * 静的パターン（timeMs=0）を使用し、同じパターンを重ねてもずれない
+   * 時間ベースの歪みと座標ベースのjitterを適用
+   * キャッシュキーにtimeMsを含めることで、時間ごとにパターンを再生成
    */
-  private createWigglyPattern(patternId: string, color: string): CanvasPattern {
-    const cacheKey = `${patternId}:${color}`;
+  private createWigglyPattern(
+    patternId: string,
+    color: string,
+    timeMs: number,
+  ): CanvasPattern {
+    // 時間ごとにパターンを再生成するため、キャッシュキーにtimeMsを含める
+    // ただし、jitterConfigが指定されている場合は、座標ベースのjitterも適用
+    const cacheKey = `${patternId}:${color}:${Math.floor(timeMs / 16)}`; // 約60fpsで更新
     const cached = this.patternCache.get(cacheKey);
     if (cached) return cached;
 
     const def = getPatternDefinition(patternId as BrushPatternId);
-    const tile = wigglePatternTile(def.tile, 0, this.wiggleConfig);
+    const tile = wigglePatternTile(
+      def.tile,
+      timeMs,
+      this.wiggleConfig,
+      this.jitterConfig,
+    );
 
     // 1xサイズでタイルを作成（setTransformでスケール適用するため）
     const offscreen = document.createElement("canvas");

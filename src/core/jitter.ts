@@ -10,7 +10,7 @@ export type JitterOffset = {
   dy: number;
 };
 
-function hashNoise(a: number, b: number, c: number): number {
+export function hashNoise(a: number, b: number, c: number): number {
   // Simple deterministic hash -> 0..1
   const n = Math.sin(a * 12.9898 + b * 78.233 + c * 37.719) * 43758.5453;
   return n - Math.floor(n);

@@ -34,7 +34,8 @@ export function createWigglyEngine(
     frequency: 0.001,
   };
 
-  const renderer = new CanvasRenderer(ctx, wiggleConfig);
+  const jitterConfig = { amplitude: 1.2, frequency: 0.008 };
+  const renderer = new CanvasRenderer(ctx, wiggleConfig, jitterConfig);
   const time = new RealTimeProvider();
   const raf = new BrowserRafScheduler();
   const sound = new HowlerStrokeSound();
