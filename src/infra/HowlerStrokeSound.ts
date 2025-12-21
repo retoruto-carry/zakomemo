@@ -1,9 +1,17 @@
 import { Howl } from "howler";
 import type { StrokeSound, StrokeSoundInfo } from "../engine/ports";
 
+/**
+ * Howler.jsを使用した描画音の実装
+ * 各ツール（ペン、パターン、消しゴム）ごとに独立した音源を管理
+ */
 export class HowlerStrokeSound implements StrokeSound {
   private drawLoops: Map<"pen" | "pattern" | "eraser", Howl> = new Map();
 
+  /**
+   * コンストラクタ
+   * 各ツール用の音源を初期化
+   */
   constructor() {
     // 初期実装ではすべてのツールで同じ音源を使用
     const defaultSound = "/audios/se/select1.mp3";
@@ -35,6 +43,11 @@ export class HowlerStrokeSound implements StrokeSound {
     );
   }
 
+  /**
+   * ストローク開始時に呼ばれる
+   * 他のツールの音をフェードアウトし、現在のツールの音をフェードイン
+   * @param info ストローク情報
+   */
   onStrokeStart(info: StrokeSoundInfo): void {
     const drawLoop = this.drawLoops.get(info.tool);
     if (!drawLoop) return;
@@ -55,10 +68,20 @@ export class HowlerStrokeSound implements StrokeSound {
     this.updateVolume(info);
   }
 
+  /**
+   * ストローク更新時に呼ばれる
+   * 描画速度に応じて音量を更新
+   * @param info ストローク情報
+   */
   onStrokeUpdate(info: StrokeSoundInfo): void {
     this.updateVolume(info);
   }
 
+  /**
+   * ストローク終了時に呼ばれる
+   * 音をフェードアウト
+   * @param _info ストローク情報
+   */
   onStrokeEnd(_info: StrokeSoundInfo): void {
     const drawLoop = this.drawLoops.get(_info.tool);
     if (!drawLoop) return;
@@ -67,6 +90,10 @@ export class HowlerStrokeSound implements StrokeSound {
     drawLoop.fade(current, 0, 180);
   }
 
+  /**
+   * 描画速度に応じて音量を更新する
+   * @param info ストローク情報
+   */
   private updateVolume(info: StrokeSoundInfo) {
     const drawLoop = this.drawLoops.get(info.tool);
     if (!drawLoop) return;

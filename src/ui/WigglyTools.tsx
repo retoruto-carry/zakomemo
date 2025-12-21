@@ -13,7 +13,6 @@ import type { Tool } from "@/engine/WigglyEngine";
 import { uiSoundManager } from "@/infra/uiSounds";
 import { throttle } from "@/lib/throttle";
 import { isMobile } from "@/lib/share";
-import { useMemo } from "react";
 import { AnimatedGif, type AnimatedGifHandle } from "./components/AnimatedGif";
 import { ShareButton } from "./components/ShareButton";
 import {
@@ -49,13 +48,11 @@ function JitterControlSlider({
   onChange,
 }: JitterControlSliderProps) {
   const percentage = max > min ? ((value - min) / (max - min)) * 100 : 0;
-  const playSliderSoundThrottled = useMemo(
-    () =>
-      throttle(() => {
-        uiSoundManager.play("slider-change", { stopPrevious: true });
-      }, 100),
-    [],
-  );
+  const playSliderSoundThrottled = useRef(
+    throttle(() => {
+      uiSoundManager.play("slider-change", { stopPrevious: true });
+    }, 100),
+  ).current;
 
   return (
     <div className="p-3 bg-white border-[3px] border-[#e7d1b1] rounded-[6px] shadow-[2px_2px_0_rgba(210,180,140,0.1)]">
