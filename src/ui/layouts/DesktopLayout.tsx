@@ -20,7 +20,7 @@ export function DesktopLayout({ canvas, tools }: LayoutProps) {
       />
 
       {/* Nintendo DSi - Realistic Body */}
-      <div className="relative flex flex-col items-center gap-0 rounded-[3rem] bg-(--ugo-body-bg) shadow-[0_50px_100px_rgba(0,0,0,0.8),inset_0_-4px_10px_rgba(0,0,0,0.05),0_0_0_1px_rgba(0,0,0,0.1)] w-[700px] shrink-0 transform transition-transform duration-500 overflow-hidden border-b-[6px] border-(--ugo-body-border)">
+      <div className="relative flex flex-col items-center gap-0 rounded-[3rem] bg-(--ugo-body-bg) shadow-[0_50px_100px_rgba(0,0,0,0.8),inset_0_-4px_10px_rgba(0,0,0,0.05),0_0_0_1px_rgba(0,0,0,0.1)] w-[650px] shrink-0 transform transition-transform duration-500 overflow-hidden border-b-[6px] border-(--ugo-body-border)">
         {/* Top Shell */}
         <div className="w-full bg-(--ugo-body-bg) p-6 pb-8 flex flex-col items-center relative">
           {/* Speaker Holes (Left) */}
@@ -96,10 +96,10 @@ export function DesktopLayout({ canvas, tools }: LayoutProps) {
         </div>
 
         {/* Bottom Shell */}
-        <div className="w-full bg-(--ugo-body-bg) p-6 pt-4 flex items-center justify-center gap-5 relative border-t border-white/50">
+        <div className="w-full bg-(--ugo-body-bg) p-4 pt-2 flex items-center justify-center gap-2 relative border-t border-white/50">
           {/* Left: D-pad & Power */}
-          <div className="flex flex-col items-end gap-8">
-            <div className="relative w-24 h-24 flex items-center justify-center">
+          <div className="flex flex-col items-end gap-6 -mt-2">
+            <div className="relative w-[88px] h-[88px] flex items-center justify-center">
               {/* D-pad Socket (Perfectly matching body color, no shadow) */}
               <div className="absolute w-[110%] h-[110%] rounded-full bg-(--ugo-body-bg)" />
 
@@ -149,16 +149,16 @@ export function DesktopLayout({ canvas, tools }: LayoutProps) {
             </div>
 
             {/* Power Button - Decorative */}
-            <div className="flex items-center gap-2 -mt-2 pr-2">
-              <span className="text-[8px] font-black text-[#aaa] tracking-[0.1em]">
+            <div className="flex items-center gap-1.5 -mt-1 pr-1">
+              <span className="text-[7px] font-black text-[#aaa] tracking-[0.1em]">
                 POWER
               </span>
               <div
                 aria-hidden="true"
-                className="w-6 h-6 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_1px_3px_rgba(0,0,0,0.1),inset_0_1px_2px_white] active:scale-90 flex items-center justify-center"
+                className="w-5 h-5 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_1px_3px_rgba(0,0,0,0.1),inset_0_1px_2px_white] active:scale-90 flex items-center justify-center"
               >
-                <div className="w-2.5 h-2.5 rounded-full border border-[#999] relative">
-                  <div className="absolute top-[-2px] left-1/2 -translate-x-1/2 w-0.5 h-1 bg-[#999]" />
+                <div className="w-2 h-2 rounded-full border border-[#999] relative">
+                  <div className="absolute top-[-1.5px] left-1/2 -translate-x-1/2 w-0.5 h-0.5 bg-[#999]" />
                 </div>
               </div>
             </div>
@@ -172,8 +172,8 @@ export function DesktopLayout({ canvas, tools }: LayoutProps) {
           </div>
 
           {/* Right: A/B/X/Y & Start/Select */}
-          <div className="flex flex-col items-start gap-8">
-            <div className="relative w-24 h-24 flex items-center justify-center">
+          <div className="flex flex-col items-start gap-6 -mt-2">
+            <div className="relative w-[88px] h-[88px] flex items-center justify-center">
               {/* Buttons Socket (Perfectly matching body color, no shadow) */}
               <div className="absolute w-[110%] h-[110%] rounded-full bg-(--ugo-body-bg)" />
 
@@ -181,25 +181,25 @@ export function DesktopLayout({ canvas, tools }: LayoutProps) {
               <div className="relative w-full h-full grid grid-cols-3 grid-rows-3 p-1">
                 <div
                   aria-hidden="true"
-                  className="col-start-2 row-start-1 w-9 h-9 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:translate-y-px flex items-center justify-center font-bold text-sm text-(--ugo-button-text)"
+                  className="col-start-2 row-start-1 w-8 h-8 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:translate-y-px flex items-center justify-center font-bold text-xs text-(--ugo-button-text)"
                 >
                   X
                 </div>
                 <div
                   aria-hidden="true"
-                  className="col-start-1 row-start-2 w-9 h-9 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:translate-y-px flex items-center justify-center font-bold text-sm text-(--ugo-button-text)"
+                  className="col-start-1 row-start-2 w-8 h-8 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:translate-y-px flex items-center justify-center font-bold text-xs text-(--ugo-button-text)"
                 >
                   Y
                 </div>
                 <div
                   aria-hidden="true"
-                  className="col-start-3 row-start-2 w-9 h-9 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:translate-y-px flex items-center justify-center font-bold text-sm text-(--ugo-button-text)"
+                  className="col-start-3 row-start-2 w-8 h-8 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:translate-y-px flex items-center justify-center font-bold text-xs text-(--ugo-button-text)"
                 >
                   A
                 </div>
                 <div
                   aria-hidden="true"
-                  className="col-start-2 row-start-3 w-9 h-9 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:translate-y-px flex items-center justify-center font-bold text-sm text-(--ugo-button-text)"
+                  className="col-start-2 row-start-3 w-8 h-8 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:translate-y-px flex items-center justify-center font-bold text-xs text-(--ugo-button-text)"
                 >
                   B
                 </div>
@@ -207,22 +207,22 @@ export function DesktopLayout({ canvas, tools }: LayoutProps) {
             </div>
 
             {/* START/SELECT - Decorative */}
-            <div className="flex flex-col gap-3 pl-1 -mt-2">
-              <div className="flex items-center gap-2">
+            <div className="flex flex-col gap-2 pl-1 -mt-1">
+              <div className="flex items-center gap-1.5">
                 <div
                   aria-hidden="true"
-                  className="w-4 h-4 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:scale-90"
+                  className="w-3.5 h-3.5 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:scale-90"
                 />
-                <span className="text-[7px] font-black text-[#bbb] tracking-tighter">
+                <span className="text-[6px] font-black text-[#bbb] tracking-tighter">
                   START
                 </span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
                 <div
                   aria-hidden="true"
-                  className="w-4 h-4 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:scale-90"
+                  className="w-3.5 h-3.5 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:scale-90"
                 />
-                <span className="text-[7px] font-black text-[#bbb] tracking-tighter">
+                <span className="text-[6px] font-black text-[#bbb] tracking-tighter">
                   SELECT
                 </span>
               </div>
