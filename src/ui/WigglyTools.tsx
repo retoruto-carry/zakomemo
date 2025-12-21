@@ -6,13 +6,13 @@ import React, {
   useRef,
   useState,
 } from "react";
-import type { BrushPatternId } from "@/core/types";
 import type { JitterConfig } from "@/core/jitter";
+import type { BrushPatternId } from "@/core/types";
 import type { EraserVariant } from "@/engine/variants";
 import type { Tool } from "@/engine/WigglyEngine";
 import { uiSoundManager } from "@/infra/uiSounds";
-import { throttle } from "@/lib/throttle";
 import { isMobile } from "@/lib/share";
+import { throttle } from "@/lib/throttle";
 import { AnimatedGif, type AnimatedGifHandle } from "./components/AnimatedGif";
 import { ShareButton } from "./components/ShareButton";
 import {
@@ -262,7 +262,6 @@ export const WigglyTools = React.forwardRef<
     }
   };
 
-
   return (
     <div className="flex flex-col w-full bg-[#fdfbf7] select-none text-(--color-ugo-dark) font-sans p-2 gap-2 relative overflow-hidden">
       {/* Faithful Scanline & Pixel Texture Overlay - Lower Z to stay behind popups */}
@@ -362,11 +361,10 @@ export const WigglyTools = React.forwardRef<
               border-t-[3px] border-l-[3px] border-b-[3px] border-r-[1.5px] 
               rounded-tl-[6px] rounded-tr-none rounded-bl-[6px] rounded-br-none h-full px-2 py-1 flex items-center justify-center gap-1 
               transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#ff6b00]
-              ${
-                !canUndo
-                  ? "bg-[#ffd6b8] border-t-white border-l-[#fffefc] border-b-[#ffb38a] border-r-[#ffb38a] cursor-not-allowed"
-                  : "bg-[#ff6b00] border-[#ff9d5c] border-b-[#b34700] border-r-[#b34700] active:translate-y-0.5 active:brightness-95 cursor-pointer"
-              }
+              ${!canUndo
+              ? "bg-[#ffd6b8] border-t-white border-l-[#fffefc] border-b-[#ffb38a] border-r-[#ffb38a] cursor-not-allowed"
+              : "bg-[#ff6b00] border-[#ff9d5c] border-b-[#b34700] border-r-[#b34700] active:translate-y-0.5 active:brightness-95 cursor-pointer"
+            }
             `}
         >
           <AnimatedGif
@@ -398,11 +396,10 @@ export const WigglyTools = React.forwardRef<
               border-t-[3px] border-l-[1.5px] border-r-[3px] border-b-[3px] 
               rounded-tl-none rounded-tr-none rounded-bl-none rounded-br-none h-full px-2 py-1 flex items-center justify-center 
               transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#ff6b00]
-              ${
-                !canRedo
-                  ? "bg-[#ffd6b8] border-t-white border-l-[#ffb38a] border-r-[#ffb38a] border-b-[#ffb38a] cursor-not-allowed"
-                  : "bg-[#ff6b00] border-t-[#ff9d5c] border-l-[#ff9d5c] border-r-[#b34700] border-b-[#b34700] active:translate-y-0.5 active:brightness-95 cursor-pointer"
-              }
+              ${!canRedo
+              ? "bg-[#ffd6b8] border-t-white border-l-[#ffb38a] border-r-[#ffb38a] border-b-[#ffb38a] cursor-not-allowed"
+              : "bg-[#ff6b00] border-t-[#ff9d5c] border-l-[#ff9d5c] border-r-[#b34700] border-b-[#b34700] active:translate-y-0.5 active:brightness-95 cursor-pointer"
+            }
             `}
         >
           <div className="text-white text-2xl font-black leading-none">⤻</div>
@@ -419,11 +416,10 @@ export const WigglyTools = React.forwardRef<
             onKeyDown={handleButtonKeyDown(() => handleToolClick("pen"))}
             className={`
                   relative flex flex-col items-center justify-center p-1.5 transition-all active:scale-[0.98] w-full h-full rounded-[8px] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2
-                  ${
-                    tool === "pen"
-                      ? "bg-[#fff700] border-[5px] border-black shadow-[6px_6px_0_#000] z-40"
-                      : "bg-[#fffdeb] border-[4px] border-[#d2b48c] shadow-[4px_4px_0_rgba(210,180,140,0.3)]"
-                  }
+                  ${tool === "pen"
+                ? "bg-[#fff700] border-[5px] border-black shadow-[6px_6px_0_#000] z-40"
+                : "bg-[#fffdeb] border-[4px] border-[#d2b48c] shadow-[4px_4px_0_rgba(210,180,140,0.3)]"
+              }
             `}
           >
             <div
@@ -468,11 +464,10 @@ export const WigglyTools = React.forwardRef<
             })}
             className={`
                   relative flex flex-col items-center justify-center p-1.5 transition-all active:scale-[0.98] w-full h-full rounded-[8px] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2
-                  ${
-                    tool === "pattern"
-                      ? "bg-[#fff700] border-[5px] border-black shadow-[6px_6px_0_#000] z-40"
-                      : "bg-[#fffdeb] border-[4px] border-[#d2b48c] shadow-[4px_4px_0_rgba(210,180,140,0.3)]"
-                  }
+                  ${tool === "pattern"
+                ? "bg-[#fff700] border-[5px] border-black shadow-[6px_6px_0_#000] z-40"
+                : "bg-[#fffdeb] border-[4px] border-[#d2b48c] shadow-[4px_4px_0_rgba(210,180,140,0.3)]"
+              }
             `}
           >
             <div
@@ -579,16 +574,17 @@ export const WigglyTools = React.forwardRef<
                       key={p.id}
                       onClick={(e) => {
                         e.stopPropagation();
-                        uiSoundManager.play("pattern-select", { stopPrevious: true });
+                        uiSoundManager.play("pattern-select", {
+                          stopPrevious: true,
+                        });
                         setTool("pattern");
                         setPatternId(p.id as BrushPatternId);
                         setActivePopup("none");
                       }}
-                      className={`relative border-[2px] w-9 h-9 overflow-hidden bg-white active:scale-95 transition-all rounded-[2px] cursor-pointer ${
-                        patternId === p.id
+                      className={`relative border-[2px] w-9 h-9 overflow-hidden bg-white active:scale-95 transition-all rounded-[2px] cursor-pointer ${patternId === p.id
                           ? "border-black bg-[#ffff00]/30"
                           : "border-[#e7d1b1]"
-                      }`}
+                        }`}
                     >
                       <div
                         className="absolute inset-0"
@@ -619,11 +615,10 @@ export const WigglyTools = React.forwardRef<
             })}
             className={`
                   relative flex flex-col items-center justify-center p-1.5 transition-all active:scale-[0.98] w-full h-full rounded-[8px] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2
-                  ${
-                    tool === "eraser"
-                      ? "bg-[#fff700] border-[5px] border-black shadow-[6px_6px_0_#000] z-40"
-                      : "bg-[#fffdeb] border-[4px] border-[#d2b48c] shadow-[4px_4px_0_rgba(210,180,140,0.3)]"
-                  }
+                  ${tool === "eraser"
+                ? "bg-[#fff700] border-[5px] border-black shadow-[6px_6px_0_#000] z-40"
+                : "bg-[#fffdeb] border-[4px] border-[#d2b48c] shadow-[4px_4px_0_rgba(210,180,140,0.3)]"
+              }
             `}
           >
             <div
@@ -663,18 +658,16 @@ export const WigglyTools = React.forwardRef<
               className={`absolute bottom-1.5 right-1.5 w-9 h-9 border-[3px] rounded-[3px] flex items-center justify-center transition-all hover:scale-105 active:scale-95 z-[90] focus:outline-none focus-visible:ring-2 focus-visible:ring-black cursor-pointer ${tool === "eraser" ? "border-black bg-white" : "border-[#d2b48c] bg-white"}`}
             >
               <div
-                className={`${
-                  eraserVariant === "eraserCircle"
+                className={`${eraserVariant === "eraserCircle"
                     ? "rounded-full"
                     : eraserVariant === "eraserSquare"
                       ? "rounded-none"
                       : "rounded-none w-6 h-1.5"
-                } ${
-                  eraserVariant === "eraserCircle" ||
-                  eraserVariant === "eraserSquare"
+                  } ${eraserVariant === "eraserCircle" ||
+                    eraserVariant === "eraserSquare"
                     ? "w-5 h-5"
                     : ""
-                } bg-white border-[1.5px] ${tool === "eraser" ? "border-black" : "border-[#d2b48c]"} shadow-inner`}
+                  } bg-white border-[1.5px] ${tool === "eraser" ? "border-black" : "border-[#d2b48c]"} shadow-inner`}
               />
             </button>
 
@@ -695,34 +688,32 @@ export const WigglyTools = React.forwardRef<
                       key={v.id}
                       onClick={(e) => {
                         e.stopPropagation();
-                        uiSoundManager.play("eraser-variant-select", { stopPrevious: true });
+                        uiSoundManager.play("eraser-variant-select", {
+                          stopPrevious: true,
+                        });
                         setTool("eraser");
                         setEraserVariant(v.id);
                         setActivePopup("none");
                       }}
                       className={`relative border-[2px] w-9 h-9 flex items-center justify-center transition-all rounded-[2px] cursor-pointer
-                                    ${
-                                      eraserVariant === v.id
-                                        ? "border-black bg-slate-100"
-                                        : "border-[#e7d1b1] bg-white"
-                                    }`}
+                                    ${eraserVariant === v.id
+                          ? "border-black bg-slate-100"
+                          : "border-[#e7d1b1] bg-white"
+                        }`}
                     >
                       <div
-                        className={`${
-                          v.id === "eraserCircle"
+                        className={`${v.id === "eraserCircle"
                             ? "rounded-full"
                             : v.id === "eraserSquare"
                               ? "rounded-none"
                               : "rounded-none w-7 h-2"
-                        } bg-white border-[1.5px] ${
-                          eraserVariant === v.id
+                          } bg-white border-[1.5px] ${eraserVariant === v.id
                             ? "border-black"
                             : "border-[#a67c52]"
-                        } ${
-                          v.id === "eraserCircle" || v.id === "eraserSquare"
+                          } ${v.id === "eraserCircle" || v.id === "eraserSquare"
                             ? "w-5 h-5"
                             : ""
-                        }`}
+                          }`}
                       />
                     </button>
                   );
@@ -774,11 +765,10 @@ export const WigglyTools = React.forwardRef<
                 style={{ backgroundColor: varName }}
                 className={`
                               h-8 w-8 rounded-[2px] transition-transform shadow-sm shrink-0 relative cursor-pointer
-                              ${
-                                color === varName
-                                  ? "border-black border-[3px] scale-110 z-10 shadow-[0_0_0_2px_rgba(255,255,255,0.8)]"
-                                  : "border-white border-[2px] hover:scale-105"
-                              }
+                              ${color === varName
+                    ? "border-black border-[3px] scale-110 z-10 shadow-[0_0_0_2px_rgba(255,255,255,0.8)]"
+                    : "border-white border-[2px] hover:scale-105"
+                  }
                           `}
               >
                 {color === varName && (
@@ -903,7 +893,9 @@ export const WigglyTools = React.forwardRef<
                     href={exportUrl || "#"}
                     download="wiggly-ugomemo.gif"
                     onClick={() => {
-                      uiSoundManager.play("export-save", { stopPrevious: true });
+                      uiSoundManager.play("export-save", {
+                        stopPrevious: true,
+                      });
                     }}
                     className="flex-1 bg-white text-[#ff6b00] border-t-[3px] border-l-[3px] border-t-white border-l-white border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-[6px] py-2 flex items-center justify-center active:translate-y-0.5 transition-all font-black text-lg shadow-lg cursor-pointer"
                   >
@@ -945,11 +937,10 @@ export const WigglyTools = React.forwardRef<
                   uiSoundManager.play("settings-tab", { stopPrevious: true });
                   setSettingsTab("background");
                 }}
-                className={`px-3 py-1.5 rounded-t-[8px] font-black text-sm transition-all cursor-pointer ${
-                  settingsTab === "background"
+                className={`px-3 py-1.5 rounded-t-[8px] font-black text-sm transition-all cursor-pointer ${settingsTab === "background"
                     ? "bg-[#fdfbf7] text-[#ff6b00] translate-y-px border-t-[3px] border-l-[3px] border-r-[3px] border-[#e7d1b1]"
                     : "bg-[#ff9d5c] text-white hover:bg-[#ff8c00]"
-                }`}
+                  }`}
               >
                 背景色
               </button>
@@ -959,11 +950,10 @@ export const WigglyTools = React.forwardRef<
                   uiSoundManager.play("settings-tab", { stopPrevious: true });
                   setSettingsTab("palette");
                 }}
-                className={`px-3 py-1.5 rounded-t-[8px] font-black text-sm transition-all cursor-pointer ${
-                  settingsTab === "palette"
+                className={`px-3 py-1.5 rounded-t-[8px] font-black text-sm transition-all cursor-pointer ${settingsTab === "palette"
                     ? "bg-[#fdfbf7] text-[#ff6b00] translate-y-px border-t-[3px] border-l-[3px] border-r-[3px] border-[#e7d1b1]"
                     : "bg-[#ff9d5c] text-white hover:bg-[#ff8c00]"
-                }`}
+                  }`}
               >
                 パレット
               </button>
@@ -973,11 +963,10 @@ export const WigglyTools = React.forwardRef<
                   uiSoundManager.play("settings-tab", { stopPrevious: true });
                   setSettingsTab("body");
                 }}
-                className={`px-3 py-1.5 rounded-t-[8px] font-black text-sm transition-all cursor-pointer ${
-                  settingsTab === "body"
+                className={`px-3 py-1.5 rounded-t-[8px] font-black text-sm transition-all cursor-pointer ${settingsTab === "body"
                     ? "bg-[#fdfbf7] text-[#ff6b00] translate-y-px border-t-[3px] border-l-[3px] border-r-[3px] border-[#e7d1b1]"
                     : "bg-[#ff9d5c] text-white hover:bg-[#ff8c00]"
-                }`}
+                  }`}
               >
                 本体色
               </button>
@@ -987,11 +976,10 @@ export const WigglyTools = React.forwardRef<
                   uiSoundManager.play("settings-tab", { stopPrevious: true });
                   setSettingsTab("jitter");
                 }}
-                className={`px-3 py-1.5 rounded-t-[8px] font-black text-sm transition-all cursor-pointer ${
-                  settingsTab === "jitter"
+                className={`px-3 py-1.5 rounded-t-[8px] font-black text-sm transition-all cursor-pointer ${settingsTab === "jitter"
                     ? "bg-[#fdfbf7] text-[#ff6b00] translate-y-px border-t-[3px] border-l-[3px] border-r-[3px] border-[#e7d1b1]"
                     : "bg-[#ff9d5c] text-white hover:bg-[#ff8c00]"
-                }`}
+                  }`}
               >
                 ぶるぶる
               </button>
@@ -1020,14 +1008,15 @@ export const WigglyTools = React.forwardRef<
                       type="button"
                       key={p.name}
                       onClick={() => {
-                        uiSoundManager.play("palette-preset-select", { stopPrevious: true });
+                        uiSoundManager.play("palette-preset-select", {
+                          stopPrevious: true,
+                        });
                         setPalette(p.colors);
                       }}
-                      className={`flex flex-col p-2 rounded-[4px] border-[3px] transition-all relative overflow-hidden cursor-pointer ${
-                        JSON.stringify(palette) === JSON.stringify(p.colors)
+                      className={`flex flex-col p-2 rounded-[4px] border-[3px] transition-all relative overflow-hidden cursor-pointer ${JSON.stringify(palette) === JSON.stringify(p.colors)
                           ? "border-black bg-[#ffff00] shadow-[4px_4px_0_rgba(0,0,0,0.1)]"
                           : "border-[#e7d1b1] bg-white hover:border-[#ff9d5c] shadow-[2px_2px_0_rgba(210,180,140,0.1)]"
-                      }`}
+                        }`}
                     >
                       <span
                         className={`font-black text-xs mb-1.5 text-left ${JSON.stringify(palette) === JSON.stringify(p.colors) ? "text-black" : "text-[#a67c52]"}`}
@@ -1072,7 +1061,9 @@ export const WigglyTools = React.forwardRef<
                           type="color"
                           value={c}
                           onChange={(e) => {
-                            uiSoundManager.play("custom-palette-color", { stopPrevious: true });
+                            uiSoundManager.play("custom-palette-color", {
+                              stopPrevious: true,
+                            });
                             const newPalette = [...palette];
                             newPalette[idx] = e.target.value;
                             setPalette(newPalette);
@@ -1092,14 +1083,15 @@ export const WigglyTools = React.forwardRef<
                       type="button"
                       key={color}
                       onClick={() => {
-                        uiSoundManager.play("color-select", { stopPrevious: true });
+                        uiSoundManager.play("color-select", {
+                          stopPrevious: true,
+                        });
                         setBackgroundColor(color);
                       }}
-                      className={`aspect-square rounded-[4px] border-[3px] transition-all relative flex items-center justify-center p-1 cursor-pointer ${
-                        backgroundColor === color
+                      className={`aspect-square rounded-[4px] border-[3px] transition-all relative flex items-center justify-center p-1 cursor-pointer ${backgroundColor === color
                           ? "border-black bg-[#ffff00] shadow-[3px_3px_0_rgba(0,0,0,0.15)] z-10"
                           : "border-[#e7d1b1] bg-white hover:border-[#ff9d5c] shadow-[1px_1px_0_rgba(210,180,140,0.1)]"
-                      }`}
+                        }`}
                     >
                       <div
                         className="w-full h-full relative border-[2.5px] border-black/10 rounded-[3px] shadow-inner overflow-hidden"
@@ -1177,14 +1169,15 @@ export const WigglyTools = React.forwardRef<
                       type="button"
                       key={b.name}
                       onClick={() => {
-                        uiSoundManager.play("color-select", { stopPrevious: true });
+                        uiSoundManager.play("color-select", {
+                          stopPrevious: true,
+                        });
                         setBodyColor(b.body);
                       }}
-                      className={`aspect-square rounded-[4px] border-[3px] transition-all relative flex items-center justify-center p-1 cursor-pointer ${
-                        JSON.stringify(bodyColor) === JSON.stringify(b.body)
+                      className={`aspect-square rounded-[4px] border-[3px] transition-all relative flex items-center justify-center p-1 cursor-pointer ${JSON.stringify(bodyColor) === JSON.stringify(b.body)
                           ? "border-black bg-[#ffff00] shadow-[3px_3px_0_rgba(0,0,0,0.15)] z-10"
                           : "border-[#e7d1b1] bg-white hover:border-[#ff9d5c] shadow-[1px_1px_0_rgba(210,180,140,0.1)]"
-                      }`}
+                        }`}
                     >
                       <div
                         className="w-full h-full relative border-[2.5px] border-black/10 rounded-[3px] shadow-inner overflow-hidden"
@@ -1219,7 +1212,9 @@ export const WigglyTools = React.forwardRef<
                       type="color"
                       value={bodyColor.bg}
                       onChange={(e) => {
-                        uiSoundManager.play("color-select", { stopPrevious: true });
+                        uiSoundManager.play("color-select", {
+                          stopPrevious: true,
+                        });
                         const base = e.target.value;
                         setBodyColor(generateBodyColorFromBase(base));
                       }}
