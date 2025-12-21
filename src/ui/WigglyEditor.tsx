@@ -118,11 +118,7 @@ export function WigglyEditor() {
       if (!ctx) throw new Error("2D context not available");
 
       // GIF出力用にdpr=1を明示（オフスクリーンキャンバスにはDPRスケーリングなし）
-      const renderer = new CanvasRenderer(
-        ctx,
-        { amplitude: 1.2, frequency: 0.008 },
-        1,
-      );
+      const renderer = new CanvasRenderer(ctx, 1);
 
       const gifEncoder = new GifEncGifEncoder();
       const blob = await exportDrawingAsGif({

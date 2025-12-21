@@ -1,4 +1,3 @@
-import type { JitterConfig } from "../core/jitter";
 import { getPatternDefinition } from "../core/patterns";
 import type { BrushPatternId, BrushVariant, Stroke } from "../core/types";
 import type { DrawingRenderer } from "../engine/ports";
@@ -12,7 +11,6 @@ export class CanvasRenderer implements DrawingRenderer {
 
   constructor(
     private ctx: CanvasRenderingContext2D,
-    private jitterConfig?: JitterConfig,
     dpr?: number,
   ) {
     this.dpr =
@@ -32,6 +30,12 @@ export class CanvasRenderer implements DrawingRenderer {
     ctx.restore();
   }
 
+  /**
+   * ストロークを描画
+   * @param _elapsedTimeMs エンジン開始からの経過時間（ミリ秒）
+   *   DrawingRendererインターフェースの要件として必要だが、現在の実装では未使用
+   *   （パターンタイルは静的で時間による歪みを適用しないため）
+   */
   renderStroke(
     stroke: Stroke,
     jitteredPoints: { x: number; y: number }[],
@@ -75,7 +79,6 @@ export class CanvasRenderer implements DrawingRenderer {
         const pattern = this.createWigglyPattern(
           stroke.brush.patternId,
           stroke.brush.color,
-          _elapsedTimeMs,
         );
         ctx.strokeStyle = pattern;
       }
@@ -135,7 +138,6 @@ export class CanvasRenderer implements DrawingRenderer {
   private createWigglyPattern(
     patternId: string,
     color: string,
-    _elapsedTimeMs: number,
   ): CanvasPattern {
     // パターンタイルは静的なので、色とパターンIDのみでキャッシュ
     const cacheKey = `${patternId}:${color}`;
