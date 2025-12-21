@@ -48,11 +48,9 @@ export function useTouchUndoRedo({
     if (!enabled) return;
 
     const handleTouchStart = (ev: TouchEvent) => {
-      // 既存のタッチをクリア（新しいタッチセッション）
-      // 注: 複数の指が画面にある状態で1本離して新しい指を追加するケースでは
-      // 古いデータが残る可能性があるが、現実的な使用ケースではないため
-      // この実装で問題ないと判断
-      if (ev.touches.length === 1) {
+      // すべてのタッチが終了した後に新しいタッチが開始された場合のみクリア
+      // これにより、2本指や3本指で同時にタップした場合でも、すべてのタッチ情報が保持される
+      if (ev.touches.length === ev.changedTouches.length) {
         touchesRef.current.clear();
       }
 

@@ -220,7 +220,10 @@ export function WigglyCanvas({
       }
     };
 
-    const handlePointerUp = (ev: PointerEvent) => {
+    const cleanupPointer = (
+      ev: PointerEvent,
+      isCancel: boolean = false,
+    ): void => {
       const info = activePointersRef.current.get(ev.pointerId);
 
       if (info) {
@@ -231,38 +234,29 @@ export function WigglyCanvas({
       if (activePointersRef.current.size === 0) {
         isMultiTouchRef.current = false;
         primaryPointerIdRef.current = null;
+        if (isCancel) {
+          setEraserPos(null);
+        }
       }
 
       if (ev.pointerId === primaryPointerIdRef.current) {
         engine.pointerUp();
         primaryPointerIdRef.current = null;
-        if (toolRef.current !== "eraser" || ev.pointerType === "touch") {
+        if (isCancel || toolRef.current !== "eraser" || ev.pointerType === "touch") {
           setEraserPos(null);
         }
       }
       canvas.releasePointerCapture(ev.pointerId);
     };
 
+    const handlePointerUp = (ev: PointerEvent) => {
+      cleanupPointer(ev, false);
+    };
+
     const handlePointerCancel = (ev: PointerEvent) => {
       // ポインターがキャンセルされた場合（例: 共有ダイアログが開いた後など）
       // すべての状態をリセット
-      const info = activePointersRef.current.get(ev.pointerId);
-      if (info) {
-        activePointersRef.current.delete(ev.pointerId);
-      }
-
-      if (activePointersRef.current.size === 0) {
-        isMultiTouchRef.current = false;
-        primaryPointerIdRef.current = null;
-        setEraserPos(null);
-      }
-
-      if (ev.pointerId === primaryPointerIdRef.current) {
-        engine.pointerUp();
-        primaryPointerIdRef.current = null;
-        setEraserPos(null);
-      }
-      canvas.releasePointerCapture(ev.pointerId);
+      cleanupPointer(ev, true);
     };
 
     // Use window for move/up to catch drags leaving the canvas (though capture handles most)
