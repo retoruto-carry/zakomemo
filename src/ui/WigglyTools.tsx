@@ -148,7 +148,7 @@ export function WigglyTools({
   };
 
   return (
-    <div className="flex flex-col w-full h-full bg-[#fdfbf7] select-none text-(--color-ugo-dark) font-sans p-3 gap-2.5 relative overflow-hidden">
+    <div className="flex flex-col w-full h-full bg-[#fdfbf7] select-none text-(--color-ugo-dark) font-sans p-2 gap-2 relative overflow-hidden">
       {/* Faithful Scanline & Pixel Texture Overlay - Lower Z to stay behind popups */}
       <div
         className="absolute inset-0 pointer-events-none z-0 opacity-15"
@@ -173,71 +173,71 @@ export function WigglyTools({
         }}
       />
 
-      {/* 1. TOP ROW: Action Buttons (Faithful Orange Beveled Style) */}
-      <div className="flex items-center h-14 shrink-0 relative z-10 gap-2">
-        {/* Left: Clear All (消す) */}
+      {/* 1. TOP ROW: Action Buttons (Faithful Orange Beveled Style) - Positioned at corners */}
+      <div className="h-14 shrink-0 relative z-10">
+        {/* Spacer for layout */}
+      </div>
+
+      {/* Left: Clear All (消す) - Top Left Corner */}
+      {/* biome-ignore lint/a11y/useSemanticElements: Custom styled button */}
+      <div
+        onClick={onClear}
+        onKeyDown={handleButtonKeyDown(onClear)}
+        role="button"
+        tabIndex={0}
+        className="absolute top-0 left-0 bg-[#ff6b00] border-t-[3px] border-l-[3px] border-t-[#ff9d5c] border-l-[#ff9d5c] border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-tl-none rounded-tr-[6px] rounded-bl-none rounded-br-[6px] h-14 px-2 flex items-center justify-center gap-1 active:translate-y-0.5 active:brightness-95 transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#ff6b00] z-10"
+      >
+        <div className="relative w-7 h-7 flex items-center justify-center shrink-0">
+          {[0, 1, 2, 3, 4, 5, 6, 7].map((angle) => (
+            <div
+              key={`sparkle-${angle}`}
+              className="absolute w-[3px] h-[3px] bg-white rounded-full"
+              style={{
+                transform: `rotate(${angle * 45}deg) translateY(-7px)`,
+              }}
+            />
+          ))}
+        </div>
+        <span className="text-white font-black text-base leading-none tracking-tighter whitespace-nowrap">
+          消す
+        </span>
+      </div>
+
+      {/* Center-Left: Settings */}
+      {/* biome-ignore lint/a11y/useSemanticElements: Custom styled button */}
+      <div
+        onClick={() => setActivePopup("settings")}
+        onKeyDown={handleButtonKeyDown(() => setActivePopup("settings"))}
+        role="button"
+        tabIndex={0}
+        className="absolute top-0 left-[calc(94px+8px)] bg-[#ff6b00] border-t-[3px] border-l-[3px] border-t-[#ff9d5c] border-l-[#ff9d5c] border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-[6px] h-14 px-2 flex items-center justify-center gap-1 active:translate-y-0.5 group cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#ff6b00] z-10"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          aria-hidden="true"
+          className="w-6 h-6 text-white drop-shadow-sm transition-transform group-active:rotate-45"
+        >
+          <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.21.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" />
+        </svg>
+        <span className="text-white font-black text-sm leading-none tracking-tighter whitespace-nowrap">
+          設定
+        </span>
+      </div>
+
+      {/* Right-aligned group: Undo & Redo - Top Right Corner */}
+      <div className="absolute top-0 right-0 flex h-14 items-stretch z-10">
+        {/* Undo (やり直し) */}
         {/* biome-ignore lint/a11y/useSemanticElements: Custom styled button */}
         <div
-          onClick={onClear}
-          onKeyDown={handleButtonKeyDown(onClear)}
+          onClick={canUndo ? handleUndo : undefined}
+          onKeyDown={canUndo ? handleButtonKeyDown(handleUndo) : undefined}
           role="button"
-          tabIndex={0}
-          className="bg-[#ff6b00] border-t-[3px] border-l-[3px] border-t-[#ff9d5c] border-l-[#ff9d5c] border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-[6px] h-full px-3 flex items-center justify-center gap-1.5 active:translate-y-0.5 active:brightness-95 transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#ff6b00]"
-        >
-          <div className="relative w-7 h-7 flex items-center justify-center shrink-0">
-            {[0, 1, 2, 3, 4, 5, 6, 7].map((angle) => (
-              <div
-                key={`sparkle-${angle}`}
-                className="absolute w-[3px] h-[3px] bg-white rounded-full"
-                style={{
-                  transform: `rotate(${angle * 45}deg) translateY(-7px)`,
-                }}
-              />
-            ))}
-          </div>
-          <span className="text-white font-black text-base leading-none tracking-tighter whitespace-nowrap">
-            消す
-          </span>
-        </div>
-
-        {/* Center-Left: Settings */}
-        {/* biome-ignore lint/a11y/useSemanticElements: Custom styled button */}
-        <div
-          onClick={() => setActivePopup("settings")}
-          onKeyDown={handleButtonKeyDown(() => setActivePopup("settings"))}
-          role="button"
-          tabIndex={0}
-          className="bg-[#ff6b00] border-t-[3px] border-l-[3px] border-t-[#ff9d5c] border-l-[#ff9d5c] border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-[6px] h-full px-3 flex items-center justify-center gap-1.5 active:translate-y-0.5 group cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#ff6b00]"
-        >
-          <svg
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            aria-hidden="true"
-            className="w-6 h-6 text-white drop-shadow-sm transition-transform group-active:rotate-45"
-          >
-            <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.21.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" />
-          </svg>
-          <span className="text-white font-black text-sm leading-none tracking-tighter whitespace-nowrap">
-            設定
-          </span>
-        </div>
-
-        {/* Spacer to push Undo/Redo to the right */}
-        <div className="flex-1" />
-
-        {/* Right-aligned group: Undo & Redo */}
-        <div className="flex h-full items-stretch">
-          {/* Undo (やり直し) */}
-          {/* biome-ignore lint/a11y/useSemanticElements: Custom styled button */}
-          <div
-            onClick={canUndo ? handleUndo : undefined}
-            onKeyDown={canUndo ? handleButtonKeyDown(handleUndo) : undefined}
-            role="button"
-            tabIndex={canUndo ? 0 : -1}
-            aria-disabled={!canUndo}
-            className={`
+          tabIndex={canUndo ? 0 : -1}
+          aria-disabled={!canUndo}
+          className={`
               border-t-[3px] border-l-[3px] border-b-[3px] border-r-[1.5px] 
-              rounded-l-[6px] h-full px-4 flex items-center justify-center gap-1.5 
+              rounded-tl-[6px] rounded-tr-none rounded-bl-[6px] rounded-br-none h-full px-2 flex items-center justify-center gap-1 
               transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#ff6b00]
               ${
                 !canUndo
@@ -245,30 +245,30 @@ export function WigglyTools({
                   : "bg-[#ff6b00] border-[#ff9d5c] border-b-[#b34700] border-r-[#b34700] active:translate-y-0.5 active:brightness-95"
               }
             `}
-          >
-            <AnimatedGif
-              ref={undoGifRef}
-              staticSrc="/images/frog2.png"
-              animatedSrc="/images/frog2_1loop.gif"
-              alt=""
-              className={`w-9 h-9 ${!canUndo ? "opacity-50" : ""}`}
-            />
-            <span className="text-white font-black text-lg leading-none tracking-tighter whitespace-nowrap">
-              やり直し
-            </span>
-          </div>
+        >
+          <AnimatedGif
+            ref={undoGifRef}
+            staticSrc="/images/frog2.png"
+            animatedSrc="/images/frog2_1loop.gif"
+            alt=""
+            className={`w-9 h-9 ${!canUndo ? "opacity-50" : ""}`}
+          />
+          <span className="text-white font-black text-lg leading-none tracking-tighter whitespace-nowrap">
+            やり直し
+          </span>
+        </div>
 
-          {/* Redo (進む) */}
-          {/* biome-ignore lint/a11y/useSemanticElements: Custom styled button */}
-          <div
-            onClick={onRedo}
-            onKeyDown={handleButtonKeyDown(onRedo)}
-            role="button"
-            tabIndex={canRedo ? 0 : -1}
-            aria-disabled={!canRedo}
-            className={`
+        {/* Redo (進む) */}
+        {/* biome-ignore lint/a11y/useSemanticElements: Custom styled button */}
+        <div
+          onClick={onRedo}
+          onKeyDown={handleButtonKeyDown(onRedo)}
+          role="button"
+          tabIndex={canRedo ? 0 : -1}
+          aria-disabled={!canRedo}
+          className={`
               border-t-[3px] border-l-[1.5px] border-r-[3px] border-b-[3px] 
-              rounded-r-[6px] h-full px-3 flex items-center justify-center 
+              rounded-tl-none rounded-tr-none rounded-bl-none rounded-br-none h-full px-2 flex items-center justify-center 
               transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#ff6b00]
               ${
                 !canRedo
@@ -276,14 +276,13 @@ export function WigglyTools({
                   : "bg-[#ff6b00] border-t-[#ff9d5c] border-l-[#ff9d5c] border-r-[#b34700] border-b-[#b34700] active:translate-y-0.5 active:brightness-95"
               }
             `}
-          >
-            <div className="text-white text-2xl font-black leading-none">⤻</div>
-          </div>
+        >
+          <div className="text-white text-2xl font-black leading-none">⤻</div>
         </div>
       </div>
 
       {/* 2. MIDDLE ROW: Main Tools (Faithful Dot Style) */}
-      <div className="flex-1 flex flex-col justify-center min-h-0 relative z-20 py-1">
+      <div className="h-24 shrink-0 flex flex-col justify-center relative z-20 py-0.5">
         <div className="grid grid-cols-3 gap-2.5 items-center">
           {/* Pen */}
           {/* biome-ignore lint/a11y/useSemanticElements: Custom styled button with nested indicator */}
@@ -293,7 +292,7 @@ export function WigglyTools({
             role="button"
             tabIndex={0}
             className={`
-                  relative flex flex-col items-center justify-center p-1.5 transition-all active:scale-[0.98] aspect-square w-full rounded-[8px] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2
+                  relative flex flex-col items-center justify-center p-1.5 transition-all active:scale-[0.98] w-full h-full rounded-[8px] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2
                   ${
                     tool === "pen"
                       ? "bg-[#fff700] border-[5px] border-black shadow-[6px_6px_0_#000] z-30"
@@ -339,7 +338,7 @@ export function WigglyTools({
             role="button"
             tabIndex={0}
             className={`
-                  relative flex flex-col items-center justify-center p-1.5 transition-all active:scale-[0.98] aspect-square w-full rounded-[8px] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2
+                  relative flex flex-col items-center justify-center p-1.5 transition-all active:scale-[0.98] w-full h-full rounded-[8px] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2
                   ${
                     tool === "pattern"
                       ? "bg-[#fff700] border-[5px] border-black shadow-[6px_6px_0_#000] z-30"
@@ -481,7 +480,7 @@ export function WigglyTools({
             role="button"
             tabIndex={0}
             className={`
-                  relative flex flex-col items-center justify-center p-1.5 transition-all active:scale-[0.98] aspect-square w-full rounded-[8px] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2
+                  relative flex flex-col items-center justify-center p-1.5 transition-all active:scale-[0.98] w-full h-full rounded-[8px] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2
                   ${
                     tool === "eraser"
                       ? "bg-[#fff700] border-[5px] border-black shadow-[6px_6px_0_#000] z-30"
@@ -585,12 +584,14 @@ export function WigglyTools({
         </div>
       </div>
 
-      {/* 3. BOTTOM ROW: Slider | Colors | Save */}
-      <div className="h-14 shrink-0 flex items-center gap-2 relative z-10">
-        {/* Slider */}
-        <div className="w-[28%] h-full bg-[#fffdeb] border-[3px] border-[#d2b48c] p-2 flex flex-col justify-center relative overflow-hidden shadow-[3px_3px_0_rgba(210,180,140,0.2)] rounded-[4px]">
+      {/* 2.5. SLIDER ROW */}
+      <div className="h-8 shrink-0 flex items-center gap-2 relative z-10">
+        <span className="text-sm font-black text-[#a67c52] leading-none whitespace-nowrap">
+          太さ
+        </span>
+        <div className="flex-1 flex items-center relative">
           <div
-            className="absolute top-1/2 -translate-y-1/2 left-2 right-2 h-6 bg-[#fdfdfd]"
+            className="absolute top-1/2 -translate-y-1/2 left-0 right-0 h-3 bg-[#fdfdfd]"
             style={{ clipPath: "polygon(0 80%, 100% 20%, 100% 100%, 0% 100%)" }}
           />
           <input
@@ -599,10 +600,13 @@ export function WigglyTools({
             max={MAX_PEN_WIDTH}
             value={width}
             onChange={(e) => setWidth(Number(e.target.value))}
-            className="w-full h-8 relative z-10 accent-[#ff6b00] cursor-pointer mix-blend-multiply"
+            className="w-full h-4 relative z-10 accent-[#ff6b00] cursor-pointer mix-blend-multiply"
           />
         </div>
+      </div>
 
+      {/* 3. BOTTOM ROW: Colors */}
+      <div className="h-14 shrink-0 flex items-center gap-2 relative z-10">
         {/* Colors */}
         <div className="flex-1 h-full bg-[#fffdeb] border-[3px] border-[#d2b48c] p-1 flex items-center justify-center gap-1 shadow-[3px_3px_0_rgba(210,180,140,0.2)] rounded-[4px]">
           {palette.map((_c, idx) => {
@@ -629,14 +633,15 @@ export function WigglyTools({
             );
           })}
         </div>
+      </div>
 
-        {/* Save Button (Faithful Orange Style) */}
-        <div className="h-full">
-          {exportUrl ? (
+      {/* Save Button (Faithful Orange Style) - Bottom Right Corner */}
+      <div className="absolute bottom-0 right-0 h-14 z-10">
+        {exportUrl ? (
             <a
               href={exportUrl}
               download="wiggly-ugomemo.gif"
-              className="bg-[#ff6b00] border-t-[3px] border-l-[3px] border-t-[#ff9d5c] border-l-[#ff9d5c] border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-[6px] h-full px-3 flex flex-col items-center justify-center active:translate-y-0.5 transition-all text-white font-black"
+              className="bg-[#ff6b00] border-t-[3px] border-l-[3px] border-t-[#ff9d5c] border-l-[#ff9d5c] border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-tl-[6px] rounded-tr-[6px] rounded-bl-none rounded-br-none h-full px-3 flex flex-col items-center justify-center active:translate-y-0.5 transition-all text-white font-black"
             >
               <div className="flex items-baseline mb-0.5">
                 <span className="text-sm leading-none">GIF</span>
@@ -651,7 +656,7 @@ export function WigglyTools({
               onKeyDown={handleButtonKeyDown(onExport)}
               role="button"
               tabIndex={isExporting ? -1 : 0}
-              className={`bg-[#ff6b00] border-t-[3px] border-l-[3px] border-t-[#ff9d5c] border-l-[#ff9d5c] border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-[6px] h-full px-3 flex flex-col items-center justify-center active:translate-y-0.5 transition-all text-white font-black cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#ff6b00] ${isExporting ? "opacity-50 pointer-events-none" : ""}`}
+              className={`bg-[#ff6b00] border-t-[3px] border-l-[3px] border-t-[#ff9d5c] border-l-[#ff9d5c] border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-tl-[6px] rounded-tr-[6px] rounded-bl-none rounded-br-none h-full px-3 flex flex-col items-center justify-center active:translate-y-0.5 transition-all text-white font-black cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#ff6b00] ${isExporting ? "opacity-50 pointer-events-none" : ""}`}
             >
               {isExporting ? (
                 <span className="text-lg">...</span>
@@ -666,7 +671,6 @@ export function WigglyTools({
               )}
             </div>
           )}
-        </div>
       </div>
 
       {/* EXPORT OVERLAY */}
