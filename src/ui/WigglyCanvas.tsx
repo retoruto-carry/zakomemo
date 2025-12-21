@@ -242,7 +242,11 @@ export function WigglyCanvas({
       if (ev.pointerId === primaryPointerIdRef.current) {
         engine.pointerUp();
         primaryPointerIdRef.current = null;
-        if (isCancel || toolRef.current !== "eraser" || ev.pointerType === "touch") {
+        if (
+          isCancel ||
+          toolRef.current !== "eraser" ||
+          ev.pointerType === "touch"
+        ) {
           setEraserPos(null);
         }
       }
