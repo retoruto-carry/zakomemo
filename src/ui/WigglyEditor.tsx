@@ -8,6 +8,7 @@ import type { EraserVariant, PenVariant } from "@/engine/variants";
 import type { Tool, WigglyEngine } from "@/engine/WigglyEngine";
 import { CanvasRenderer } from "@/infra/CanvasRenderer";
 import { GifEncGifEncoder } from "@/infra/GifEncGifEncoder";
+import { initializeUISounds, uiSoundManager } from "@/infra/uiSounds";
 import { useTouchUndoRedo } from "@/ui/hooks/useTouchUndoRedo";
 import { DesktopLayout } from "./layouts/DesktopLayout";
 import { MobileLayout } from "./layouts/MobileLayout";
@@ -37,6 +38,11 @@ const DEFAULT_PEN_WIDTH = 16;
 export function WigglyEditor() {
   const engineRef = useRef<WigglyEngine | null>(null);
   const toolsRef = useRef<WigglyToolsHandle | null>(null);
+
+  // 音源の初期化（初回のみ）
+  useEffect(() => {
+    initializeUISounds();
+  }, []);
 
   // State
   const [tool, setTool] = useState<Tool>("pen");
@@ -173,15 +179,18 @@ export function WigglyEditor() {
 
   // DS Button Handlers
   const handleDSButtonA = useCallback(() => {
+    uiSoundManager.play("ds-button-a", { stopPrevious: true });
     engineRef.current?.redo();
   }, []);
 
   const handleDSButtonB = useCallback(() => {
+    uiSoundManager.play("ds-button-b", { stopPrevious: true });
     toolsRef.current?.playUndoAnimation();
     engineRef.current?.undo();
   }, []);
 
   const handleDSButtonX = useCallback(() => {
+    uiSoundManager.play("ds-button-x", { stopPrevious: true });
     const toolCycle: Tool[] = ["pen", "pattern", "eraser"];
     const currentIndex = toolCycle.indexOf(tool);
     const nextIndex = (currentIndex + 1) % toolCycle.length;
@@ -189,6 +198,7 @@ export function WigglyEditor() {
   }, [tool]);
 
   const handleDSButtonY = useCallback(() => {
+    uiSoundManager.play("ds-button-y", { stopPrevious: true });
     let currentIndex = -1;
     if (color.startsWith("var(--palette-")) {
       const parsedIndex = parseInt(
@@ -205,6 +215,7 @@ export function WigglyEditor() {
   }, [color, palette]);
 
   const handleDSButtonUp = useCallback(() => {
+    uiSoundManager.play("ds-button-up", { stopPrevious: true });
     const currentIndex = BACKGROUND_COLOR_PRESETS.indexOf(
       backgroundColor as (typeof BACKGROUND_COLOR_PRESETS)[number],
     );
@@ -217,6 +228,7 @@ export function WigglyEditor() {
   }, [backgroundColor]);
 
   const handleDSButtonDown = useCallback(() => {
+    uiSoundManager.play("ds-button-down", { stopPrevious: true });
     const currentIndex = BACKGROUND_COLOR_PRESETS.indexOf(
       backgroundColor as (typeof BACKGROUND_COLOR_PRESETS)[number],
     );
@@ -234,6 +246,7 @@ export function WigglyEditor() {
   }, [backgroundColor]);
 
   const handleDSButtonRight = useCallback(() => {
+    uiSoundManager.play("ds-button-right", { stopPrevious: true });
     const currentPaletteIndex = PALETTE_PRESETS.findIndex(
       (p) => JSON.stringify(p.colors) === JSON.stringify(palette),
     );
@@ -246,6 +259,7 @@ export function WigglyEditor() {
   }, [palette]);
 
   const handleDSButtonLeft = useCallback(() => {
+    uiSoundManager.play("ds-button-left", { stopPrevious: true });
     const currentPaletteIndex = PALETTE_PRESETS.findIndex(
       (p) => JSON.stringify(p.colors) === JSON.stringify(palette),
     );
@@ -261,6 +275,7 @@ export function WigglyEditor() {
   }, [palette]);
 
   const handleDSButtonStart = useCallback(() => {
+    uiSoundManager.play("ds-button-start", { stopPrevious: true });
     const currentBodyIndex = BODY_PRESETS.findIndex(
       (b) => JSON.stringify(b.body) === JSON.stringify(bodyColor),
     );
@@ -273,6 +288,7 @@ export function WigglyEditor() {
   }, [bodyColor]);
 
   const handleDSButtonSelect = useCallback(() => {
+    uiSoundManager.play("ds-button-select", { stopPrevious: true });
     const currentBodyIndex = BODY_PRESETS.findIndex(
       (b) => JSON.stringify(b.body) === JSON.stringify(bodyColor),
     );

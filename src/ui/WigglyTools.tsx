@@ -10,7 +10,10 @@ import type { BrushPatternId } from "@/core/types";
 import type { JitterConfig } from "@/core/jitter";
 import type { EraserVariant } from "@/engine/variants";
 import type { Tool } from "@/engine/WigglyEngine";
+import { uiSoundManager } from "@/infra/uiSounds";
+import { throttle } from "@/lib/throttle";
 import { isMobile } from "@/lib/share";
+import { useMemo } from "react";
 import { AnimatedGif, type AnimatedGifHandle } from "./components/AnimatedGif";
 import { ShareButton } from "./components/ShareButton";
 import {
@@ -46,6 +49,14 @@ function JitterControlSlider({
   onChange,
 }: JitterControlSliderProps) {
   const percentage = max > min ? ((value - min) / (max - min)) * 100 : 0;
+  const playSliderSoundThrottled = useMemo(
+    () =>
+      throttle(() => {
+        uiSoundManager.play("slider-change", { stopPrevious: true });
+      }, 100),
+    [],
+  );
+
   return (
     <div className="p-3 bg-white border-[3px] border-[#e7d1b1] rounded-[6px] shadow-[2px_2px_0_rgba(210,180,140,0.1)]">
       <div className="flex items-center justify-between mb-2">
@@ -60,7 +71,11 @@ function JitterControlSlider({
         max={max}
         step={step}
         value={value}
-        onChange={(e) => onChange(parseFloat(e.target.value))}
+        onChange={(e) => {
+          const newValue = parseFloat(e.target.value);
+          onChange(newValue);
+          playSliderSoundThrottled();
+        }}
         className="w-full h-2 bg-[#fffdeb] rounded-lg appearance-none cursor-pointer accent-[#ff6b00]"
         style={{
           background: `linear-gradient(to right, #ff6b00 0%, #ff6b00 ${percentage}%, #fffdeb ${percentage}%, #fffdeb 100%)`,
@@ -193,6 +208,11 @@ export const WigglyTools = React.forwardRef<
     "palette" | "body" | "background" | "jitter"
   >("palette");
   const undoGifRef = useRef<AnimatedGifHandle>(null);
+  const playWidthSliderSound = useRef(
+    throttle(() => {
+      uiSoundManager.play("slider-change", { stopPrevious: true });
+    }, 100),
+  ).current;
 
   useImperativeHandle(ref, () => ({
     playUndoAnimation: () => {
@@ -201,6 +221,7 @@ export const WigglyTools = React.forwardRef<
   }));
 
   const handleUndo = () => {
+    uiSoundManager.play("button-undo", { stopPrevious: true });
     undoGifRef.current?.playAnimation();
     onUndo();
   };
@@ -211,18 +232,39 @@ export const WigglyTools = React.forwardRef<
     if (tool === t) {
       // Toggle popup for pattern/eraser, close for others
       if (t === "pattern") {
+        if (activePopup === "pattern") {
+          uiSoundManager.play("popup-close", { stopPrevious: true });
+        } else {
+          uiSoundManager.play("button-tool", { stopPrevious: true });
+        }
         setActivePopup(activePopup === "pattern" ? "none" : "pattern");
       } else if (t === "eraser") {
+        if (activePopup === "eraser") {
+          uiSoundManager.play("popup-close", { stopPrevious: true });
+        } else {
+          uiSoundManager.play("button-tool", { stopPrevious: true });
+        }
         setActivePopup(activePopup === "eraser" ? "none" : "eraser");
       } else {
+        if (activePopup !== "none") {
+          uiSoundManager.play("popup-close", { stopPrevious: true });
+        } else {
+          uiSoundManager.play("button-tool", { stopPrevious: true });
+        }
         setActivePopup("none");
       }
     } else {
       // Switching to a new tool - close any open popup, don't open new one
+      if (activePopup !== "none") {
+        uiSoundManager.play("popup-close", { stopPrevious: true });
+      } else {
+        uiSoundManager.play("button-tool", { stopPrevious: true });
+      }
       setTool(t);
       setActivePopup("none");
     }
   };
+
 
   return (
     <div className="flex flex-col w-full bg-[#fdfbf7] select-none text-(--color-ugo-dark) font-sans p-2 gap-2 relative overflow-hidden">
@@ -258,8 +300,14 @@ export const WigglyTools = React.forwardRef<
       {/* Left: Clear All (消す) - Top Left Corner */}
       {/* biome-ignore lint/a11y/useSemanticElements: Custom styled button */}
       <div
-        onClick={onClear}
-        onKeyDown={handleButtonKeyDown(onClear)}
+        onClick={() => {
+          uiSoundManager.play("button-clear", { stopPrevious: true });
+          onClear();
+        }}
+        onKeyDown={handleButtonKeyDown(() => {
+          uiSoundManager.play("button-clear", { stopPrevious: true });
+          onClear();
+        })}
         role="button"
         tabIndex={0}
         className="absolute top-0 left-0 bg-[#ff6b00] border-t-[3px] border-l-[3px] border-t-[#ff9d5c] border-l-[#ff9d5c] border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-tl-none rounded-tr-[6px] rounded-bl-none rounded-br-[6px] h-12 px-2 py-1 flex items-center justify-center gap-1 active:translate-y-0.5 active:brightness-95 transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#ff6b00] z-10"
@@ -283,8 +331,14 @@ export const WigglyTools = React.forwardRef<
       {/* Center-Left: Settings */}
       {/* biome-ignore lint/a11y/useSemanticElements: Custom styled button */}
       <div
-        onClick={() => setActivePopup("settings")}
-        onKeyDown={handleButtonKeyDown(() => setActivePopup("settings"))}
+        onClick={() => {
+          uiSoundManager.play("button-settings", { stopPrevious: true });
+          setActivePopup("settings");
+        }}
+        onKeyDown={handleButtonKeyDown(() => {
+          uiSoundManager.play("button-settings", { stopPrevious: true });
+          setActivePopup("settings");
+        })}
         role="button"
         tabIndex={0}
         className="absolute top-0 left-[calc(94px+2px)] bg-[#ff6b00] border-t-[3px] border-l-[3px] border-t-[#ff9d5c] border-l-[#ff9d5c] border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-[6px] h-12 px-2 py-1 flex items-center justify-center gap-1 active:translate-y-0.5 group cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#ff6b00] z-10"
@@ -338,8 +392,14 @@ export const WigglyTools = React.forwardRef<
         {/* Redo (進む) */}
         {/* biome-ignore lint/a11y/useSemanticElements: Custom styled button */}
         <div
-          onClick={onRedo}
-          onKeyDown={handleButtonKeyDown(onRedo)}
+          onClick={() => {
+            uiSoundManager.play("button-redo", { stopPrevious: true });
+            onRedo();
+          }}
+          onKeyDown={handleButtonKeyDown(() => {
+            uiSoundManager.play("button-redo", { stopPrevious: true });
+            onRedo();
+          })}
           role="button"
           tabIndex={canRedo ? 0 : -1}
           aria-disabled={!canRedo}
@@ -410,12 +470,12 @@ export const WigglyTools = React.forwardRef<
           {/* biome-ignore lint/a11y/useSemanticElements: Custom styled button with nested indicator */}
           <div
             onClick={() => {
-              setTool("pattern");
-              setActivePopup("none");
+              uiSoundManager.play("button-tool", { stopPrevious: true });
+              handleToolClick("pattern");
             }}
             onKeyDown={handleButtonKeyDown(() => {
-              setTool("pattern");
-              setActivePopup("none");
+              uiSoundManager.play("button-tool", { stopPrevious: true });
+              handleToolClick("pattern");
             })}
             role="button"
             tabIndex={0}
@@ -454,6 +514,11 @@ export const WigglyTools = React.forwardRef<
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
+                if (activePopup === "pattern") {
+                  uiSoundManager.play("popup-close", { stopPrevious: true });
+                } else {
+                  uiSoundManager.play("button-tool", { stopPrevious: true });
+                }
                 setTool("pattern");
                 setActivePopup(activePopup === "pattern" ? "none" : "pattern");
               }}
@@ -527,6 +592,7 @@ export const WigglyTools = React.forwardRef<
                       key={p.id}
                       onClick={(e) => {
                         e.stopPropagation();
+                        uiSoundManager.play("pattern-select", { stopPrevious: true });
                         setTool("pattern");
                         setPatternId(p.id as BrushPatternId);
                         setActivePopup("none");
@@ -557,12 +623,12 @@ export const WigglyTools = React.forwardRef<
           {/* biome-ignore lint/a11y/useSemanticElements: Custom styled button with nested indicator */}
           <div
             onClick={() => {
-              setTool("eraser");
-              setActivePopup("none");
+              uiSoundManager.play("button-tool", { stopPrevious: true });
+              handleToolClick("eraser");
             }}
             onKeyDown={handleButtonKeyDown(() => {
-              setTool("eraser");
-              setActivePopup("none");
+              uiSoundManager.play("button-tool", { stopPrevious: true });
+              handleToolClick("eraser");
             })}
             role="button"
             tabIndex={0}
@@ -601,6 +667,11 @@ export const WigglyTools = React.forwardRef<
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
+                if (activePopup === "eraser") {
+                  uiSoundManager.play("popup-close", { stopPrevious: true });
+                } else {
+                  uiSoundManager.play("button-tool", { stopPrevious: true });
+                }
                 setTool("eraser");
                 setActivePopup(activePopup === "eraser" ? "none" : "eraser");
               }}
@@ -639,6 +710,7 @@ export const WigglyTools = React.forwardRef<
                       key={v.id}
                       onClick={(e) => {
                         e.stopPropagation();
+                        uiSoundManager.play("eraser-variant-select", { stopPrevious: true });
                         setTool("eraser");
                         setEraserVariant(v.id);
                         setActivePopup("none");
@@ -691,7 +763,10 @@ export const WigglyTools = React.forwardRef<
             min={MIN_PEN_WIDTH}
             max={MAX_PEN_WIDTH}
             value={width}
-            onChange={(e) => setWidth(Number(e.target.value))}
+            onChange={(e) => {
+              setWidth(Number(e.target.value));
+              playWidthSliderSound();
+            }}
             className="w-full h-4 relative z-10 accent-[#ff6b00] cursor-pointer mix-blend-multiply"
           />
         </div>
@@ -707,7 +782,10 @@ export const WigglyTools = React.forwardRef<
               <button
                 type="button"
                 key={varName}
-                onClick={() => setColor(varName)}
+                onClick={() => {
+                  uiSoundManager.play("color-select", { stopPrevious: true });
+                  setColor(varName);
+                }}
                 style={{ backgroundColor: varName }}
                 className={`
                               h-8 w-8 rounded-[2px] transition-transform shadow-sm shrink-0 relative
@@ -733,6 +811,9 @@ export const WigglyTools = React.forwardRef<
           <a
             href={exportUrl}
             download="wiggly-ugomemo.gif"
+            onClick={() => {
+              uiSoundManager.play("export-save", { stopPrevious: true });
+            }}
             className="bg-[#ff6b00] border-t-[3px] border-l-[3px] border-t-[#ff9d5c] border-l-[#ff9d5c] border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-tl-[6px] rounded-tr-[6px] rounded-bl-none rounded-br-none h-full px-2 py-1 flex items-center justify-center active:translate-y-0.5 transition-all text-white font-black"
           >
             <span className="text-lg leading-none">GIFを保存</span>
@@ -740,8 +821,14 @@ export const WigglyTools = React.forwardRef<
         ) : (
           /* biome-ignore lint/a11y/useSemanticElements: Custom styled button */
           <div
-            onClick={onExport}
-            onKeyDown={handleButtonKeyDown(onExport)}
+            onClick={() => {
+              uiSoundManager.play("button-export", { stopPrevious: true });
+              onExport();
+            }}
+            onKeyDown={handleButtonKeyDown(() => {
+              uiSoundManager.play("button-export", { stopPrevious: true });
+              onExport();
+            })}
             role="button"
             tabIndex={isExporting ? -1 : 0}
             className={`bg-[#ff6b00] border-t-[3px] border-l-[3px] border-t-[#ff9d5c] border-l-[#ff9d5c] border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-tl-[6px] rounded-tr-[6px] rounded-bl-none rounded-br-none h-full px-2 py-1 flex items-center justify-center active:translate-y-0.5 transition-all text-white font-black cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#ff6b00] ${isExporting ? "opacity-50 pointer-events-none" : ""}`}
@@ -762,7 +849,10 @@ export const WigglyTools = React.forwardRef<
           {!isExporting && (
             <button
               type="button"
-              onClick={onCloseExport}
+              onClick={() => {
+                uiSoundManager.play("export-close", { stopPrevious: true });
+                onCloseExport();
+              }}
               className="absolute top-2 right-2 z-20 bg-white border-[3px] border-black rounded-[6px] w-9 h-9 flex items-center justify-center text-xl font-black text-black active:translate-y-0.5 shadow-md"
             >
               ×
@@ -792,7 +882,10 @@ export const WigglyTools = React.forwardRef<
                 <span className="text-xs opacity-80">{exportError}</span>
                 <button
                   type="button"
-                  onClick={onCloseExport}
+                  onClick={() => {
+                    uiSoundManager.play("export-close", { stopPrevious: true });
+                    onCloseExport();
+                  }}
                   className="bg-white text-[#ff6b00] border-[3px] border-black rounded-[6px] px-5 py-1.5 font-black text-base active:translate-y-0.5 transition-all"
                 >
                   閉じる
@@ -825,6 +918,9 @@ export const WigglyTools = React.forwardRef<
                   <a
                     href={exportUrl || "#"}
                     download="wiggly-ugomemo.gif"
+                    onClick={() => {
+                      uiSoundManager.play("export-save", { stopPrevious: true });
+                    }}
                     className="flex-1 bg-white text-[#ff6b00] border-t-[3px] border-l-[3px] border-t-white border-l-white border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-[6px] py-2 flex items-center justify-center active:translate-y-0.5 transition-all font-black text-lg shadow-lg"
                   >
                     保存する
@@ -861,7 +957,10 @@ export const WigglyTools = React.forwardRef<
             <div className="flex-1 flex h-full items-end gap-1 pt-1.5">
               <button
                 type="button"
-                onClick={() => setSettingsTab("background")}
+                onClick={() => {
+                  uiSoundManager.play("settings-tab", { stopPrevious: true });
+                  setSettingsTab("background");
+                }}
                 className={`px-3 py-1.5 rounded-t-[8px] font-black text-sm transition-all ${
                   settingsTab === "background"
                     ? "bg-[#fdfbf7] text-[#ff6b00] translate-y-px border-t-[3px] border-l-[3px] border-r-[3px] border-[#e7d1b1]"
@@ -872,7 +971,10 @@ export const WigglyTools = React.forwardRef<
               </button>
               <button
                 type="button"
-                onClick={() => setSettingsTab("palette")}
+                onClick={() => {
+                  uiSoundManager.play("settings-tab", { stopPrevious: true });
+                  setSettingsTab("palette");
+                }}
                 className={`px-3 py-1.5 rounded-t-[8px] font-black text-sm transition-all ${
                   settingsTab === "palette"
                     ? "bg-[#fdfbf7] text-[#ff6b00] translate-y-px border-t-[3px] border-l-[3px] border-r-[3px] border-[#e7d1b1]"
@@ -883,7 +985,10 @@ export const WigglyTools = React.forwardRef<
               </button>
               <button
                 type="button"
-                onClick={() => setSettingsTab("body")}
+                onClick={() => {
+                  uiSoundManager.play("settings-tab", { stopPrevious: true });
+                  setSettingsTab("body");
+                }}
                 className={`px-3 py-1.5 rounded-t-[8px] font-black text-sm transition-all ${
                   settingsTab === "body"
                     ? "bg-[#fdfbf7] text-[#ff6b00] translate-y-px border-t-[3px] border-l-[3px] border-r-[3px] border-[#e7d1b1]"
@@ -894,7 +999,10 @@ export const WigglyTools = React.forwardRef<
               </button>
               <button
                 type="button"
-                onClick={() => setSettingsTab("jitter")}
+                onClick={() => {
+                  uiSoundManager.play("settings-tab", { stopPrevious: true });
+                  setSettingsTab("jitter");
+                }}
                 className={`px-3 py-1.5 rounded-t-[8px] font-black text-sm transition-all ${
                   settingsTab === "jitter"
                     ? "bg-[#fdfbf7] text-[#ff6b00] translate-y-px border-t-[3px] border-l-[3px] border-r-[3px] border-[#e7d1b1]"
@@ -907,7 +1015,10 @@ export const WigglyTools = React.forwardRef<
 
             <button
               type="button"
-              onClick={() => setActivePopup("none")}
+              onClick={() => {
+                uiSoundManager.play("settings-close", { stopPrevious: true });
+                setActivePopup("none");
+              }}
               className="bg-white border-[3px] border-black rounded-[6px] w-10 h-10 flex items-center justify-center text-2xl font-black active:translate-y-0.5"
             >
               ×
@@ -924,7 +1035,10 @@ export const WigglyTools = React.forwardRef<
                     <button
                       type="button"
                       key={p.name}
-                      onClick={() => setPalette(p.colors)}
+                      onClick={() => {
+                        uiSoundManager.play("palette-preset-select", { stopPrevious: true });
+                        setPalette(p.colors);
+                      }}
                       className={`flex flex-col p-2 rounded-[4px] border-[3px] transition-all relative overflow-hidden ${
                         JSON.stringify(palette) === JSON.stringify(p.colors)
                           ? "border-black bg-[#ffff00] shadow-[4px_4px_0_rgba(0,0,0,0.1)]"
@@ -974,6 +1088,7 @@ export const WigglyTools = React.forwardRef<
                           type="color"
                           value={c}
                           onChange={(e) => {
+                            uiSoundManager.play("custom-palette-color", { stopPrevious: true });
                             const newPalette = [...palette];
                             newPalette[idx] = e.target.value;
                             setPalette(newPalette);
@@ -992,7 +1107,10 @@ export const WigglyTools = React.forwardRef<
                     <button
                       type="button"
                       key={color}
-                      onClick={() => setBackgroundColor(color)}
+                      onClick={() => {
+                        uiSoundManager.play("color-select", { stopPrevious: true });
+                        setBackgroundColor(color);
+                      }}
                       className={`aspect-square rounded-[4px] border-[3px] transition-all relative flex items-center justify-center p-1 ${
                         backgroundColor === color
                           ? "border-black bg-[#ffff00] shadow-[3px_3px_0_rgba(0,0,0,0.15)] z-10"
@@ -1031,7 +1149,12 @@ export const WigglyTools = React.forwardRef<
                     <input
                       type="color"
                       value={backgroundColor}
-                      onChange={(e) => setBackgroundColor(e.target.value)}
+                      onChange={(e) => {
+                        uiSoundManager.play("color-select", {
+                          stopPrevious: true,
+                        });
+                        setBackgroundColor(e.target.value);
+                      }}
                       className="absolute inset-0 w-full h-full cursor-pointer opacity-0"
                     />
                   </div>
@@ -1069,7 +1192,10 @@ export const WigglyTools = React.forwardRef<
                     <button
                       type="button"
                       key={b.name}
-                      onClick={() => setBodyColor(b.body)}
+                      onClick={() => {
+                        uiSoundManager.play("color-select", { stopPrevious: true });
+                        setBodyColor(b.body);
+                      }}
                       className={`aspect-square rounded-[4px] border-[3px] transition-all relative flex items-center justify-center p-1 ${
                         JSON.stringify(bodyColor) === JSON.stringify(b.body)
                           ? "border-black bg-[#ffff00] shadow-[3px_3px_0_rgba(0,0,0,0.15)] z-10"
@@ -1109,6 +1235,7 @@ export const WigglyTools = React.forwardRef<
                       type="color"
                       value={bodyColor.bg}
                       onChange={(e) => {
+                        uiSoundManager.play("color-select", { stopPrevious: true });
                         const base = e.target.value;
                         setBodyColor(generateBodyColorFromBase(base));
                       }}
