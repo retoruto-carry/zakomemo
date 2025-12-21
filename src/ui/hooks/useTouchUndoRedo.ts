@@ -108,15 +108,15 @@ export function useTouchUndoRedo({
 
         // ピンチインアウトの判定
         const maxDistance = Math.max(
-          ...activeTouches.map((t) => t.totalDistance)
+          ...activeTouches.map((t) => t.totalDistance),
         );
         const minDuration = Math.min(
-          ...activeTouches.map((t) => now - t.startTime)
+          ...activeTouches.map((t) => now - t.startTime),
         );
         const maxDistanceFromStart = Math.max(
           ...activeTouches.map((t) =>
-            Math.hypot(t.lastX - t.startX, t.lastY - t.startY)
-          )
+            Math.hypot(t.lastX - t.startX, t.lastY - t.startY),
+          ),
         );
 
         const isPinch =
