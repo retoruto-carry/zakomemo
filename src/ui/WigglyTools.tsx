@@ -1019,9 +1019,9 @@ export const WigglyTools = React.forwardRef<
           {/* Content Area with Custom Scrollbar */}
           <div className="flex-1 overflow-y-auto ugo-scrollbar p-3 relative z-10">
             {settingsTab === "palette" ? (
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-2.5">
                 {/* Palette Presets */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div className="flex flex-col gap-2.5">
                   {PALETTE_PRESETS.map((p) => (
                     <button
                       type="button"
@@ -1032,22 +1032,22 @@ export const WigglyTools = React.forwardRef<
                         });
                         setPalette(p.colors);
                       }}
-                      className={`flex flex-col p-2 rounded-[4px] border-[3px] transition-all relative overflow-hidden cursor-pointer ${
+                      className={`flex items-center justify-between p-2.5 rounded-[4px] border-[3px] transition-all relative overflow-hidden cursor-pointer ${
                         JSON.stringify(palette) === JSON.stringify(p.colors)
                           ? "border-black bg-[#ffff00] shadow-[4px_4px_0_rgba(0,0,0,0.1)]"
                           : "border-[#e7d1b1] bg-white hover:border-[#ff9d5c] shadow-[2px_2px_0_rgba(210,180,140,0.1)]"
                       }`}
                     >
                       <span
-                        className={`font-black text-xs mb-1.5 text-left ${JSON.stringify(palette) === JSON.stringify(p.colors) ? "text-black" : "text-[#a67c52]"}`}
+                        className={`font-black text-sm ${JSON.stringify(palette) === JSON.stringify(p.colors) ? "text-black" : "text-[#a67c52]"}`}
                       >
                         {p.name}
                       </span>
-                      <div className="flex gap-2">
+                      <div className="flex gap-1.5">
                         {p.colors.map((c) => (
                           <div
                             key={`preview-${c}`}
-                            className="w-8 h-8 border-[2px] border-black/20 rounded-[3px] shrink-0"
+                            className="w-6 h-6 border-[2px] border-black/20 rounded-[3px] shrink-0"
                             style={{ backgroundColor: c }}
                           />
                         ))}
