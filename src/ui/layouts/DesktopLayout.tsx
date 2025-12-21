@@ -2,12 +2,26 @@
 
 import type { ReactNode } from "react";
 
+interface DSButtonHandlers {
+  onA: () => void;
+  onB: () => void;
+  onX: () => void;
+  onY: () => void;
+  onUp: () => void;
+  onDown: () => void;
+  onLeft: () => void;
+  onRight: () => void;
+  onStart: () => void;
+  onSelect: () => void;
+}
+
 interface LayoutProps {
   canvas: ReactNode;
   tools: ReactNode;
+  dsButtons?: DSButtonHandlers;
 }
 
-export function DesktopLayout({ canvas, tools }: LayoutProps) {
+export function DesktopLayout({ canvas, tools, dsButtons }: LayoutProps) {
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-[#1a1a1a] p-4 overflow-hidden font-sans text-slate-900">
       {/* Table Surface */}
@@ -128,22 +142,30 @@ export function DesktopLayout({ canvas, tools }: LayoutProps) {
                   <div className="absolute right-2 w-0 h-0 border-t-4 border-b-4 border-l-6 border-t-transparent border-b-transparent border-l-[#999] opacity-60" />
                 </div>
 
-                {/* Clickable regions for D-pad - Purely decorative */}
-                <div
-                  className="absolute top-0 left-[34%] w-[32%] h-[34%] active:bg-black/5 rounded-t-sm"
-                  aria-hidden="true"
+                {/* Clickable regions for D-pad */}
+                <button
+                  type="button"
+                  onClick={dsButtons?.onUp}
+                  className="absolute top-0 left-[34%] w-[32%] h-[34%] active:bg-black/5 rounded-t-sm cursor-pointer hover:bg-black/5 transition-colors z-10"
+                  aria-label="上"
                 />
-                <div
-                  className="absolute bottom-0 left-[34%] w-[32%] h-[34%] active:bg-black/5 rounded-b-sm"
-                  aria-hidden="true"
+                <button
+                  type="button"
+                  onClick={dsButtons?.onDown}
+                  className="absolute bottom-0 left-[34%] w-[32%] h-[34%] active:bg-black/5 rounded-b-sm cursor-pointer hover:bg-black/5 transition-colors z-10"
+                  aria-label="下"
                 />
-                <div
-                  className="absolute top-[34%] left-0 w-[34%] h-[32%] active:bg-black/5 rounded-l-sm"
-                  aria-hidden="true"
+                <button
+                  type="button"
+                  onClick={dsButtons?.onLeft}
+                  className="absolute top-[34%] left-0 w-[34%] h-[32%] active:bg-black/5 rounded-l-sm cursor-pointer hover:bg-black/5 transition-colors z-10"
+                  aria-label="左"
                 />
-                <div
-                  className="absolute top-[34%] right-0 w-[34%] h-[32%] active:bg-black/5 rounded-r-sm"
-                  aria-hidden="true"
+                <button
+                  type="button"
+                  onClick={dsButtons?.onRight}
+                  className="absolute top-[34%] right-0 w-[34%] h-[32%] active:bg-black/5 rounded-r-sm cursor-pointer hover:bg-black/5 transition-colors z-10"
+                  aria-label="右"
                 />
               </div>
             </div>
@@ -177,50 +199,62 @@ export function DesktopLayout({ canvas, tools }: LayoutProps) {
               {/* Buttons Socket (Perfectly matching body color, no shadow) */}
               <div className="absolute w-[110%] h-[110%] rounded-full bg-(--ugo-body-bg)" />
 
-              {/* Diamond Layout Buttons - Decorative */}
+              {/* Diamond Layout Buttons */}
               <div className="relative w-full h-full grid grid-cols-3 grid-rows-3 p-1">
-                <div
-                  aria-hidden="true"
-                  className="col-start-2 row-start-1 w-8 h-8 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:translate-y-px flex items-center justify-center font-bold text-xs text-(--ugo-button-text)"
+                <button
+                  type="button"
+                  onClick={dsButtons?.onX}
+                  className="col-start-2 row-start-1 w-8 h-8 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:translate-y-px flex items-center justify-center font-bold text-xs text-(--ugo-button-text) cursor-pointer hover:brightness-110 transition-all"
+                  aria-label="X"
                 >
                   X
-                </div>
-                <div
-                  aria-hidden="true"
-                  className="col-start-1 row-start-2 w-8 h-8 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:translate-y-px flex items-center justify-center font-bold text-xs text-(--ugo-button-text)"
+                </button>
+                <button
+                  type="button"
+                  onClick={dsButtons?.onY}
+                  className="col-start-1 row-start-2 w-8 h-8 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:translate-y-px flex items-center justify-center font-bold text-xs text-(--ugo-button-text) cursor-pointer hover:brightness-110 transition-all"
+                  aria-label="Y"
                 >
                   Y
-                </div>
-                <div
-                  aria-hidden="true"
-                  className="col-start-3 row-start-2 w-8 h-8 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:translate-y-px flex items-center justify-center font-bold text-xs text-(--ugo-button-text)"
+                </button>
+                <button
+                  type="button"
+                  onClick={dsButtons?.onA}
+                  className="col-start-3 row-start-2 w-8 h-8 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:translate-y-px flex items-center justify-center font-bold text-xs text-(--ugo-button-text) cursor-pointer hover:brightness-110 transition-all"
+                  aria-label="A"
                 >
                   A
-                </div>
-                <div
-                  aria-hidden="true"
-                  className="col-start-2 row-start-3 w-8 h-8 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:translate-y-px flex items-center justify-center font-bold text-xs text-(--ugo-button-text)"
+                </button>
+                <button
+                  type="button"
+                  onClick={dsButtons?.onB}
+                  className="col-start-2 row-start-3 w-8 h-8 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:translate-y-px flex items-center justify-center font-bold text-xs text-(--ugo-button-text) cursor-pointer hover:brightness-110 transition-all"
+                  aria-label="B"
                 >
                   B
-                </div>
+                </button>
               </div>
             </div>
 
-            {/* START/SELECT - Decorative */}
+            {/* START/SELECT */}
             <div className="flex flex-col gap-2 pl-1 -mt-1">
               <div className="flex items-center gap-1.5">
-                <div
-                  aria-hidden="true"
-                  className="w-3.5 h-3.5 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:scale-90"
+                <button
+                  type="button"
+                  onClick={dsButtons?.onStart}
+                  className="w-3.5 h-3.5 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:scale-90 cursor-pointer hover:brightness-110 transition-all"
+                  aria-label="START"
                 />
                 <span className="text-[6px] font-black text-[#bbb] tracking-tighter">
                   START
                 </span>
               </div>
               <div className="flex items-center gap-1.5">
-                <div
-                  aria-hidden="true"
-                  className="w-3.5 h-3.5 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:scale-90"
+                <button
+                  type="button"
+                  onClick={dsButtons?.onSelect}
+                  className="w-3.5 h-3.5 rounded-full bg-(--ugo-button-bg) border border-(--ugo-button-border) shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:scale-90 cursor-pointer hover:brightness-110 transition-all"
+                  aria-label="SELECT"
                 />
                 <span className="text-[6px] font-black text-[#bbb] tracking-tighter">
                   SELECT
