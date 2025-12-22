@@ -251,32 +251,38 @@ export function WigglyEditor() {
 
   const handleDSButtonRight = useCallback(() => {
     uiSoundManager.play("ds-button-right", { stopPrevious: true });
-    const currentPaletteIndex = PALETTE_PRESETS.findIndex(
-      (p) => JSON.stringify(p.colors) === JSON.stringify(palette),
-    );
+    const currentPaletteIndex = selectedPaletteName
+      ? PALETTE_PRESETS.findIndex((p) => p.name === selectedPaletteName)
+      : -1;
     if (currentPaletteIndex === -1) {
       setPalette(PALETTE_PRESETS[0].colors);
+      setSelectedPaletteName(PALETTE_PRESETS[0].name);
     } else {
       const nextIndex = (currentPaletteIndex + 1) % PALETTE_PRESETS.length;
       setPalette(PALETTE_PRESETS[nextIndex].colors);
+      setSelectedPaletteName(PALETTE_PRESETS[nextIndex].name);
     }
-  }, [palette]);
+  }, [selectedPaletteName]);
 
   const handleDSButtonLeft = useCallback(() => {
     uiSoundManager.play("ds-button-left", { stopPrevious: true });
-    const currentPaletteIndex = PALETTE_PRESETS.findIndex(
-      (p) => JSON.stringify(p.colors) === JSON.stringify(palette),
-    );
+    const currentPaletteIndex = selectedPaletteName
+      ? PALETTE_PRESETS.findIndex((p) => p.name === selectedPaletteName)
+      : -1;
     if (currentPaletteIndex === -1) {
       setPalette(PALETTE_PRESETS[PALETTE_PRESETS.length - 1].colors);
+      setSelectedPaletteName(
+        PALETTE_PRESETS[PALETTE_PRESETS.length - 1].name,
+      );
     } else {
       const prevIndex =
         currentPaletteIndex === 0
           ? PALETTE_PRESETS.length - 1
           : currentPaletteIndex - 1;
       setPalette(PALETTE_PRESETS[prevIndex].colors);
+      setSelectedPaletteName(PALETTE_PRESETS[prevIndex].name);
     }
-  }, [palette]);
+  }, [selectedPaletteName]);
 
   const handleDSButtonStart = useCallback(() => {
     uiSoundManager.play("ds-button-start", { stopPrevious: true });
