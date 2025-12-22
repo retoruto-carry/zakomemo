@@ -7,6 +7,7 @@ import {
   undoHistory,
 } from "../core/history";
 import type { JitterConfig } from "../core/jitter";
+import { snapBrushWidth, snapToPixel } from "../core/pixelArt";
 import type { BrushSettings, Drawing, StrokeKind } from "../core/types";
 import { renderDrawingAtTime } from "./frameRenderer";
 import type {
@@ -82,7 +83,7 @@ export class WigglyEngine {
   }
 
   setBrushWidth(width: number): void {
-    this.pendingWidth = width;
+    this.pendingWidth = snapBrushWidth(width);
   }
 
   setPenVariant(variant: PenVariant): void {
@@ -138,6 +139,8 @@ export class WigglyEngine {
   }
 
   pointerDown(x: number, y: number): void {
+    // 座標を整数ピクセルにスナップ
+    const snapped = snapToPixel(x, y);
     const now = this.time.now();
     const strokeId = this.createStrokeId();
     const drawing = this.history.present;
@@ -161,7 +164,7 @@ export class WigglyEngine {
         patternId: brushKind === "pattern" ? this.pendingPattern : undefined,
         variant,
       },
-      { x, y, t: now - this.startedAt },
+      { x: snapped.x, y: snapped.y, t: now - this.startedAt },
     );
 
     this.history = { ...this.history, present: updated };
@@ -180,6 +183,8 @@ export class WigglyEngine {
   pointerMove(x: number, y: number): void {
     if (!this.currentStrokeId) return;
 
+    // 座標を整数ピクセルにスナップ
+    const snapped = snapToPixel(x, y);
     const now = this.time.now();
     const drawing = this.history.present;
     const strokes = drawing.strokes;
@@ -189,8 +194,8 @@ export class WigglyEngine {
     const lastPoint = lastStroke.points[lastStroke.points.length - 1];
     if (!lastPoint) return;
 
-    const dx = x - lastPoint.x;
-    const dy = y - lastPoint.y;
+    const dx = snapped.x - lastPoint.x;
+    const dy = snapped.y - lastPoint.y;
     const dist = Math.hypot(dx, dy);
     if (dist < 1.5) return;
 
@@ -209,8 +214,8 @@ export class WigglyEngine {
     const speed = dt > 0 ? this.strokeLength / dt : 0;
 
     const updated = appendPoint(drawing, this.currentStrokeId, {
-      x,
-      y,
+      x: snapped.x,
+      y: snapped.y,
       t: now - this.startedAt,
     });
 
