@@ -264,37 +264,28 @@ export class CanvasRenderer implements DrawingRenderer {
     }
 
     if (width === 1) {
-      // width=1の場合: 周囲のピクセルをチェックして、どれかがalpha>0なら描画
-      // これにより、1pxずれても線が途切れないようにする
-      // 横線パターンや縦線パターンでも途切れないように、より広い範囲をチェック
+      // width=1の場合: パターンは「領域」として描画する
+      // 各ピクセルについて、そのピクセルがパターンの「描画領域」内にあるかチェック
+      // 横線パターンや縦線パターンでも途切れないように、Y方向（またはX方向）の範囲を広げてチェック
+      // パターンのタイル内で、alpha>0の行（または列）に近い場合は描画する
       let maxAlpha = 0;
-      const offsets = [
-        [0, 0], // 中心
-        [-1, 0], // 左
-        [1, 0], // 右
-        [0, -1], // 上
-        [0, 1], // 下
-        [-1, -1], // 左上
-        [1, -1], // 右上
-        [-1, 1], // 左下
-        [1, 1], // 右下
-        [-2, 0], // 左2
-        [2, 0], // 右2
-        [0, -2], // 上2
-        [0, 2], // 下2
-      ];
 
-      for (const [dx, dy] of offsets) {
-        const px = x + dx;
+      // Y方向に広い範囲をチェック（横線パターンに対応）
+      // タイルの高さ分だけ上下をチェックして、alpha>0の行を見つける
+      for (let dy = -tile.height; dy <= tile.height; dy++) {
         const py = y + dy;
-        const tileX = ((px % tile.width) + tile.width) % tile.width;
+        const tileX = ((x % tile.width) + tile.width) % tile.width;
         const tileY = ((py % tile.height) + tile.height) % tile.height;
         const alphaIndex = tileY * tile.width + tileX;
 
         if (alphaIndex >= 0 && alphaIndex < tile.alpha.length) {
           const alpha = tile.alpha[alphaIndex];
-          if (alpha > maxAlpha) {
-            maxAlpha = alpha;
+          // 距離に応じて重み付け（近いほど重みが大きい）
+          const distance = Math.abs(dy);
+          const weight = distance === 0 ? 1.0 : 1.0 / (1.0 + distance * 0.5);
+          const weightedAlpha = alpha * weight;
+          if (weightedAlpha > maxAlpha) {
+            maxAlpha = weightedAlpha;
           }
         }
       }
