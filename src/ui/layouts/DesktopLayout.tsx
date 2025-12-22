@@ -187,7 +187,7 @@ export function DesktopLayout({ canvas, tools, dsButtons }: LayoutProps) {
           </div>
 
           {/* Center: Bottom Screen System */}
-          <div className="shrink-0 relative w-full max-w-[420px] aspect-[4/3] bg-(--ugo-bezel-bg) rounded-sm p-2 shadow-[inset_0_1px_8px_rgba(0,0,0,0.8)] border-[2px] border-(--ugo-bezel-border)">
+          <div className="shrink-0 relative w-full max-w-[420px] bg-(--ugo-bezel-bg) rounded-sm p-2 shadow-[inset_0_1px_8px_rgba(0,0,0,0.8)] border-[2px] border-(--ugo-bezel-border)">
             <div className="relative w-full h-full bg-[#fdfdfd] shadow-[inset_0_2px_10px_rgba(0,0,0,0.1)] overflow-hidden rounded-[2px]">
               {tools}
             </div>
