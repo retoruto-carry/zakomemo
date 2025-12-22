@@ -37,9 +37,16 @@ export class WebAudioStrokeSound implements StrokeSound {
   private lastUpdateTime = 0;
   private pendingSpeed = 0;
   private updateScheduled = false;
+  private updateTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
   // 書き始めの時間を記録（最初の一筆で音が出るようにするため）
   private strokeStartTime = 0;
+
+  // イベントリスナーのクリーンアップ用
+  private interactionHandlers: Array<{
+    event: string;
+    handler: () => void;
+  }> = [];
 
   private static readonly MAX_SAMPLES = 8; // 移動平均のサンプル数（増加）
   private static readonly UPDATE_INTERVAL_MS = 16; // 約60fpsで更新（16ms間隔）
@@ -106,9 +113,14 @@ export class WebAudioStrokeSound implements StrokeSound {
       events.forEach((event) => {
         document.removeEventListener(event, handleInteraction);
       });
+      // クリーンアップリストから削除
+      this.interactionHandlers = this.interactionHandlers.filter(
+        (h) => h.handler !== handleInteraction
+      );
     };
     events.forEach((event) => {
       document.addEventListener(event, handleInteraction, { once: true });
+      this.interactionHandlers.push({ event, handler: handleInteraction });
     });
   }
 
@@ -417,7 +429,11 @@ export class WebAudioStrokeSound implements StrokeSound {
     // 音量: 0.2 + speed * 0.6 (最大1.0)
     const volume = Math.min(0.2 + speed * 0.6, 1.0);
     gainNode.gain.cancelScheduledValues(currentTime);
-    gainNode.gain.setValueAtTime(gainNode.gain.value, currentTime);
+    // exponentialRampToValueAtTimeは0から開始できないため、最小値0.001を保証
+    gainNode.gain.setValueAtTime(
+      Math.max(gainNode.gain.value, 0.001),
+      currentTime
+    );
     // exponentialRampToValueAtTimeでより滑らかな変化
     gainNode.gain.exponentialRampToValueAtTime(
       Math.max(volume, 0.001),
@@ -433,8 +449,10 @@ export class WebAudioStrokeSound implements StrokeSound {
     const targetFreq = baseSettings.frequency * multiplier;
 
     filterNode.frequency.cancelScheduledValues(currentTime);
+    // exponentialRampToValueAtTimeは0から開始できないため、最小値20Hzを保証
+    const currentFreq = filterNode.frequency.value;
     filterNode.frequency.setValueAtTime(
-      filterNode.frequency.value,
+      Math.max(currentFreq, 20),
       currentTime
     );
     // exponentialRampToValueAtTimeでより滑らかな変化
@@ -516,9 +534,11 @@ export class WebAudioStrokeSound implements StrokeSound {
         this.updateScheduled = true;
         const delay =
           WebAudioStrokeSound.UPDATE_INTERVAL_MS - timeSinceLastUpdate;
-        setTimeout(() => {
+        this.updateTimeoutId = setTimeout(() => {
           this.lastUpdateTime = performance.now();
           this.updateScheduled = false;
+          this.updateTimeoutId = null;
+          // ストロークが終了していない場合のみ更新
           if (this.currentTool) {
             this.updateVolumeAndFrequency(this.currentTool, this.pendingSpeed);
           }
@@ -554,7 +574,11 @@ export class WebAudioStrokeSound implements StrokeSound {
     // すべてのスケジュールされた音量変更をキャンセル
     gainNode.gain.cancelScheduledValues(currentTime);
     // 現在の音量から即座にフェードアウト開始
-    gainNode.gain.setValueAtTime(gainNode.gain.value, currentTime);
+    // exponentialRampToValueAtTimeは0から開始できないため、最小値0.001を保証
+    gainNode.gain.setValueAtTime(
+      Math.max(gainNode.gain.value, 0.001),
+      currentTime
+    );
     // exponentialRampToValueAtTimeで滑らかなフェードアウト（早めに）
     gainNode.gain.exponentialRampToValueAtTime(
       0.001,
@@ -588,6 +612,18 @@ export class WebAudioStrokeSound implements StrokeSound {
    * すべてのノイズを停止し、オーディオノードを切断し、AudioContextを閉じる
    */
   destroy(): void {
+    // スロットルされた更新コールバックをキャンセル
+    if (this.updateTimeoutId !== null) {
+      clearTimeout(this.updateTimeoutId);
+      this.updateTimeoutId = null;
+    }
+
+    // イベントリスナーをクリーンアップ
+    for (const { event, handler } of this.interactionHandlers) {
+      document.removeEventListener(event, handler);
+    }
+    this.interactionHandlers = [];
+
     for (const noiseNode of this.noiseNodes.values()) {
       if (noiseNode) {
         try {
