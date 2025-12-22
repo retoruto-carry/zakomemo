@@ -502,6 +502,7 @@ export const WigglyTools = React.forwardRef<
               aria-hidden="true"
             />
             {/* Corner Indicator */}
+            {/* biome-ignore lint/a11y/useSemanticElements: button要素のネストを避けるためdivを使用 */}
             <div
               role="button"
               tabIndex={0}
