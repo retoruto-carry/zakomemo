@@ -1,6 +1,6 @@
 import { getPatternDefinition } from "../core/patterns";
 import { bresenhamLine } from "../core/pixelArt";
-import type { BrushPatternId, BrushVariant, Stroke } from "../core/types";
+import type { BrushVariant, Stroke } from "../core/types";
 import type { DrawingRenderer } from "../engine/ports";
 import { parseColorToRgb, resolveCssVariable } from "./colorUtil";
 
@@ -21,7 +21,6 @@ interface CanvasRendererOptions {
 export class CanvasRenderer implements DrawingRenderer {
   private lastWidth = 0;
   private lastHeight = 0;
-  private patternCache = new Map<string, CanvasPattern>();
   private backgroundColor: string;
 
   constructor(options: CanvasRendererOptions) {
@@ -176,51 +175,112 @@ export class CanvasRenderer implements DrawingRenderer {
   }
 
   /**
-   * パターンを描画（従来の方法、フェーズ5で実装予定）
+   * パターンをピクセル単位で描画
    */
   private renderPatternStroke(
     stroke: Stroke,
     jitteredPoints: { x: number; y: number }[],
   ): void {
+    if (!stroke.brush.patternId) return;
+
     const ctx = this.ctx;
+    const brushWidth = Math.round(stroke.brush.width);
+    const patternDef = getPatternDefinition(stroke.brush.patternId);
+    const tile = patternDef.tile;
+    const { r, g, b } = parseColorToRgb(stroke.brush.color);
 
     ctx.save();
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-    ctx.lineWidth = stroke.brush.width;
     ctx.globalCompositeOperation = "source-over";
     ctx.globalAlpha = stroke.brush.opacity;
 
-    if (!stroke.brush.patternId) {
-      ctx.restore();
-      return;
-    }
-
-    const pattern = this.createWigglyPattern(
-      stroke.brush.patternId,
-      stroke.brush.color,
-    );
-    ctx.strokeStyle = pattern;
-
-    // 1点だけのときは点として描画
+    // 1点だけのとき
     if (jitteredPoints.length === 1) {
       const p = jitteredPoints[0];
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, ctx.lineWidth / 2, 0, Math.PI * 2);
-      ctx.fillStyle = pattern;
-      ctx.fill();
+      const x = Math.round(p.x);
+      const y = Math.round(p.y);
+      this.drawPatternPixel(ctx, x, y, brushWidth, tile, r, g, b);
       ctx.restore();
       return;
     }
 
-    // 複数点の場合はパスとして描画
-    ctx.beginPath();
-    jitteredPoints.forEach((p, i) => {
-      if (i === 0) ctx.moveTo(p.x, p.y);
-      else ctx.lineTo(p.x, p.y);
+    // 複数点の場合はBresenhamアルゴリズムで各ピクセルを描画
+    const pixels = new Set<string>(); // 重複を避けるためSetを使用
+
+    for (let i = 0; i < jitteredPoints.length; i++) {
+      const current = jitteredPoints[i];
+      const x = Math.round(current.x);
+      const y = Math.round(current.y);
+
+      if (i === 0) {
+        // 最初の点
+        pixels.add(`${x},${y}`);
+      } else {
+        // 前の点から現在の点までBresenhamで線を描画
+        const prev = jitteredPoints[i - 1];
+        const prevX = Math.round(prev.x);
+        const prevY = Math.round(prev.y);
+        const linePixels = bresenhamLine(prevX, prevY, x, y);
+        linePixels.forEach((pixel) => {
+          pixels.add(`${pixel.x},${pixel.y}`);
+        });
+      }
+    }
+
+    // 各ピクセルを描画
+    pixels.forEach((key) => {
+      const [x, y] = key.split(",").map(Number);
+      this.drawPatternPixel(ctx, x, y, brushWidth, tile, r, g, b);
     });
-    ctx.stroke();
+
     ctx.restore();
+  }
+
+  /**
+   * パターンの1ピクセルを描画
+   */
+  private drawPatternPixel(
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    width: number,
+    tile: { width: number; height: number; alpha: number[] },
+    r: number,
+    g: number,
+    b: number,
+  ): void {
+    // タイル内の位置を計算（繰り返しパターン）
+    const tileX = ((x % tile.width) + tile.width) % tile.width;
+    const tileY = ((y % tile.height) + tile.height) % tile.height;
+    const alphaIndex = tileY * tile.width + tileX;
+    const alpha = tile.alpha[alphaIndex];
+
+    if (alpha > 0) {
+      // 透明度に応じてピクセルを描画
+      ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${alpha})`;
+      if (width === 1) {
+        ctx.fillRect(x, y, 1, 1);
+      } else {
+        // 太い線の場合は各ピクセルを拡大して描画
+        const halfWidth = Math.floor(width / 2);
+        for (let dy = -halfWidth; dy <= halfWidth; dy++) {
+          for (let dx = -halfWidth; dx <= halfWidth; dx++) {
+            const px = x + dx;
+            const py = y + dy;
+            // 円形のブラシの場合は距離をチェック
+            if (dx * dx + dy * dy <= halfWidth * halfWidth) {
+              const tileX2 = ((px % tile.width) + tile.width) % tile.width;
+              const tileY2 = ((py % tile.height) + tile.height) % tile.height;
+              const alphaIndex2 = tileY2 * tile.width + tileX2;
+              const alpha2 = tile.alpha[alphaIndex2];
+              if (alpha2 > 0) {
+                ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${alpha2})`;
+                ctx.fillRect(px, py, 1, 1);
+              }
+            }
+          }
+        }
+      }
+    }
   }
 
   /**
@@ -231,45 +291,6 @@ export class CanvasRenderer implements DrawingRenderer {
   }
 
   clearPatternCache(): void {
-    this.patternCache.clear();
-  }
-
-  /**
-   * 同じpatternIdとcolorの組み合わせはキャッシュから返される
-   * @throws パターン定義が見つからない場合、またはパターン生成に失敗した場合
-   */
-  private createWigglyPattern(patternId: string, color: string): CanvasPattern {
-    // パターンタイルは静的なので、色とパターンIDのみでキャッシュ
-    const cacheKey = `${patternId}:${color}`;
-    const cached = this.patternCache.get(cacheKey);
-    if (cached) return cached;
-
-    const def = getPatternDefinition(patternId as BrushPatternId);
-    const tile = def.tile;
-
-    // オフスクリーンキャンバスでタイルを作成
-    const offscreen = document.createElement("canvas");
-    offscreen.width = tile.width;
-    offscreen.height = tile.height;
-    const offCtx = offscreen.getContext("2d");
-    if (!offCtx) throw new Error("2D context not available");
-
-    const imageData = offCtx.createImageData(tile.width, tile.height);
-    const { r, g, b } = parseColorToRgb(color);
-
-    for (let i = 0; i < tile.alpha.length; i++) {
-      const idx = i * 4;
-      imageData.data[idx] = r;
-      imageData.data[idx + 1] = g;
-      imageData.data[idx + 2] = b;
-      imageData.data[idx + 3] = Math.round(255 * tile.alpha[i]);
-    }
-    offCtx.putImageData(imageData, 0, 0);
-
-    const pattern = this.ctx.createPattern(offscreen, "repeat");
-    if (!pattern) throw new Error("Failed to create canvas pattern");
-
-    this.patternCache.set(cacheKey, pattern);
-    return pattern;
+    // パターンキャッシュは不要になったため、何もしない
   }
 }
