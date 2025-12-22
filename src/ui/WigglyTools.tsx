@@ -1099,10 +1099,9 @@ export const WigglyTools = React.forwardRef<
                     カスタムパレット
                   </span>
                   <div className="grid grid-cols-6 gap-3">
-                    {/* biome-ignore lint/suspicious/noArrayIndexKey: パレットの順序は固定されているため、インデックスをキーに使用 */}
-                    {palette.map((c, idx) => (
+                    {palette.map((c) => (
                       <div
-                        key={`custom-palette-${c}-${idx}`}
+                        key={`custom-palette-${c}`}
                         className="flex flex-col items-center gap-1.5 relative"
                       >
                         <div className="w-full aspect-square relative min-w-0">
@@ -1122,10 +1121,13 @@ export const WigglyTools = React.forwardRef<
                             uiSoundManager.play("custom-palette-color", {
                               stopPrevious: true,
                             });
-                            const newPalette = [...palette];
-                            newPalette[idx] = e.target.value;
-                            setPalette(newPalette);
-                            setSelectedPaletteName(null);
+                            const colorIndex = palette.indexOf(c);
+                            if (colorIndex !== -1) {
+                              const newPalette = [...palette];
+                              newPalette[colorIndex] = e.target.value;
+                              setPalette(newPalette);
+                              setSelectedPaletteName(null);
+                            }
                           }}
                           className="absolute inset-0 w-full h-full cursor-pointer opacity-0"
                         />
