@@ -269,9 +269,10 @@ export class CanvasRenderer implements DrawingRenderer {
       // これにより、どのパターンでも1pxずれても線が途切れないようにする
       let maxAlpha = 0;
 
-      // タイルサイズに応じた範囲を全方向にチェック
-      // タイルの幅と高さの最大値を使用して、どのパターンでも対応できるようにする
-      const searchRadius = Math.max(tile.width, tile.height);
+      // パフォーマンス最適化: 検索範囲を固定値（3ピクセル）に制限
+      // これにより、1ピクセルあたりのチェック数を49回（7×7）に削減
+      // 3ピクセル以内であれば、どのパターンでも対応できる
+      const searchRadius = 3;
 
       for (let dy = -searchRadius; dy <= searchRadius; dy++) {
         for (let dx = -searchRadius; dx <= searchRadius; dx++) {
