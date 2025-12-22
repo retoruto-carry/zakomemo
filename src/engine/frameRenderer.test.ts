@@ -55,12 +55,12 @@ describe("renderDrawingAtTime", () => {
     };
 
     const renderer = new MockRenderer();
-    renderDrawingAtTime(
+    renderDrawingAtTime({
       drawing,
       renderer,
-      { amplitude: 1, frequency: 0.01 },
-      100,
-    );
+      jitterConfig: { amplitude: 1, frequency: 0.01 },
+      elapsedTimeMs: 100,
+    });
 
     expect(renderer.clears).toEqual([{ width: 200, height: 100 }]);
     expect(renderer.strokes).toHaveLength(1);
@@ -92,12 +92,12 @@ describe("renderDrawingAtTime", () => {
     };
 
     const renderer = new MockRenderer();
-    renderDrawingAtTime(
+    renderDrawingAtTime({
       drawing,
       renderer,
-      { amplitude: 1, frequency: 0.01 },
-      100,
-    );
+      jitterConfig: { amplitude: 1, frequency: 0.01 },
+      elapsedTimeMs: 100,
+    });
 
     const rendered = renderer.strokes[0];
     // すべてのジッター適用後の座標が整数であることを確認
@@ -131,12 +131,12 @@ describe("renderDrawingAtTime", () => {
     };
 
     const renderer = new MockRenderer();
-    renderDrawingAtTime(
+    renderDrawingAtTime({
       drawing,
       renderer,
-      { amplitude: 1, frequency: 0.01 },
-      100,
-    );
+      jitterConfig: { amplitude: 1, frequency: 0.01 },
+      elapsedTimeMs: 100,
+    });
 
     const rendered = renderer.strokes[0];
     // すべてのジッター適用後の座標が整数であることを確認

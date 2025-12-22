@@ -114,10 +114,14 @@ export class WigglyEngine {
   }
 
   /**
-   * 即座に再レンダリングを実行
+   * jitter設定を変更し、即座に再レンダリングを実行
+   * jitterConfigが変わると、同じDrawingでも異なるjitterが適用されるため、
+   * キャッシュを無効化する必要がある
    */
   setJitterConfig(jitterConfig: JitterConfig): void {
     this.jitterConfig = jitterConfig;
+    // jitterConfigが変わるとキャッシュが無効になるため、キャッシュをクリア
+    this.clearRendererCache();
     // Force immediate re-render with new jitter config
     this.lastRenderAt = 0;
   }
@@ -164,7 +168,7 @@ export class WigglyEngine {
         patternId: brushKind === "pattern" ? this.pendingPattern : undefined,
         variant,
       },
-      { x: snapped.x, y: snapped.y, t: now - this.startedAt },
+      { x: snapped.x, y: snapped.y, t: now - this.startedAt }
     );
 
     this.history = { ...this.history, present: updated };
@@ -206,7 +210,7 @@ export class WigglyEngine {
       variant,
       dist,
       now - this.strokeStartTime,
-      lastStroke.kind,
+      lastStroke.kind
     );
 
     this.strokeLength += dist;
@@ -222,7 +226,7 @@ export class WigglyEngine {
     const strokesWithWidth = updated.strokes.map((s) =>
       s.id === this.currentStrokeId
         ? { ...s, brush: { ...s.brush, width: adjustedWidth } }
-        : s,
+        : s
     );
 
     this.history = {
@@ -252,7 +256,7 @@ export class WigglyEngine {
     const base = this.strokeStartDrawing ?? this.history.present;
     this.history = pushHistory(
       { ...this.history, present: base, future: [] },
-      this.history.present,
+      this.history.present
     );
     this.strokeStartDrawing = null;
     this.currentStrokeId = null;
@@ -261,11 +265,15 @@ export class WigglyEngine {
 
   undo(): void {
     this.history = undoHistory(this.history);
+    // undo/redo時はキャッシュをクリア（全ストロークから再生成が必要）
+    this.clearRendererCache();
     this.onHistoryChange?.();
   }
 
   redo(): void {
     this.history = redoHistory(this.history);
+    // undo/redo時はキャッシュをクリア（全ストロークから再生成が必要）
+    this.clearRendererCache();
     this.onHistoryChange?.();
   }
 
@@ -293,12 +301,12 @@ export class WigglyEngine {
     const elapsed = now - this.startedAt;
 
     if (now - this.lastRenderAt >= this.minFrameIntervalMs) {
-      renderDrawingAtTime(
-        this.history.present,
-        this.renderer,
-        this.jitterConfig,
-        elapsed,
-      );
+      renderDrawingAtTime({
+        drawing: this.history.present,
+        renderer: this.renderer,
+        jitterConfig: this.jitterConfig,
+        elapsedTimeMs: elapsed,
+      });
       this.lastRenderAt = now;
     }
 

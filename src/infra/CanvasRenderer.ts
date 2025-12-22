@@ -1,7 +1,9 @@
+import type { JitterConfig } from "../core/jitter";
 import { getPatternDefinition } from "../core/patterns";
 import type { PatternTile } from "../core/patternTypes";
 import { bresenhamLine, calculateThickLinePixels } from "../core/pixelArt";
-import type { BrushVariant, Stroke } from "../core/types";
+import type { BrushVariant, Drawing, Stroke } from "../core/types";
+import { applyJitterToStroke } from "../engine/frameRenderer";
 import type { DrawingRenderer } from "../engine/ports";
 import { parseColorToRgb, resolveCssVariable } from "./colorUtil";
 
@@ -16,8 +18,45 @@ interface CanvasRendererOptions {
 }
 
 /**
+ * フレーム数（固定）
+ */
+const FRAME_COUNT = 3;
+
+/**
+ * フレームBitmap取得の引数
+ */
+type GetFrameBitmapParams = {
+  drawing: Drawing;
+  frameIndex: number;
+  jitterConfig: JitterConfig;
+  elapsedTimeMs: number;
+};
+
+/**
+ * 差分描画の引数
+ */
+type RenderFrameWithDiffParams = {
+  drawing: Drawing;
+  frameIndex: number;
+  frameElapsedTimeMs: number;
+  jitterConfig: JitterConfig;
+  newStrokes: Stroke[];
+};
+
+/**
+ * 全ストロークからフレーム生成の引数
+ */
+type RenderFrameFromScratchParams = {
+  drawing: Drawing;
+  frameIndex: number;
+  frameElapsedTimeMs: number;
+  jitterConfig: JitterConfig;
+};
+
+/**
  * Canvas 2D APIを使用して描画を行うレンダラー実装
  * ピクセルアート前提: 論理ピクセル単位のImageDataを保持し、フレームごとに1回描画
+ * パフォーマンス最適化: 3フレーム固定、ImageBitmapキャッシュ、差分描画
  */
 export class CanvasRenderer implements DrawingRenderer {
   private lastWidth = 0;
@@ -28,6 +67,12 @@ export class CanvasRenderer implements DrawingRenderer {
   private data: Uint8ClampedArray | null = null;
   private offscreenCanvas: HTMLCanvasElement | null = null;
   private offscreenCtx: CanvasRenderingContext2D | null = null;
+
+  // ImageBitmapキャッシュ（3フレーム分）
+  private frameBitmaps: (ImageBitmap | null)[] = [null, null, null];
+  private cachedStrokeIds: Set<string> = new Set();
+  private cachedDrawingHash: string | null = null;
+  private cachedJitterConfig: JitterConfig | null = null;
 
   constructor(options: CanvasRendererOptions) {
     this.ctx = options.ctx;
@@ -40,9 +85,10 @@ export class CanvasRenderer implements DrawingRenderer {
   setBackgroundColor(backgroundColor: string): void {
     this.backgroundColor = backgroundColor;
     this.backgroundColorRgba = parseColorToRgb(backgroundColor);
-    // 背景色が変更された場合、ImageDataを再初期化
+    // 背景色が変更された場合、ImageDataとキャッシュを再初期化
     if (this.imageData) {
       this.initializeImageData(this.lastWidth, this.lastHeight);
+      this.invalidateCache();
     }
   }
 
@@ -84,6 +130,55 @@ export class CanvasRenderer implements DrawingRenderer {
     this.lastWidth = width;
     this.lastHeight = height;
     this.initializeImageData(width, height);
+    this.invalidateCache();
+  }
+
+  /**
+   * キャッシュを無効化
+   * 背景色変更、パレット変更、undo/redo、clear()などで呼ばれる
+   */
+  private invalidateCache(): void {
+    // 既存のImageBitmapを破棄
+    for (let i = 0; i < this.frameBitmaps.length; i++) {
+      if (this.frameBitmaps[i]) {
+        this.frameBitmaps[i]?.close();
+        this.frameBitmaps[i] = null;
+      }
+    }
+    this.cachedStrokeIds.clear();
+    this.cachedDrawingHash = null;
+    this.cachedJitterConfig = null;
+  }
+
+  /**
+   * Drawingのハッシュを計算（キャッシュのキー用）
+   * 注意: jitterConfigは別途チェックするため、ハッシュには含めない
+   */
+  private computeDrawingHash(drawing: Drawing): string {
+    const strokeInfo = drawing.strokes
+      .map((s) => `${s.id}:${s.points.length}`)
+      .join(",");
+    return `${drawing.width}x${drawing.height}:${drawing.strokes.length}:${strokeInfo}`;
+  }
+
+  /**
+   * jitterConfigがキャッシュと一致するかチェック
+   */
+  private isJitterConfigEqual(config: JitterConfig): boolean {
+    if (!this.cachedJitterConfig) return false;
+    return (
+      this.cachedJitterConfig.amplitude === config.amplitude &&
+      this.cachedJitterConfig.frequency === config.frequency
+    );
+  }
+
+  /**
+   * 新しいストロークのみを取得（差分描画用）
+   */
+  private getNewStrokes(drawing: Drawing): Stroke[] {
+    return drawing.strokes.filter(
+      (stroke) => !this.cachedStrokeIds.has(stroke.id)
+    );
   }
 
   /**
@@ -95,7 +190,7 @@ export class CanvasRenderer implements DrawingRenderer {
     r: number,
     g: number,
     b: number,
-    a: number,
+    a: number
   ): void {
     if (
       !this.data ||
@@ -123,7 +218,7 @@ export class CanvasRenderer implements DrawingRenderer {
   renderStroke(
     stroke: Stroke,
     jitteredPoints: { x: number; y: number }[],
-    _elapsedTimeMs: number,
+    _elapsedTimeMs: number
   ): void {
     if (jitteredPoints.length === 0 || !this.data) return;
 
@@ -142,7 +237,7 @@ export class CanvasRenderer implements DrawingRenderer {
    */
   private renderSolidStroke(
     stroke: Stroke,
-    jitteredPoints: { x: number; y: number }[],
+    jitteredPoints: { x: number; y: number }[]
   ): void {
     const brushWidth = Math.round(stroke.brush.width);
     const variant = stroke.brush.variant as BrushVariant | undefined;
@@ -183,7 +278,7 @@ export class CanvasRenderer implements DrawingRenderer {
         r,
         g,
         b,
-        a,
+        a
       );
       return;
     }
@@ -264,7 +359,7 @@ export class CanvasRenderer implements DrawingRenderer {
     r: number,
     g: number,
     b: number,
-    a: number,
+    a: number
   ): void {
     if (strokeKind === "erase" && variant === "eraserLine") {
       // 消しゴム（横線）: 横方向に拡大
@@ -305,7 +400,7 @@ export class CanvasRenderer implements DrawingRenderer {
    */
   private renderPatternStroke(
     stroke: Stroke,
-    jitteredPoints: { x: number; y: number }[],
+    jitteredPoints: { x: number; y: number }[]
   ): void {
     if (stroke.brush.kind !== "pattern" || !stroke.brush.patternId) return;
 
@@ -316,28 +411,20 @@ export class CanvasRenderer implements DrawingRenderer {
     const color = parseColorToRgb(resolveCssVariable(stroke.brush.color));
     const brushWidth = Math.round(stroke.brush.width);
 
+    let areaPixels: Array<{ x: number; y: number }>;
+
     // 1点だけのとき
     if (jitteredPoints.length === 1) {
       const p = jitteredPoints[0];
       const x = Math.round(p.x);
       const y = Math.round(p.y);
-      this.drawPatternPixelToImageData(
-        x,
-        y,
-        brushWidth,
-        tile,
-        color.r,
-        color.g,
-        color.b,
-      );
-      return;
-    }
-
-    // パフォーマンス最適化: まずエリアを特定
-    let areaPixels: Array<{ x: number; y: number }>;
-
-    if (brushWidth > 1) {
-      // 太い線の場合: 中心線を取得してから、太い線のエリアを計算
+      if (brushWidth > 1) {
+        areaPixels = calculateThickLinePixels([{ x, y }], brushWidth);
+      } else {
+        areaPixels = [{ x, y }];
+      }
+    } else {
+      // 複数点の場合はBresenhamアルゴリズムで中心線を取得
       const centerPixels: Array<{ x: number; y: number }> = [];
       for (let i = 0; i < jitteredPoints.length; i++) {
         const current = jitteredPoints[i];
@@ -357,39 +444,12 @@ export class CanvasRenderer implements DrawingRenderer {
         }
       }
 
-      // 太い線のエリアを計算（重複排除済み）
-      areaPixels = calculateThickLinePixels(centerPixels, brushWidth);
-    } else {
-      // width=1の場合: 中心線のピクセルを取得
-      const pixels = new Map<number, Set<number>>(); // x -> Set<y>
-
-      for (let i = 0; i < jitteredPoints.length; i++) {
-        const current = jitteredPoints[i];
-        const x = Math.round(current.x);
-        const y = Math.round(current.y);
-
-        if (i === 0) {
-          if (!pixels.has(x)) pixels.set(x, new Set());
-          pixels.get(x)?.add(y);
-        } else {
-          const prev = jitteredPoints[i - 1];
-          const prevX = Math.round(prev.x);
-          const prevY = Math.round(prev.y);
-          const linePixels = bresenhamLine(prevX, prevY, x, y);
-          linePixels.forEach((pixel) => {
-            if (!pixels.has(pixel.x)) pixels.set(pixel.x, new Set());
-            pixels.get(pixel.x)?.add(pixel.y);
-          });
-        }
+      // 太い線の場合は領域を計算（重複排除済み）
+      if (brushWidth > 1) {
+        areaPixels = calculateThickLinePixels(centerPixels, brushWidth);
+      } else {
+        areaPixels = centerPixels;
       }
-
-      // Mapから配列に変換
-      areaPixels = [];
-      pixels.forEach((ys, x) => {
-        ys.forEach((y) => {
-          areaPixels.push({ x, y });
-        });
-      });
     }
 
     // エリア全体にパターンを一括適用
@@ -399,13 +459,12 @@ export class CanvasRenderer implements DrawingRenderer {
       color.r,
       color.g,
       color.b,
-      brushWidth,
+      brushWidth
     );
   }
 
   /**
-   * エリア全体にパターンを一括適用
-   * 各ピクセルについて、パターンのタイル位置を計算して描画
+   * エリア全体にパターンを適用（ImageDataに書き込む）
    */
   private applyPatternToArea(
     areaPixels: Array<{ x: number; y: number }>,
@@ -413,127 +472,63 @@ export class CanvasRenderer implements DrawingRenderer {
     r: number,
     g: number,
     b: number,
-    width: number,
-  ): void {
-    if (width === 1) {
-      // width=1の場合: 周囲チェックが必要（線が途切れないように）
-      for (const pixel of areaPixels) {
-        this.drawPatternPixelToImageData(
-          pixel.x,
-          pixel.y,
-          width,
-          tile,
-          r,
-          g,
-          b,
-        );
-      }
-    } else {
-      // width > 1の場合: 各ピクセルについてパターンのタイル位置を計算
-      for (const pixel of areaPixels) {
-        const tileX = ((pixel.x % tile.width) + tile.width) % tile.width;
-        const tileY = ((pixel.y % tile.height) + tile.height) % tile.height;
-        const alphaIndex = tileY * tile.width + tileX;
-        if (alphaIndex >= 0 && alphaIndex < tile.alpha.length) {
-          const alpha = tile.alpha[alphaIndex];
-          if (alpha > 0) {
-            this.setPixel(pixel.x, pixel.y, r, g, b, alpha * 255);
-          }
-        }
-      }
-    }
-  }
-
-  /**
-   * パターンの1ピクセルをImageDataに書き込む
-   */
-  private drawPatternPixelToImageData(
-    x: number,
-    y: number,
-    width: number,
-    tile: PatternTile,
-    r: number,
-    g: number,
-    b: number,
+    brushWidth: number
   ): void {
     if (!this.data) return;
 
-    if (width === 1) {
-      let maxAlpha = 0;
+    for (const { x, y } of areaPixels) {
+      if (brushWidth === 1) {
+        // width=1の場合: 周囲をチェックしてパターンを適用
+        let maxAlpha = 0;
+        const searchRadius = 3;
+        const maxDistanceSq = searchRadius * searchRadius;
 
-      // パフォーマンス最適化:
-      // 1. 検索範囲を固定値（3ピクセル）に制限
-      // 2. 距離の近い順にチェック（中心から外側へ）することで、早期終了が可能
-      // 3. Math.sqrt()を完全に避けて、距離の2乗で比較することで高速化
-      const searchRadius = 3;
-      const maxDistanceSq = searchRadius * searchRadius;
+        for (let distance = 0; distance <= searchRadius; distance++) {
+          let foundClose = false;
+          for (let dy = -distance; dy <= distance; dy++) {
+            for (let dx = -distance; dx <= distance; dx++) {
+              const dSq = dx * dx + dy * dy;
+              if (dSq > maxDistanceSq) continue;
 
-      // 距離の近い順にチェック（中心から外側へ）
-      // 距離0, 1, 2, 3の順でチェック
-      for (let distance = 0; distance <= searchRadius; distance++) {
-        let foundClose = false;
+              const px = x + dx;
+              const py = y + dy;
+              const tileX = ((px % tile.width) + tile.width) % tile.width;
+              const tileY = ((py % tile.height) + tile.height) % tile.height;
+              const alphaIndex = tileY * tile.width + tileX;
 
-        // 現在の距離の範囲内の点をチェック（正方形の範囲）
-        for (let dy = -distance; dy <= distance; dy++) {
-          for (let dx = -distance; dx <= distance; dx++) {
-            // 距離の2乗でチェック（Math.sqrt()を避ける）
-            const dSq = dx * dx + dy * dy;
-            if (dSq > maxDistanceSq) continue;
-
-            const px = x + dx;
-            const py = y + dy;
-            const tileX = ((px % tile.width) + tile.width) % tile.width;
-            const tileY = ((py % tile.height) + tile.height) % tile.height;
-            const alphaIndex = tileY * tile.width + tileX;
-
-            if (alphaIndex >= 0 && alphaIndex < tile.alpha.length) {
-              const alpha = tile.alpha[alphaIndex];
-              if (alpha > 0) {
-                // 距離の2乗を使用して重みを計算（Math.sqrt()を避ける）
-                // 近似式: sqrt(dSq) ≈ dSq / (1 + dSq) を使用
-                const approximateDistance = dSq / (1 + dSq);
-                const weight =
-                  dSq === 0 ? 1.0 : 1.0 / (1.0 + approximateDistance * 0.3);
-                const weightedAlpha = alpha * weight;
-                if (weightedAlpha > maxAlpha) {
-                  maxAlpha = weightedAlpha;
-                  if (distance <= 1) {
-                    foundClose = true;
+              if (alphaIndex >= 0 && alphaIndex < tile.alpha.length) {
+                const alpha = tile.alpha[alphaIndex];
+                if (alpha > 0) {
+                  const approximateDistance = dSq / (1 + dSq);
+                  const weight =
+                    dSq === 0 ? 1.0 : 1.0 / (1.0 + approximateDistance * 0.3);
+                  const weightedAlpha = alpha * weight;
+                  if (weightedAlpha > maxAlpha) {
+                    maxAlpha = weightedAlpha;
+                    if (distance <= 1) {
+                      foundClose = true;
+                    }
                   }
                 }
               }
             }
           }
+          if (foundClose && maxAlpha >= 0.7) {
+            break;
+          }
         }
-
-        // 早期終了: 距離1以内でalpha>0を見つけ、重みが十分大きい場合は終了
-        if (foundClose && maxAlpha >= 0.7) {
-          break;
+        if (maxAlpha > 0) {
+          this.setPixel(x, y, r, g, b, maxAlpha * 255);
         }
-      }
-
-      if (maxAlpha > 0) {
-        this.setPixel(x, y, r, g, b, maxAlpha * 255);
-      }
-    } else {
-      // width > 1の場合: 各ピクセルについてパターンを計算
-      const radius = Math.floor(width / 2);
-      const radiusSq = radius * radius;
-      for (let dy = -radius; dy <= radius; dy++) {
-        for (let dx = -radius; dx <= radius; dx++) {
-          const dSq = dx * dx + dy * dy;
-          if (dSq <= radiusSq) {
-            const px = x + dx;
-            const py = y + dy;
-            const tileX = ((px % tile.width) + tile.width) % tile.width;
-            const tileY = ((py % tile.height) + tile.height) % tile.height;
-            const alphaIndex = tileY * tile.width + tileX;
-            if (alphaIndex >= 0 && alphaIndex < tile.alpha.length) {
-              const alpha = tile.alpha[alphaIndex];
-              if (alpha > 0) {
-                this.setPixel(px, py, r, g, b, alpha * 255);
-              }
-            }
+      } else {
+        // width > 1の場合: 各ピクセルについてパターンを計算
+        const tileX = ((x % tile.width) + tile.width) % tile.width;
+        const tileY = ((y % tile.height) + tile.height) % tile.height;
+        const alphaIndex = tileY * tile.width + tileX;
+        if (alphaIndex >= 0 && alphaIndex < tile.alpha.length) {
+          const alpha = tile.alpha[alphaIndex];
+          if (alpha > 0) {
+            this.setPixel(x, y, r, g, b, alpha * 255);
           }
         }
       }
@@ -565,7 +560,7 @@ export class CanvasRenderer implements DrawingRenderer {
         0,
         0,
         this.lastWidth * dpr,
-        this.lastHeight * dpr,
+        this.lastHeight * dpr
       );
       this.ctx.restore();
     }
@@ -584,5 +579,249 @@ export class CanvasRenderer implements DrawingRenderer {
 
   clearPatternCache(): void {
     // パターンキャッシュは不要（ImageDataベースの実装では）
+    // ImageBitmapキャッシュもクリア（undo/redo時など）
+    this.invalidateCache();
+  }
+
+  /**
+   * フレーム数を取得（固定値）
+   */
+  getFrameCount(): number {
+    return FRAME_COUNT;
+  }
+
+  /**
+   * 指定フレームのImageBitmapを取得（キャッシュから、または生成）
+   * @param params フレームBitmap取得の引数
+   * @returns ImageBitmap
+   * @throws {Error} frameIndexが範囲外の場合
+   */
+  async getFrameBitmap(params: GetFrameBitmapParams): Promise<ImageBitmap> {
+    const { drawing, frameIndex, jitterConfig } = params;
+    if (frameIndex < 0 || frameIndex >= FRAME_COUNT) {
+      throw new Error(
+        `Frame index must be between 0 and ${
+          FRAME_COUNT - 1
+        }, got ${frameIndex}`
+      );
+    }
+
+    // フレームごとの経過時間を計算（3フレームを均等に分散）
+    // フレーム間隔: 1秒 / (frequency * FRAME_COUNT)
+    const frameInterval = 1000 / (jitterConfig.frequency * FRAME_COUNT);
+    const frameElapsedTimeMs = frameIndex * frameInterval;
+
+    const drawingHash = this.computeDrawingHash(drawing);
+
+    // キャッシュが有効かチェック
+    // 条件: Drawingのハッシュが一致、jitterConfigが一致、ImageBitmapが存在
+    const isCacheValid =
+      this.cachedDrawingHash === drawingHash &&
+      this.isJitterConfigEqual(jitterConfig) &&
+      this.frameBitmaps[frameIndex] !== null;
+
+    if (isCacheValid) {
+      // 新しいストロークがあるかチェック
+      const newStrokes = this.getNewStrokes(drawing);
+      if (newStrokes.length === 0) {
+        // キャッシュが有効で新しいストロークがない場合は、既存のImageBitmapを返す
+        const cached = this.frameBitmaps[frameIndex];
+        if (!cached) {
+          throw new Error(`Frame bitmap at index ${frameIndex} is null`);
+        }
+        return cached;
+      }
+
+      // 新しいストロークがある場合: 差分描画
+      return await this.renderFrameWithDiff({
+        drawing,
+        frameIndex,
+        frameElapsedTimeMs,
+        jitterConfig,
+        newStrokes,
+      });
+    }
+
+    // キャッシュが無効な場合: 全ストロークから再生成
+    return await this.renderFrameFromScratch({
+      drawing,
+      frameIndex,
+      frameElapsedTimeMs,
+      jitterConfig,
+    });
+  }
+
+  /**
+   * 差分描画: 前のImageBitmapに新しいストロークだけを重ねる
+   */
+  private async renderFrameWithDiff(
+    params: RenderFrameWithDiffParams
+  ): Promise<ImageBitmap> {
+    const {
+      drawing,
+      frameIndex,
+      frameElapsedTimeMs,
+      jitterConfig,
+      newStrokes,
+    } = params;
+    if (!this.frameBitmaps[frameIndex]) {
+      // 前のImageBitmapがない場合は、全ストロークから再生成
+      return await this.renderFrameFromScratch({
+        drawing,
+        frameIndex,
+        frameElapsedTimeMs,
+        jitterConfig,
+      });
+    }
+
+    // 前のImageBitmapをコピーして新しいストロークを描画
+    const tempCanvas = document.createElement("canvas");
+    tempCanvas.width = this.lastWidth;
+    tempCanvas.height = this.lastHeight;
+    const tempCtx = tempCanvas.getContext("2d", {
+      willReadFrequently: true,
+      alpha: true,
+    });
+    if (!tempCtx) {
+      throw new Error(
+        `Failed to get 2D context for temp canvas (${this.lastWidth}x${this.lastHeight})`
+      );
+    }
+    tempCtx.imageSmoothingEnabled = false;
+
+    // 前のImageBitmapを描画
+    const previousBitmap = this.frameBitmaps[frameIndex];
+    if (!previousBitmap) {
+      // この時点でnullの場合は、全ストロークから再生成にフォールバック
+      return await this.renderFrameFromScratch({
+        drawing,
+        frameIndex,
+        frameElapsedTimeMs,
+        jitterConfig,
+      });
+    }
+    tempCtx.drawImage(previousBitmap, 0, 0);
+
+    // ImageDataを取得
+    const tempImageData = tempCtx.getImageData(
+      0,
+      0,
+      this.lastWidth,
+      this.lastHeight
+    );
+    const tempData = tempImageData.data;
+
+    // ImageDataを一時的に置き換え
+    const originalImageData = this.imageData;
+    const originalData = this.data;
+    this.imageData = tempImageData;
+    this.data = tempData;
+
+    // 新しいストロークを描画
+    for (const stroke of newStrokes) {
+      // jitterを計算して描画
+      const jittered = applyJitterToStroke({
+        stroke,
+        elapsedTimeMs: frameElapsedTimeMs,
+        jitterConfig,
+      });
+      this.renderStroke(stroke, jittered, frameElapsedTimeMs);
+    }
+
+    // ImageDataをCanvasに書き戻す
+    tempCtx.putImageData(tempImageData, 0, 0);
+
+    // ImageDataを元に戻す
+    this.imageData = originalImageData;
+    this.data = originalData;
+
+    // ImageBitmapを作成
+    const newBitmap = await createImageBitmap(tempCanvas);
+
+    // キャッシュを更新
+    this.frameBitmaps[frameIndex]?.close();
+    this.frameBitmaps[frameIndex] = newBitmap;
+
+    // キャッシュされたストロークIDを更新
+    for (const stroke of newStrokes) {
+      this.cachedStrokeIds.add(stroke.id);
+    }
+    // jitterConfigも更新（差分描画でもjitterConfigが変わっている可能性がある）
+    this.cachedJitterConfig = { ...jitterConfig }; // コピーを保存
+
+    return newBitmap;
+  }
+
+  /**
+   * 全ストロークからフレームを生成
+   */
+  private async renderFrameFromScratch(
+    params: RenderFrameFromScratchParams
+  ): Promise<ImageBitmap> {
+    const { drawing, frameIndex, frameElapsedTimeMs, jitterConfig } = params;
+    // ImageDataを初期化
+    this.initializeImageData(this.lastWidth, this.lastHeight);
+
+    // 全ストロークを描画
+    for (const stroke of drawing.strokes) {
+      const jittered = applyJitterToStroke({
+        stroke,
+        elapsedTimeMs: frameElapsedTimeMs,
+        jitterConfig,
+      });
+      this.renderStroke(stroke, jittered, frameElapsedTimeMs);
+    }
+
+    // ImageDataをオフスクリーンCanvasに書き込む
+    if (!this.offscreenCanvas || !this.offscreenCtx || !this.imageData) {
+      throw new Error(
+        `Offscreen canvas or ImageData is not initialized. Canvas: ${
+          this.offscreenCanvas !== null
+        }, Context: ${this.offscreenCtx !== null}, ImageData: ${
+          this.imageData !== null
+        }`
+      );
+    }
+    this.offscreenCtx.putImageData(this.imageData, 0, 0);
+
+    // ImageBitmapを作成
+    const newBitmap = await createImageBitmap(this.offscreenCanvas);
+
+    // キャッシュを更新
+    this.frameBitmaps[frameIndex]?.close();
+    this.frameBitmaps[frameIndex] = newBitmap;
+
+    // キャッシュされたストロークIDを更新
+    this.cachedStrokeIds.clear();
+    for (const stroke of drawing.strokes) {
+      this.cachedStrokeIds.add(stroke.id);
+    }
+    this.cachedDrawingHash = this.computeDrawingHash(drawing);
+    this.cachedJitterConfig = { ...jitterConfig }; // コピーを保存
+
+    return newBitmap;
+  }
+
+  /**
+   * ImageBitmapからメインキャンバスに描画
+   */
+  flushFromBitmap(bitmap: ImageBitmap): void {
+    const dpr = window.devicePixelRatio || 1;
+
+    this.ctx.save();
+    this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+    this.ctx.imageSmoothingEnabled = false;
+    this.ctx.drawImage(
+      bitmap,
+      0,
+      0,
+      this.lastWidth,
+      this.lastHeight,
+      0,
+      0,
+      this.lastWidth * dpr,
+      this.lastHeight * dpr
+    );
+    this.ctx.restore();
   }
 }
