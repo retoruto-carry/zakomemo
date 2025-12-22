@@ -215,8 +215,10 @@ export class WebAudioStrokeSound implements StrokeSound {
     // 複数のローパスフィルターでより滑らかに（プツプツノイズを抑制）
     let lpState1 = 0;
     let lpState2 = 0;
+    let lpState3 = 0; // 第3段階のスムージング（より滑らかに）
     const lpAlpha1 = 0.15; // 第1段階のスムージング
     const lpAlpha2 = 0.2; // 第2段階のスムージング（より強力）
+    const lpAlpha3 = 0.25; // 第3段階のスムージング（さらに滑らかに）
 
     for (let i = 0; i < data.length; i++) {
       const white = Math.random() * 2 - 1;
@@ -228,10 +230,11 @@ export class WebAudioStrokeSound implements StrokeSound {
       b5 = -0.7616 * b5 - white * 0.016898;
       const pink = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
       b6 = white * 0.115926;
-      // 2段階のローパスフィルターでプツプツノイズを抑制
+      // 3段階のローパスフィルターでプツプツノイズを抑制（より滑らかに）
       lpState1 = lpState1 * (1 - lpAlpha1) + pink * lpAlpha1;
       lpState2 = lpState2 * (1 - lpAlpha2) + lpState1 * lpAlpha2;
-      data[i] = lpState2 * 0.11;
+      lpState3 = lpState3 * (1 - lpAlpha3) + lpState2 * lpAlpha3;
+      data[i] = lpState3 * 0.11;
     }
 
     return buffer;
@@ -251,7 +254,8 @@ export class WebAudioStrokeSound implements StrokeSound {
       case "pen":
         return { type: "bandpass", frequency: 2800, Q: 0.6 };
       case "pattern":
-        return { type: "bandpass", frequency: 2400, Q: 0.4 };
+        // 塗りツールはより低い周波数と低いQ値でノイズを削減
+        return { type: "bandpass", frequency: 2000, Q: 0.3 };
       case "eraser":
         return { type: "bandpass", frequency: 4000, Q: 0.5 };
     }
