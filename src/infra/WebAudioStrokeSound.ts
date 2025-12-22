@@ -38,8 +38,11 @@ export class WebAudioStrokeSound implements StrokeSound {
    */
   private initializeAudioContext(): void {
     try {
+      // Safari互換性のためwebkitAudioContextもチェック
       const AudioContextClass =
-        window.AudioContext || (window as any).webkitAudioContext;
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext?: typeof AudioContext })
+          .webkitAudioContext;
       if (!AudioContextClass) return;
       this.audioContext = new AudioContextClass();
     } catch {

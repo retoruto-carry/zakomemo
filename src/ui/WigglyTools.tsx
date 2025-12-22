@@ -1099,9 +1099,10 @@ export const WigglyTools = React.forwardRef<
                     カスタムパレット
                   </span>
                   <div className="grid grid-cols-6 gap-3">
+                    {/* biome-ignore lint/suspicious/noArrayIndexKey: パレットの順序は固定されているため、インデックスをキーに使用 */}
                     {palette.map((c, idx) => (
                       <div
-                        key={`custom-palette-${idx}`}
+                        key={`custom-palette-${c}-${idx}`}
                         className="flex flex-col items-center gap-1.5 relative"
                       >
                         <div className="w-full aspect-square relative min-w-0">
