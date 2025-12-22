@@ -225,21 +225,14 @@ export function WigglyCanvas({
       isCancel: boolean = false,
     ): void => {
       const info = activePointersRef.current.get(ev.pointerId);
+      const isPrimaryPointer = ev.pointerId === primaryPointerIdRef.current;
 
       if (info) {
         activePointersRef.current.delete(ev.pointerId);
       }
 
-      // すべてのポインターが離れた場合、マルチタッチ状態をリセット
-      if (activePointersRef.current.size === 0) {
-        isMultiTouchRef.current = false;
-        primaryPointerIdRef.current = null;
-        if (isCancel) {
-          setEraserPos(null);
-        }
-      }
-
-      if (ev.pointerId === primaryPointerIdRef.current) {
+      // プライマリーポインターの場合、engine.pointerUp()を呼ぶ
+      if (isPrimaryPointer) {
         engine.pointerUp();
         primaryPointerIdRef.current = null;
         if (
@@ -247,6 +240,19 @@ export function WigglyCanvas({
           toolRef.current !== "eraser" ||
           ev.pointerType === "touch"
         ) {
+          setEraserPos(null);
+        }
+      }
+
+      // すべてのポインターが離れた場合、マルチタッチ状態をリセット
+      if (activePointersRef.current.size === 0) {
+        isMultiTouchRef.current = false;
+        // primaryPointerIdRef.currentは既に上でnullに設定されている可能性があるが、
+        // 念のため再度設定（マルチタッチの場合に備えて）
+        if (!isPrimaryPointer) {
+          primaryPointerIdRef.current = null;
+        }
+        if (isCancel && !isPrimaryPointer) {
           setEraserPos(null);
         }
       }
