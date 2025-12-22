@@ -122,9 +122,12 @@ export function WigglyEditor() {
       const ctx = offscreen.getContext("2d");
       if (!ctx) throw new Error("2D context not available");
 
-      // GIF出力用にdpr=1を明示（オフスクリーンキャンバスにはDPRスケーリングなし）
+      // GIF出力用（オフスクリーンキャンバスにはDPRスケーリングなし）
       // 現在の背景色を使用
-      const renderer = new CanvasRenderer(ctx, 1, backgroundColor);
+      const renderer = new CanvasRenderer({
+        ctx,
+        backgroundColor,
+      });
 
       const gifEncoder = new GifEncGifEncoder();
       gifEncoder.setBackgroundColor(backgroundColor);
@@ -375,17 +378,17 @@ export function WigglyEditor() {
         dsButtons={
           isDesktop
             ? {
-                onA: handleDSButtonA,
-                onB: handleDSButtonB,
-                onX: handleDSButtonX,
-                onY: handleDSButtonY,
-                onUp: handleDSButtonUp,
-                onDown: handleDSButtonDown,
-                onLeft: handleDSButtonLeft,
-                onRight: handleDSButtonRight,
-                onStart: handleDSButtonStart,
-                onSelect: handleDSButtonSelect,
-              }
+              onA: handleDSButtonA,
+              onB: handleDSButtonB,
+              onX: handleDSButtonX,
+              onY: handleDSButtonY,
+              onUp: handleDSButtonUp,
+              onDown: handleDSButtonDown,
+              onLeft: handleDSButtonLeft,
+              onRight: handleDSButtonRight,
+              onStart: handleDSButtonStart,
+              onSelect: handleDSButtonSelect,
+            }
             : undefined
         }
         canvas={

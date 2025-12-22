@@ -323,9 +323,9 @@ export function WigglyCanvas({
             width:
               eraserVariant === "eraserLine"
                 ? Math.max(
-                    width * ERASER_GUIDE.line.lengthMult,
-                    ERASER_GUIDE.minSize,
-                  )
+                  width * ERASER_GUIDE.line.lengthMult,
+                  ERASER_GUIDE.minSize,
+                )
                 : Math.max(width, ERASER_GUIDE.minSize),
             height:
               eraserVariant === "eraserLine"

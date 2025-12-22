@@ -3,19 +3,23 @@ import type { BrushPatternId, BrushVariant, Stroke } from "../core/types";
 import type { DrawingRenderer } from "../engine/ports";
 import { parseColorToRgb, resolveCssVariable } from "./colorUtil";
 
+interface CanvasRendererOptions {
+  ctx: CanvasRenderingContext2D;
+  backgroundColor?: string;
+}
+
 export class CanvasRenderer implements DrawingRenderer {
   private lastWidth = 0;
   private lastHeight = 0;
   private patternCache = new Map<string, CanvasPattern>();
   private backgroundColor: string;
 
-  constructor(
-    private ctx: CanvasRenderingContext2D,
-    _dpr?: number,
-    backgroundColor: string = "#fdfbf7",
-  ) {
-    this.backgroundColor = backgroundColor;
+  constructor(options: CanvasRendererOptions) {
+    this.ctx = options.ctx;
+    this.backgroundColor = options.backgroundColor ?? "#fdfbf7";
   }
+
+  private ctx: CanvasRenderingContext2D;
 
   setBackgroundColor(backgroundColor: string): void {
     this.backgroundColor = backgroundColor;
@@ -42,7 +46,7 @@ export class CanvasRenderer implements DrawingRenderer {
   renderStroke(
     stroke: Stroke,
     jitteredPoints: { x: number; y: number }[],
-    _elapsedTimeMs: number,
+    _elapsedTimeMs: number
   ): void {
     if (jitteredPoints.length === 0) return;
     const ctx = this.ctx;
@@ -81,7 +85,7 @@ export class CanvasRenderer implements DrawingRenderer {
       } else {
         const pattern = this.createWigglyPattern(
           stroke.brush.patternId,
-          stroke.brush.color,
+          stroke.brush.color
         );
         ctx.strokeStyle = pattern;
       }
