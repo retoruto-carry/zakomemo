@@ -18,6 +18,8 @@ function setupCanvasContext(
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("2D context not available");
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  // ピクセルアート用: アンチエイリアスを無効化
+  ctx.imageSmoothingEnabled = false;
   return ctx;
 }
 
