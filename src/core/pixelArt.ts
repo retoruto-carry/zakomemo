@@ -92,3 +92,51 @@ export function bresenhamLine(
 
   return points;
 }
+
+/**
+ * 太い線のための領域を計算（中心線の周囲のピクセルを取得）
+ * パフォーマンス最適化: 各中心線上のピクセルについて円を描画する代わりに、
+ * 中心線の周囲の領域を直接計算して塗りつぶす
+ * @param centerPixels 中心線上のピクセル座標の配列
+ * @param width 線の太さ
+ * @returns 塗りつぶすべきピクセル座標の配列（重複排除済み）
+ */
+export function calculateThickLinePixels(
+  centerPixels: Array<{ x: number; y: number }>,
+  width: number,
+): Array<{ x: number; y: number }> {
+  if (width <= 1) {
+    return centerPixels;
+  }
+
+  const pixels = new Map<number, Set<number>>(); // x -> Set<y>
+  const radius = Math.floor(width / 2);
+  const radiusSq = radius * radius;
+
+  // 各中心線上のピクセルについて、周囲のピクセルを計算
+  for (const center of centerPixels) {
+    // 円形の範囲内のピクセルを計算
+    for (let dy = -radius; dy <= radius; dy++) {
+      for (let dx = -radius; dx <= radius; dx++) {
+        // 距離の2乗でチェック（Math.sqrt()を避ける）
+        const dSq = dx * dx + dy * dy;
+        if (dSq <= radiusSq) {
+          const x = center.x + dx;
+          const y = center.y + dy;
+          if (!pixels.has(x)) pixels.set(x, new Set());
+          pixels.get(x)?.add(y);
+        }
+      }
+    }
+  }
+
+  // Mapから配列に変換
+  const result: Array<{ x: number; y: number }> = [];
+  pixels.forEach((ys, x) => {
+    ys.forEach((y) => {
+      result.push({ x, y });
+    });
+  });
+
+  return result;
+}

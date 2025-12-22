@@ -20,19 +20,24 @@ describe("colorUtil", () => {
 
   describe("parseColorToRgb", () => {
     it("should parse 6-digit hex colors", () => {
-      expect(parseColorToRgb("#ffffff")).toEqual({ r: 255, g: 255, b: 255 });
-      expect(parseColorToRgb("#000000")).toEqual({ r: 0, g: 0, b: 0 });
-      expect(parseColorToRgb("#ff0000")).toEqual({ r: 255, g: 0, b: 0 });
+      expect(parseColorToRgb("#ffffff")).toEqual({
+        r: 255,
+        g: 255,
+        b: 255,
+        a: 1,
+      });
+      expect(parseColorToRgb("#000000")).toEqual({ r: 0, g: 0, b: 0, a: 1 });
+      expect(parseColorToRgb("#ff0000")).toEqual({ r: 255, g: 0, b: 0, a: 1 });
     });
 
     it("should parse 3-digit hex colors", () => {
-      expect(parseColorToRgb("#fff")).toEqual({ r: 255, g: 255, b: 255 });
-      expect(parseColorToRgb("#000")).toEqual({ r: 0, g: 0, b: 0 });
-      expect(parseColorToRgb("#f00")).toEqual({ r: 255, g: 0, b: 0 });
+      expect(parseColorToRgb("#fff")).toEqual({ r: 255, g: 255, b: 255, a: 1 });
+      expect(parseColorToRgb("#000")).toEqual({ r: 0, g: 0, b: 0, a: 1 });
+      expect(parseColorToRgb("#f00")).toEqual({ r: 255, g: 0, b: 0, a: 1 });
     });
 
     it("should return black for invalid colors", () => {
-      expect(parseColorToRgb("invalid")).toEqual({ r: 0, g: 0, b: 0 });
+      expect(parseColorToRgb("invalid")).toEqual({ r: 0, g: 0, b: 0, a: 1 });
     });
   });
 });

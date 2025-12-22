@@ -34,4 +34,9 @@ export function renderDrawingAtTime(
     });
     renderer.renderStroke(stroke, jittered, elapsedTimeMs);
   }
+
+  // ImageDataベースの実装では、フレームごとに1回描画
+  if ("flush" in renderer && typeof renderer.flush === "function") {
+    renderer.flush();
+  }
 }
