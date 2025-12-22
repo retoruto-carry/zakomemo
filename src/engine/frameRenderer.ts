@@ -17,15 +17,19 @@ export function renderDrawingAtTime(
 
   for (const stroke of drawing.strokes) {
     const isPattern = stroke.brush.kind === "pattern";
+    const isEraser = stroke.kind === "erase";
     const jittered = stroke.points.map((point) => {
       let jitteredPoint: { x: number; y: number };
-      if (isPattern) {
+      if (isEraser) {
+        // 消しゴム: jitterを適用しない（元の座標をそのまま使用）
+        jitteredPoint = { x: point.x, y: point.y };
+      } else if (isPattern) {
         // パターン: 座標ベースのjitter（point.tを使わない）
         // 同じ座標には同じjitterが適用され、別ストロークでもずれない
         const jitter = computePatternJitter(point, elapsedTimeMs, jitterConfig);
         jitteredPoint = { x: point.x + jitter.dx, y: point.y + jitter.dy };
       } else {
-        // ペン/消しゴム: 点ごとのjitter（point.tを使う）
+        // ペン: 点ごとのjitter（point.tを使う）
         const jitter = computeJitter(point, elapsedTimeMs, jitterConfig);
         jitteredPoint = { x: point.x + jitter.dx, y: point.y + jitter.dy };
       }
