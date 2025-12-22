@@ -2,6 +2,10 @@ import { applyPalette, GIFEncoder, quantize } from "gifenc";
 import type { GifEncoder } from "@/engine/ports";
 import { parseColorToRgb } from "./colorUtil";
 
+/**
+ * gifencライブラリを使用したGIFエンコーダー実装
+ * 透明ピクセルを背景色でフラット化して色ズレを抑制
+ */
 export class GifEncGifEncoder implements GifEncoder {
   private encoder = GIFEncoder();
   private delayMs = 0;

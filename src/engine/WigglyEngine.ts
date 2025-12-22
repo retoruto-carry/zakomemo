@@ -29,6 +29,10 @@ export type EngineOptions = {
   jitterConfig: JitterConfig;
 };
 
+/**
+ * Wiggly描画エンジン
+ * 描画の管理、履歴管理、レンダリングループを担当
+ */
 export class WigglyEngine {
   private history: History<Drawing>;
   private renderer: DrawingRenderer;
@@ -93,6 +97,9 @@ export class WigglyEngine {
     this.pendingPattern = patternId;
   }
 
+  /**
+   * レンダラーがsetBackgroundColorメソッドを持っている場合のみ有効
+   */
   setBackgroundColor(backgroundColor: string): void {
     // CanvasRenderer has setBackgroundColor method
     if (
@@ -105,6 +112,9 @@ export class WigglyEngine {
     }
   }
 
+  /**
+   * 即座に再レンダリングを実行
+   */
   setJitterConfig(jitterConfig: JitterConfig): void {
     this.jitterConfig = jitterConfig;
     // Force immediate re-render with new jitter config
@@ -151,7 +161,7 @@ export class WigglyEngine {
         patternId: brushKind === "pattern" ? this.pendingPattern : undefined,
         variant,
       },
-      { x, y, t: now - this.startedAt },
+      { x, y, t: now - this.startedAt }
     );
 
     this.history = { ...this.history, present: updated };
@@ -191,7 +201,7 @@ export class WigglyEngine {
       variant,
       dist,
       now - this.strokeStartTime,
-      lastStroke.kind,
+      lastStroke.kind
     );
 
     this.strokeLength += dist;
@@ -207,7 +217,7 @@ export class WigglyEngine {
     const strokesWithWidth = updated.strokes.map((s) =>
       s.id === this.currentStrokeId
         ? { ...s, brush: { ...s.brush, width: adjustedWidth } }
-        : s,
+        : s
     );
 
     this.history = {
@@ -237,7 +247,7 @@ export class WigglyEngine {
     const base = this.strokeStartDrawing ?? this.history.present;
     this.history = pushHistory(
       { ...this.history, present: base, future: [] },
-      this.history.present,
+      this.history.present
     );
     this.strokeStartDrawing = null;
     this.currentStrokeId = null;
@@ -270,6 +280,9 @@ export class WigglyEngine {
     }
   }
 
+  /**
+   * 約45fpsで描画を再レンダリング
+   */
   private loop(): void {
     const now = this.time.now();
     const elapsed = now - this.startedAt;
@@ -279,7 +292,7 @@ export class WigglyEngine {
         this.history.present,
         this.renderer,
         this.jitterConfig,
-        elapsed,
+        elapsed
       );
       this.lastRenderAt = now;
     }
@@ -287,6 +300,9 @@ export class WigglyEngine {
     this.loopId = this.raf.request(this.loop);
   }
 
+  /**
+   * crypto.randomUUIDが利用可能な場合はそれを使用、そうでなければランダム文字列を生成
+   */
   private createStrokeId(): string {
     if (
       typeof crypto !== "undefined" &&

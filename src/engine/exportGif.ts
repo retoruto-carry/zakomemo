@@ -7,6 +7,9 @@ type RendererWithImageData = DrawingRenderer & {
   getImageData?: () => ImageData;
 };
 
+/**
+ * @throws レンダラーがgetImageDataメソッドを提供していない場合
+ */
 export async function exportDrawingAsGif(options: {
   drawing: Drawing;
   renderer: RendererWithImageData;

@@ -1,5 +1,8 @@
 import type { Stroke } from "../core/types";
 
+/**
+ * 描画レンダラーのインターフェース
+ */
 export interface DrawingRenderer {
   clear(width: number, height: number): void;
   renderStroke(
@@ -10,15 +13,24 @@ export interface DrawingRenderer {
   clearPatternCache(): void;
 }
 
+/**
+ * 時間提供者のインターフェース
+ */
 export interface TimeProvider {
   now(): number;
 }
 
+/**
+ * アニメーションフレームスケジューラーのインターフェース
+ */
 export interface RafScheduler {
   request(cb: () => void): number;
   cancel(id: number): void;
 }
 
+/**
+ * GIFエンコーダーのインターフェース
+ */
 export interface GifEncoder {
   begin(width: number, height: number, fps: number): void;
   addFrame(imageData: ImageData): void;
@@ -26,6 +38,9 @@ export interface GifEncoder {
   setBackgroundColor?(backgroundColor: string): void;
 }
 
+/**
+ * ストローク音の情報
+ */
 export type StrokeSoundInfo = {
   tool: "pen" | "pattern" | "eraser";
   speed: number;
@@ -33,6 +48,9 @@ export type StrokeSoundInfo = {
   timeSinceStart: number;
 };
 
+/**
+ * ストローク音のインターフェース
+ */
 export interface StrokeSound {
   onStrokeStart(info: StrokeSoundInfo): void;
   onStrokeUpdate(info: StrokeSoundInfo): void;

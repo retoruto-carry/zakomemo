@@ -17,10 +17,7 @@ export class UISoundManager {
   private maxConcurrentSounds: number = 5;
 
   /**
-   * 音源を登録する
-   * @param id 音源の識別子
-   * @param src 音源ファイルのパス
-   * @param options Howlのオプション
+   * 既に登録されている場合は破棄して再登録
    */
   registerSound(
     id: string,
@@ -45,9 +42,6 @@ export class UISoundManager {
   }
 
   /**
-   * 音を再生する
-   * @param id 音源の識別子
-   * @param options 再生オプション
    * @returns 再生ID（停止時に使用）
    */
   play(id: string, options?: PlayOptions): number | null {
@@ -89,10 +83,6 @@ export class UISoundManager {
     return soundId;
   }
 
-  /**
-   * 音を停止する
-   * @param id 音源の識別子
-   */
   stop(id: string): void {
     const sound = this.sounds.get(id);
     if (sound) {
@@ -101,19 +91,12 @@ export class UISoundManager {
     }
   }
 
-  /**
-   * すべての音を停止する
-   */
   stopAll(): void {
     for (const [id] of this.sounds) {
       this.stop(id);
     }
   }
 
-  /**
-   * 音源を削除する
-   * @param id 音源の識別子
-   */
   unregister(id: string): void {
     this.stop(id);
     const sound = this.sounds.get(id);
@@ -123,27 +106,16 @@ export class UISoundManager {
     }
   }
 
-  /**
-   * すべての音源を削除する
-   */
   unregisterAll(): void {
     for (const [id] of this.sounds) {
       this.unregister(id);
     }
   }
 
-  /**
-   * デフォルトボリュームを設定する
-   * @param volume ボリューム（0.0〜1.0）
-   */
   setDefaultVolume(volume: number): void {
     this.defaultVolume = Math.max(0, Math.min(1, volume));
   }
 
-  /**
-   * 最大同時再生数を設定する
-   * @param max 最大同時再生数
-   */
   setMaxConcurrentSounds(max: number): void {
     this.maxConcurrentSounds = Math.max(1, max);
   }

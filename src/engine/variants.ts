@@ -11,6 +11,9 @@ export const defaultEraserWidth: Record<EraserVariant, number> = {
   eraserLine: 14,
 };
 
+/**
+ * 現在の実装ではベース幅をそのまま返す（将来的に拡張可能）
+ */
 export function resolveWidthVariant(
   base: number,
   _variant: PenVariant | EraserVariant,

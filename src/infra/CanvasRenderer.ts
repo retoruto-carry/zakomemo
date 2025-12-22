@@ -3,11 +3,20 @@ import type { BrushPatternId, BrushVariant, Stroke } from "../core/types";
 import type { DrawingRenderer } from "../engine/ports";
 import { parseColorToRgb, resolveCssVariable } from "./colorUtil";
 
+/**
+ * CanvasRendererの初期化オプション
+ */
 interface CanvasRendererOptions {
+  /** Canvas 2Dコンテキスト */
   ctx: CanvasRenderingContext2D;
-  backgroundColor?: string;
+  /** 背景色（CSS色文字列） */
+  backgroundColor: string;
 }
 
+/**
+ * Canvas 2D APIを使用して描画を行うレンダラー実装
+ * DrawingRendererインターフェースを実装し、ストロークの描画とキャンバスの管理を行う
+ */
 export class CanvasRenderer implements DrawingRenderer {
   private lastWidth = 0;
   private lastHeight = 0;
@@ -16,7 +25,7 @@ export class CanvasRenderer implements DrawingRenderer {
 
   constructor(options: CanvasRendererOptions) {
     this.ctx = options.ctx;
-    this.backgroundColor = options.backgroundColor ?? "#fdfbf7";
+    this.backgroundColor = options.backgroundColor;
   }
 
   private ctx: CanvasRenderingContext2D;
@@ -25,6 +34,11 @@ export class CanvasRenderer implements DrawingRenderer {
     this.backgroundColor = backgroundColor;
   }
 
+  /**
+   * 内部で保持しているキャンバスサイズ（lastWidth/lastHeight）も更新する
+   * @param width 論理ピクセル
+   * @param height 論理ピクセル
+   */
   clear(width: number, height: number): void {
     this.lastWidth = width;
     this.lastHeight = height;
@@ -38,9 +52,8 @@ export class CanvasRenderer implements DrawingRenderer {
   }
 
   /**
-   * ストロークを描画
-   * @param _elapsedTimeMs エンジン開始からの経過時間（ミリ秒）
-   *   DrawingRendererインターフェースの要件として必要だが、現在の実装では未使用
+   * 1点のみの場合は円として描画し、複数点の場合はパスとして描画する
+   * @param _elapsedTimeMs DrawingRendererインターフェースの要件として必要だが、現在の実装では未使用
    *   （パターンタイルは静的で時間による歪みを適用しないため）
    */
   renderStroke(
@@ -130,6 +143,9 @@ export class CanvasRenderer implements DrawingRenderer {
     ctx.restore();
   }
 
+  /**
+   * 最後にclear()で設定されたサイズ（lastWidth/lastHeight）の範囲を取得する
+   */
   getImageData(): ImageData {
     return this.ctx.getImageData(0, 0, this.lastWidth, this.lastHeight);
   }
@@ -139,8 +155,8 @@ export class CanvasRenderer implements DrawingRenderer {
   }
 
   /**
-   * パターンタイルを生成してキャッシュ
-   * パターンタイルは静的で、時間による歪みは適用しない
+   * 同じpatternIdとcolorの組み合わせはキャッシュから返される
+   * @throws パターン定義が見つからない場合、またはパターン生成に失敗した場合
    */
   private createWigglyPattern(patternId: string, color: string): CanvasPattern {
     // パターンタイルは静的なので、色とパターンIDのみでキャッシュ

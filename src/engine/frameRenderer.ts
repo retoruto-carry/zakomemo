@@ -3,6 +3,9 @@ import { computeJitter, computePatternJitter } from "../core/jitter";
 import type { Drawing } from "../core/types";
 import type { DrawingRenderer } from "./ports";
 
+/**
+ * パターンブラシと通常ブラシで異なるジッター計算を使用
+ */
 export function renderDrawingAtTime(
   drawing: Drawing,
   renderer: DrawingRenderer,

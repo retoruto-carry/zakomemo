@@ -1,3 +1,6 @@
+/**
+ * CSS変数を解決（SSR時はそのまま返す）
+ */
 export function resolveCssVariable(color: string): string {
   if (typeof window === "undefined") return color;
   if (!color.startsWith("var(")) return color;
@@ -12,6 +15,10 @@ export function resolveCssVariable(color: string): string {
   return value || color;
 }
 
+/**
+ * CSS色文字列をRGBに変換（3桁/6桁のhex形式に対応）
+ * パースに失敗した場合は黒を返す
+ */
 export function parseColorToRgb(color: string): {
   r: number;
   g: number;
