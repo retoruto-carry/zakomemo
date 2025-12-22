@@ -37,6 +37,9 @@ export function createWigglyEngine(
     ctx,
     backgroundColor,
   });
+  // レンダラーを初期サイズで初期化（最初のフレーム描画前に必須）
+  renderer.clear(logicalWidth, logicalHeight);
+
   const time = new RealTimeProvider();
   const raf = new BrowserRafScheduler();
   const sound = new WebAudioStrokeSound();

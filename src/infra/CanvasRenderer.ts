@@ -610,6 +610,15 @@ export class CanvasRenderer implements DrawingRenderer {
       );
     }
 
+    // ImageDataが初期化されていない場合は初期化
+    if (
+      !this.imageData ||
+      this.lastWidth !== drawing.width ||
+      this.lastHeight !== drawing.height
+    ) {
+      this.clear(drawing.width, drawing.height);
+    }
+
     // フレームごとの経過時間を計算（3フレームを均等に分散）
     // フレーム間隔: 1秒 / (frequency * FRAME_COUNT)
     const frameInterval = 1000 / (jitterConfig.frequency * FRAME_COUNT);

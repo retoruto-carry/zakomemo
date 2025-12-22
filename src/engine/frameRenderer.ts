@@ -117,6 +117,9 @@ export type RenderDrawingAtTimeParams = {
  *
  * @param params 描画パラメータ
  */
+// 最新のフレームリクエストを追跡（競合状態を防ぐため）
+let latestRequestId = 0;
+
 export function renderDrawingAtTime(params: RenderDrawingAtTimeParams): void {
   const { drawing, renderer, jitterConfig, elapsedTimeMs } = params;
   // ImageBitmapキャッシュを使用する場合は、getFrameBitmapを使用
@@ -129,6 +132,10 @@ export function renderDrawingAtTime(params: RenderDrawingAtTimeParams): void {
       (elapsedTimeMs / frameInterval) % frameCount,
     );
 
+    // リクエストIDをインクリメント（最新のリクエストを追跡）
+    latestRequestId += 1;
+    const requestId = latestRequestId;
+
     // 非同期でImageBitmapを取得して描画
     renderer
       .getFrameBitmap({
@@ -138,9 +145,18 @@ export function renderDrawingAtTime(params: RenderDrawingAtTimeParams): void {
         elapsedTimeMs,
       })
       .then((bitmap: ImageBitmap) => {
+        // このリクエストが最新でない場合は無視（競合状態を防ぐ）
+        if (requestId !== latestRequestId) {
+          bitmap.close(); // 使用しないImageBitmapは破棄
+          return;
+        }
         renderer.flushFromBitmap(bitmap);
       })
       .catch((err: unknown) => {
+        // このリクエストが最新でない場合は無視
+        if (requestId !== latestRequestId) {
+          return;
+        }
         console.error("Failed to get frame bitmap:", err);
         // フォールバック: 通常の描画
         renderDrawingAtTimeFallback({
