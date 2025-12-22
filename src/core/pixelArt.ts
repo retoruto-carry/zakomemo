@@ -10,6 +10,10 @@
  * @returns スナップされた座標
  */
 export function snapToPixel(x: number, y: number): { x: number; y: number } {
+  // NaN/Infinityの場合は0にフォールバック（防御的プログラミング）
+  if (!Number.isFinite(x) || !Number.isFinite(y)) {
+    return { x: 0, y: 0 };
+  }
   return {
     x: Math.round(x),
     y: Math.round(y),
@@ -23,6 +27,10 @@ export function snapToPixel(x: number, y: number): { x: number; y: number } {
  * @returns スナップされたブラシサイズ
  */
 export function snapBrushWidth(width: number): number {
+  // NaN/Infinityの場合は1にフォールバック（防御的プログラミング）
+  if (!Number.isFinite(width)) {
+    return 1;
+  }
   return Math.max(1, Math.round(width));
 }
 

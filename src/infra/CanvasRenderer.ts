@@ -54,7 +54,7 @@ export class CanvasRenderer implements DrawingRenderer {
   /**
    * ピクセル単位でストロークを描画
    * ソリッド/消しゴムはBresenhamアルゴリズムでピクセル単位描画
-   * パターンは後で実装（現時点では従来の方法を使用）
+   * パターンはピクセル単位で実装
    * @param _elapsedTimeMs DrawingRendererインターフェースの要件として必要だが、現在の実装では未使用
    */
   renderStroke(
@@ -64,7 +64,7 @@ export class CanvasRenderer implements DrawingRenderer {
   ): void {
     if (jitteredPoints.length === 0) return;
 
-    // パターンの場合は従来の方法を使用（フェーズ5で実装予定）
+    // パターンの場合はピクセル単位描画
     if (stroke.brush.kind === "pattern") {
       this.renderPatternStroke(stroke, jitteredPoints);
       return;
@@ -248,10 +248,21 @@ export class CanvasRenderer implements DrawingRenderer {
     g: number,
     b: number,
   ): void {
+    // エッジケース: タイルサイズが0またはalpha配列が空の場合は描画しない
+    if (tile.width <= 0 || tile.height <= 0 || tile.alpha.length === 0) {
+      return;
+    }
+
     // タイル内の位置を計算（繰り返しパターン）
     const tileX = ((x % tile.width) + tile.width) % tile.width;
     const tileY = ((y % tile.height) + tile.height) % tile.height;
     const alphaIndex = tileY * tile.width + tileX;
+
+    // 配列の範囲外アクセスを防ぐ
+    if (alphaIndex < 0 || alphaIndex >= tile.alpha.length) {
+      return;
+    }
+
     const alpha = tile.alpha[alphaIndex];
 
     if (alpha > 0) {
@@ -271,6 +282,12 @@ export class CanvasRenderer implements DrawingRenderer {
               const tileX2 = ((px % tile.width) + tile.width) % tile.width;
               const tileY2 = ((py % tile.height) + tile.height) % tile.height;
               const alphaIndex2 = tileY2 * tile.width + tileX2;
+
+              // 配列の範囲外アクセスを防ぐ
+              if (alphaIndex2 < 0 || alphaIndex2 >= tile.alpha.length) {
+                continue;
+              }
+
               const alpha2 = tile.alpha[alphaIndex2];
               if (alpha2 > 0) {
                 ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${alpha2})`;

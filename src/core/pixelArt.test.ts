@@ -21,6 +21,16 @@ describe("pixelArt", () => {
       const result = snapToPixel(10.5, 20.5);
       expect(result).toEqual({ x: 11, y: 21 });
     });
+
+    test("NaNの場合は0にフォールバック", () => {
+      const result = snapToPixel(NaN, 20);
+      expect(result).toEqual({ x: 0, y: 0 });
+    });
+
+    test("Infinityの場合は0にフォールバック", () => {
+      const result = snapToPixel(Infinity, -Infinity);
+      expect(result).toEqual({ x: 0, y: 0 });
+    });
   });
 
   describe("snapBrushWidth", () => {
@@ -42,6 +52,15 @@ describe("pixelArt", () => {
       expect(snapBrushWidth(0)).toBe(1);
       expect(snapBrushWidth(-1)).toBe(1);
       expect(snapBrushWidth(-10)).toBe(1);
+    });
+
+    test("NaNの場合は1にフォールバック", () => {
+      expect(snapBrushWidth(NaN)).toBe(1);
+    });
+
+    test("Infinityの場合は1にフォールバック", () => {
+      expect(snapBrushWidth(Infinity)).toBe(1);
+      expect(snapBrushWidth(-Infinity)).toBe(1);
     });
   });
 
