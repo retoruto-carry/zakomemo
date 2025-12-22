@@ -212,6 +212,11 @@ export const WigglyTools = React.forwardRef<
     "palette" | "body" | "background" | "jitter"
   >("palette");
   const undoGifRef = useRef<AnimatedGifHandle>(null);
+  const playWidthSliderSound = useRef(
+    throttle(() => {
+      uiSoundManager.play("slider-change", { stopPrevious: true });
+    }, 100),
+  ).current;
 
   // モバイルで「本体色」タブが選択されている場合、自動的に「背景色」タブに切り替え
   useEffect(() => {
@@ -219,11 +224,6 @@ export const WigglyTools = React.forwardRef<
       setSettingsTab("background");
     }
   }, [settingsTab]);
-  const playWidthSliderSound = useRef(
-    throttle(() => {
-      uiSoundManager.play("slider-change", { stopPrevious: true });
-    }, 100),
-  ).current;
 
   useImperativeHandle(ref, () => ({
     playUndoAnimation: () => {
