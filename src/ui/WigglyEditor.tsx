@@ -386,17 +386,17 @@ export function WigglyEditor() {
         dsButtons={
           isDesktop
             ? {
-                onA: handleDSButtonA,
-                onB: handleDSButtonB,
-                onX: handleDSButtonX,
-                onY: handleDSButtonY,
-                onUp: handleDSButtonUp,
-                onDown: handleDSButtonDown,
-                onLeft: handleDSButtonLeft,
-                onRight: handleDSButtonRight,
-                onStart: handleDSButtonStart,
-                onSelect: handleDSButtonSelect,
-              }
+              onA: handleDSButtonA,
+              onB: handleDSButtonB,
+              onX: handleDSButtonX,
+              onY: handleDSButtonY,
+              onUp: handleDSButtonUp,
+              onDown: handleDSButtonDown,
+              onLeft: handleDSButtonLeft,
+              onRight: handleDSButtonRight,
+              onStart: handleDSButtonStart,
+              onSelect: handleDSButtonSelect,
+            }
             : undefined
         }
         canvas={
