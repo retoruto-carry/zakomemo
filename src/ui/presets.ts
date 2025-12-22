@@ -1,11 +1,11 @@
 import type { Drawing } from "@/core/types";
 
 /**
- * デフォルトの描画サイズ
+ * デフォルトの描画サイズ（うごめもの論理サイズ: 320×240px）
  */
 export const DEFAULT_DRAWING: Drawing = {
-  width: 960,
-  height: 640,
+  width: 320,
+  height: 240,
   strokes: [],
 };
 

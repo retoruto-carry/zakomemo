@@ -12,7 +12,7 @@ export function MobileLayout({ canvas, tools }: LayoutProps) {
     <div className="fixed inset-0 flex flex-col bg-(--ugo-body-bg) touch-none transition-colors duration-300">
       {/* Top: Canvas Area */}
       <div className="w-full bg-(--ugo-bezel-bg) flex items-center justify-center p-2 shadow-md z-10 border-b-2 border-(--ugo-bezel-border)">
-        <div className="relative w-full aspect-[3/2] max-h-[60vh] bg-white rounded-lg overflow-hidden shadow-inner ring-4 ring-(--ugo-body-bg)">
+        <div className="relative w-full aspect-[4/3] max-h-[60vh] bg-white rounded-lg overflow-hidden shadow-inner ring-4 ring-(--ugo-body-bg)">
           {canvas}
         </div>
       </div>
