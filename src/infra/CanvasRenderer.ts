@@ -59,7 +59,7 @@ export class CanvasRenderer implements DrawingRenderer {
   renderStroke(
     stroke: Stroke,
     jitteredPoints: { x: number; y: number }[],
-    _elapsedTimeMs: number
+    _elapsedTimeMs: number,
   ): void {
     if (jitteredPoints.length === 0) return;
     const ctx = this.ctx;
@@ -98,7 +98,7 @@ export class CanvasRenderer implements DrawingRenderer {
       } else {
         const pattern = this.createWigglyPattern(
           stroke.brush.patternId,
-          stroke.brush.color
+          stroke.brush.color,
         );
         ctx.strokeStyle = pattern;
       }

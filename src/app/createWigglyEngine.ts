@@ -9,7 +9,7 @@ import { WebAudioStrokeSound } from "@/infra/WebAudioStrokeSound";
 function setupCanvasContext(
   canvas: HTMLCanvasElement,
   logicalWidth: number,
-  logicalHeight: number
+  logicalHeight: number,
 ): CanvasRenderingContext2D {
   const dpr = window.devicePixelRatio || 1;
   canvas.width = logicalWidth * dpr;
@@ -25,7 +25,7 @@ export function createWigglyEngine(
   canvas: HTMLCanvasElement,
   initialDrawing: Drawing,
   backgroundColor: string = "#fdfbf7",
-  jitterConfig: JitterConfig = { amplitude: 1.2, frequency: 0.008 }
+  jitterConfig: JitterConfig = { amplitude: 1.2, frequency: 0.008 },
 ): WigglyEngine {
   const logicalWidth = initialDrawing.width;
   const logicalHeight = initialDrawing.height;

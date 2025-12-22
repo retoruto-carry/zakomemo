@@ -161,7 +161,7 @@ export class WigglyEngine {
         patternId: brushKind === "pattern" ? this.pendingPattern : undefined,
         variant,
       },
-      { x, y, t: now - this.startedAt }
+      { x, y, t: now - this.startedAt },
     );
 
     this.history = { ...this.history, present: updated };
@@ -201,7 +201,7 @@ export class WigglyEngine {
       variant,
       dist,
       now - this.strokeStartTime,
-      lastStroke.kind
+      lastStroke.kind,
     );
 
     this.strokeLength += dist;
@@ -217,7 +217,7 @@ export class WigglyEngine {
     const strokesWithWidth = updated.strokes.map((s) =>
       s.id === this.currentStrokeId
         ? { ...s, brush: { ...s.brush, width: adjustedWidth } }
-        : s
+        : s,
     );
 
     this.history = {
@@ -247,7 +247,7 @@ export class WigglyEngine {
     const base = this.strokeStartDrawing ?? this.history.present;
     this.history = pushHistory(
       { ...this.history, present: base, future: [] },
-      this.history.present
+      this.history.present,
     );
     this.strokeStartDrawing = null;
     this.currentStrokeId = null;
@@ -292,7 +292,7 @@ export class WigglyEngine {
         this.history.present,
         this.renderer,
         this.jitterConfig,
-        elapsed
+        elapsed,
       );
       this.lastRenderAt = now;
     }
