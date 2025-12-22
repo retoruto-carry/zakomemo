@@ -125,9 +125,10 @@ export function renderDrawingAtTime(params: RenderDrawingAtTimeParams): void {
   // ImageBitmapキャッシュを使用する場合は、getFrameBitmapを使用
   if (isImageBitmapCacheRenderer(renderer)) {
     const frameCount = renderer.getFrameCount();
-    // 3フレームを周期的に切り替える（jitterの周期を考慮）
-    // フレーム間隔: 1秒 / (frequency * frameCount)
-    const frameInterval = 1000 / (jitterConfig.frequency * frameCount);
+    // 3フレームを周期的に切り替える
+    // アニメーション速度: 10fps（100ms/フレーム）で固定
+    // これにより、3フレームで約300ms（0.3秒）で1サイクル
+    const frameInterval = 100; // 100ms = 10fps
     const currentFrameIndex = Math.floor(
       (elapsedTimeMs / frameInterval) % frameCount,
     );

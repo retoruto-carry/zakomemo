@@ -35,7 +35,8 @@ export async function exportDrawingAsGif(options: {
     const totalFrames = Math.ceil(durationMs / frameInterval);
 
     // 3フレームのアニメーションをループさせる
-    const jitterFrameInterval = 1000 / (jitterConfig.frequency * frameCount);
+    // アニメーション速度: 10fps（100ms/フレーム）で固定
+    const jitterFrameInterval = 100; // 100ms = 10fps
 
     for (let i = 0; i < totalFrames; i += 1) {
       const elapsedTimeMs = i * frameInterval;

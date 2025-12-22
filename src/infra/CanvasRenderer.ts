@@ -620,8 +620,8 @@ export class CanvasRenderer implements DrawingRenderer {
     }
 
     // フレームごとの経過時間を計算（3フレームを均等に分散）
-    // フレーム間隔: 1秒 / (frequency * FRAME_COUNT)
-    const frameInterval = 1000 / (jitterConfig.frequency * FRAME_COUNT);
+    // アニメーション速度: 10fps（100ms/フレーム）で固定
+    const frameInterval = 100; // 100ms = 10fps
     const frameElapsedTimeMs = frameIndex * frameInterval;
 
     const drawingHash = this.computeDrawingHash(drawing);
