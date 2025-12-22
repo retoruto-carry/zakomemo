@@ -763,6 +763,8 @@ export class CanvasRenderer implements DrawingRenderer {
     }
     // jitterConfigも更新（差分描画でもjitterConfigが変わっている可能性がある）
     this.cachedJitterConfig = { ...jitterConfig }; // コピーを保存
+    // Drawingのハッシュも更新（差分描画後もキャッシュが有効になるように）
+    this.cachedDrawingHash = this.computeDrawingHash(drawing);
 
     return newBitmap;
   }
