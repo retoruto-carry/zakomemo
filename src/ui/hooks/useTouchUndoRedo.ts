@@ -2,6 +2,11 @@
 
 import { useEffect, useRef } from "react";
 
+// ジェスチャー検出の閾値定数
+const DEFAULT_MAX_TAP_DISTANCE_PX = 15;
+const DEFAULT_MIN_PINCH_DISTANCE_PX = 30;
+const DEFAULT_MIN_PINCH_DURATION_MS = 150;
+
 interface TouchInfo {
   id: number;
   startX: number;
@@ -17,14 +22,16 @@ interface UseTouchUndoRedoOptions {
   onRedo: () => void;
   /** タップと判定する最大時間（ミリ秒）。デフォルト: 300ms */
   maxTapDuration?: number;
-  /** タップと判定する最大移動距離（ピクセル）。デフォルト: 10px */
+  /** タップと判定する最大移動距離（ピクセル）。デフォルト: 15px */
   maxTapDistance?: number;
-  /** ピンチと判定する最小移動距離（ピクセル）。デフォルト: 20px */
+  /** ピンチと判定する最小移動距離（ピクセル）。デフォルト: 30px */
   minPinchDistance?: number;
-  /** ピンチと判定する最小接触時間（ミリ秒）。デフォルト: 100ms */
+  /** ピンチと判定する最小接触時間（ミリ秒）。デフォルト: 150ms */
   minPinchDuration?: number;
   /** 有効にするかどうか。デフォルト: true */
   enabled?: boolean;
+  /** イベントリスナーを追加する要素。デフォルト: document */
+  target?: HTMLElement | null;
 }
 
 /**
@@ -32,23 +39,39 @@ interface UseTouchUndoRedoOptions {
  * - 二本指タップ: undo
  * - 三本指タップ: redo
  * - ピンチインアウトと区別するため、接触時間と移動距離を考慮
+ *
+ * iOS/Androidの標準的なジェスチャー検出に基づいて実装
  */
 export function useTouchUndoRedo({
   onUndo,
   onRedo,
   maxTapDuration = 300,
-  maxTapDistance = 10,
-  minPinchDistance = 20,
-  minPinchDuration = 100,
+  maxTapDistance = DEFAULT_MAX_TAP_DISTANCE_PX,
+  minPinchDistance = DEFAULT_MIN_PINCH_DISTANCE_PX,
+  minPinchDuration = DEFAULT_MIN_PINCH_DURATION_MS,
   enabled = true,
+  target = null,
 }: UseTouchUndoRedoOptions) {
   const touchesRef = useRef<Map<number, TouchInfo>>(new Map());
+  const targetRef = useRef<HTMLElement | Document | null>(null);
+  // コールバックをrefで保持して、setTimeout内でも最新のコールバックを呼び出す
+  const onUndoRef = useRef(onUndo);
+  const onRedoRef = useRef(onRedo);
+
+  // コールバックのrefを更新
+  useEffect(() => {
+    onUndoRef.current = onUndo;
+    onRedoRef.current = onRedo;
+  }, [onUndo, onRedo]);
 
   useEffect(() => {
     if (!enabled) return;
 
+    // ターゲット要素を決定（nullの場合はdocument）
+    targetRef.current = target || document;
+
     const handleTouchStart = (ev: TouchEvent) => {
-      // すべてのタッチが終了した後に新しいタッチが開始された場合のみクリア
+      // 新しいジェスチャーが開始された場合（すべてのタッチが終了した後）のみクリア
       // これにより、2本指や3本指で同時にタップした場合でも、すべてのタッチ情報が保持される
       if (ev.touches.length === ev.changedTouches.length) {
         touchesRef.current.clear();
@@ -95,19 +118,18 @@ export function useTouchUndoRedo({
       // 指を順番に離した場合でも、すべての指の情報を保持するため、
       // すべての指が離れるまでtouchesRefから情報を削除しない
       if (ev.touches.length === 0) {
-        // タッチ情報が空の場合は早期リターン（不要な配列生成を避ける）
+        // タッチ情報が空の場合は早期リターン
         if (touchesRef.current.size === 0) {
           return;
         }
 
         const activeTouches = Array.from(touchesRef.current.values());
-
         const touchCount = activeTouches.length;
 
         // 2本指または3本指の場合のみundo/redoを処理
         if (touchCount === 2 || touchCount === 3) {
-          // ピンチインアウトの判定
-          const maxDistance = Math.max(
+          // 各タッチの移動距離と時間を計算
+          const maxTotalDistance = Math.max(
             ...activeTouches.map((t) => t.totalDistance),
           );
           const minDuration = Math.min(
@@ -119,8 +141,11 @@ export function useTouchUndoRedo({
             ),
           );
 
+          // ピンチジェスチャーの判定
+          // 1. 累積移動距離が閾値を超えている
+          // 2. または、接触時間が長く、開始位置からの距離が閾値を超えている
           const isPinch =
-            maxDistance >= minPinchDistance ||
+            maxTotalDistance >= minPinchDistance ||
             (minDuration >= minPinchDuration &&
               maxDistanceFromStart >= minPinchDistance);
 
@@ -129,21 +154,29 @@ export function useTouchUndoRedo({
             // すべてのタッチがタップ条件を満たしているか確認
             const allTaps = activeTouches.every((t) => {
               const duration = now - t.startTime;
-              const distance = Math.hypot(
+              const distanceFromStart = Math.hypot(
                 t.lastX - t.startX,
                 t.lastY - t.startY,
               );
-              return duration < maxTapDuration && distance < maxTapDistance;
+              return (
+                duration < maxTapDuration &&
+                distanceFromStart < maxTapDistance &&
+                t.totalDistance < maxTapDistance * 2
+              );
             });
 
             if (allTaps) {
-              if (touchCount === 2) {
-                // 二本指タップ: undo
-                onUndo();
-              } else if (touchCount === 3) {
-                // 三本指タップ: redo
-                onRedo();
-              }
+              // 短いディレイを追加して、他のジェスチャーとの競合を避ける
+              // refを使用して最新のコールバックを確実に呼び出す
+              setTimeout(() => {
+                if (touchCount === 2) {
+                  // 二本指タップ: undo
+                  onUndoRef.current();
+                } else if (touchCount === 3) {
+                  // 三本指タップ: redo
+                  onRedoRef.current();
+                }
+              }, 0);
             }
           }
         }
@@ -151,6 +184,9 @@ export function useTouchUndoRedo({
         touchesRef.current.clear();
       } else {
         // まだタッチが残っている場合、終了したタッチのみを削除
+        // 指を順番に離した場合でも、すべての指が離れるまでタッチ情報を保持するため、
+        // 終了したタッチのみを削除し、残りのタッチ情報は保持する
+        // これにより、2本指や3本指で順次離した場合でも正しく検出できる
         for (let i = 0; i < ev.changedTouches.length; i += 1) {
           const touch = ev.changedTouches[i];
           touchesRef.current.delete(touch.identifier);
@@ -162,33 +198,52 @@ export function useTouchUndoRedo({
       touchesRef.current.clear();
     };
 
-    // 画面全体にイベントリスナーを追加
-    document.addEventListener("touchstart", handleTouchStart, {
-      passive: true,
-    });
-    document.addEventListener("touchmove", handleTouchMove, {
-      passive: true,
-    });
-    document.addEventListener("touchend", handleTouchEnd, {
-      passive: true,
-    });
-    document.addEventListener("touchcancel", handleTouchCancel, {
-      passive: true,
-    });
+    const element = targetRef.current;
+    const options = { passive: true };
+
+    // イベントリスナーを追加
+    element.addEventListener(
+      "touchstart",
+      handleTouchStart as EventListener,
+      options,
+    );
+    element.addEventListener(
+      "touchmove",
+      handleTouchMove as EventListener,
+      options,
+    );
+    element.addEventListener(
+      "touchend",
+      handleTouchEnd as EventListener,
+      options,
+    );
+    element.addEventListener(
+      "touchcancel",
+      handleTouchCancel as EventListener,
+      options,
+    );
 
     return () => {
-      document.removeEventListener("touchstart", handleTouchStart);
-      document.removeEventListener("touchmove", handleTouchMove);
-      document.removeEventListener("touchend", handleTouchEnd);
-      document.removeEventListener("touchcancel", handleTouchCancel);
+      element.removeEventListener(
+        "touchstart",
+        handleTouchStart as EventListener,
+      );
+      element.removeEventListener(
+        "touchmove",
+        handleTouchMove as EventListener,
+      );
+      element.removeEventListener("touchend", handleTouchEnd as EventListener);
+      element.removeEventListener(
+        "touchcancel",
+        handleTouchCancel as EventListener,
+      );
     };
   }, [
-    onUndo,
-    onRedo,
     maxTapDuration,
     maxTapDistance,
     minPinchDistance,
     minPinchDuration,
     enabled,
+    target,
   ]);
 }
