@@ -796,6 +796,7 @@ export const WigglyTools = React.forwardRef<
             type="range"
             min={MIN_PEN_WIDTH}
             max={MAX_PEN_WIDTH}
+            step={1}
             value={brushWidth}
             onChange={(e) => {
               setBrushWidth(Number(e.target.value));
