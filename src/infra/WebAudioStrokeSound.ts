@@ -8,7 +8,7 @@ import type { StrokeSound, StrokeSoundInfo } from "../engine/ports";
  * - 速度が低い場合は音量を0に（音は自然にフェードアウト）
  * - 速度に応じて音量と周波数を調整
  * - パラメータ更新をスロットルしてプツプツノイズを防止
- * - 長いノイズバッファでループノイズを削減
+ * - ノイズバッファを最適化してループノイズと遅延を削減
  * - exponentialRampToValueAtTimeでより滑らかな変化を実現
  */
 export class WebAudioStrokeSound implements StrokeSound {
@@ -46,8 +46,11 @@ export class WebAudioStrokeSound implements StrokeSound {
   private static readonly NOISE_BUFFER_DURATION = 0.3; // ノイズバッファの長さ（秒）- バッファ作成の遅延を最小化（0.3秒でもループノイズは発生しにくい）
   private static readonly SMOOTH_TIME = 0.2; // パラメータ変化のスムージング時間（秒）
   private static readonly FADE_IN_TIME = 0.03; // フェードイン時間（秒）- 書き始めの遅延を削減
+  private static readonly FADE_IN_INITIAL_VOLUME = 0.3; // フェードイン時の初期音量
   private static readonly FADE_OUT_TIME = 0.05; // フェードアウト時間（秒）- 早めのフェードアウトでプツプツノイズを防止
   private static readonly INITIAL_SOUND_GUARANTEE_MS = 150; // 書き始めの音を保証する時間（ミリ秒）
+  private static readonly INITIAL_MIN_VOLUME = 0.2; // 書き始めの最小音量
+  private static readonly MIN_STOP_DELAY_MS = 60; // ノイズ停止の最小遅延時間（ミリ秒）
 
   constructor() {
     this.initializeAudioContext();
@@ -117,12 +120,6 @@ export class WebAudioStrokeSound implements StrokeSound {
     const context = this.ensureAudioContext();
     if (!context) return;
 
-    const tools: Array<"pen" | "pattern" | "eraser"> = [
-      "pen",
-      "pattern",
-      "eraser",
-    ];
-
     // 非同期でバックグラウンド生成（メインスレッドをブロックしない）
     // 最初の1つ（pen）は優先的に生成、残りはバックグラウンドで
     const generateBuffer = (
@@ -133,18 +130,13 @@ export class WebAudioStrokeSound implements StrokeSound {
 
       const generate = () => {
         try {
-          console.log(`[WebAudioStrokeSound] バッファ事前生成開始: ${tool}`);
           const buffer = this.createPinkNoiseBuffer(
             WebAudioStrokeSound.NOISE_BUFFER_DURATION,
             context.sampleRate
           );
           this.noiseBuffers.set(tool, buffer);
-          console.log(`[WebAudioStrokeSound] バッファ事前生成完了: ${tool}`);
-        } catch (error) {
-          console.error(
-            `[WebAudioStrokeSound] バッファ生成エラー: ${tool}`,
-            error
-          );
+        } catch {
+          // エラーは無視
         }
       };
 
@@ -401,7 +393,7 @@ export class WebAudioStrokeSound implements StrokeSound {
     if (speed <= 0.01) {
       // 書き始めの一定時間内は、速度が0でも最小音量を保証
       if (isInitialPeriod) {
-        const minVolume = 0.2; // 書き始めの最小音量
+        const minVolume = WebAudioStrokeSound.INITIAL_MIN_VOLUME;
         gainNode.gain.cancelScheduledValues(currentTime);
         gainNode.gain.setValueAtTime(gainNode.gain.value, currentTime);
         gainNode.gain.exponentialRampToValueAtTime(
@@ -464,12 +456,12 @@ export class WebAudioStrokeSound implements StrokeSound {
     this.currentTool = info.tool;
     this.speedSamples = [];
     this.smoothedSpeed = 0;
-    this.lastUpdateTime = performance.now();
     this.pendingSpeed = 0;
     this.updateScheduled = false;
     // 書き始めの時間を記録（最初の一筆で音が出るようにするため）
-    this.strokeStartTime = performance.now();
     const now = performance.now();
+    this.lastUpdateTime = now;
+    this.strokeStartTime = now;
     this.speedSamples.push({ length: info.length, time: now });
 
     // 他のツールの音を停止
@@ -490,7 +482,7 @@ export class WebAudioStrokeSound implements StrokeSound {
     if (gainNode) {
       gainNode.gain.cancelScheduledValues(currentTime);
       // 初期音量を少し上げて即座に音が出るようにする
-      const initialVolume = 0.3;
+      const initialVolume = WebAudioStrokeSound.FADE_IN_INITIAL_VOLUME;
       gainNode.gain.setValueAtTime(0, currentTime);
       gainNode.gain.exponentialRampToValueAtTime(
         initialVolume,
@@ -566,7 +558,10 @@ export class WebAudioStrokeSound implements StrokeSound {
     );
 
     // フェードアウト完了後にノイズを停止（少し余裕を持たせる）
-    const stopDelay = Math.max(fadeOutTime * 1000 + 10, 60); // フェードアウト時間 + 10ms、最低60ms
+    const stopDelay = Math.max(
+      fadeOutTime * 1000 + 10,
+      WebAudioStrokeSound.MIN_STOP_DELAY_MS
+    );
     setTimeout(() => {
       const noiseNode = this.noiseNodes.get(tool);
       if (noiseNode) {
