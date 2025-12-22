@@ -12,7 +12,8 @@ export const uiSoundManager = new UISoundManager();
  */
 export function initializeUISounds(): void {
   const selectSound = "/audios/se/select1.mp3";
-  const keroSound = "/audios/se/kero1.wav";
+  const undoSound = "/audios/se/kero1.wav";
+  const redoSound = "/audios/se/kero5.wav";
 
   // DSボタン - select1.mp3を使用
   uiSoundManager.registerSound("ds-button-a", selectSound);
@@ -27,8 +28,8 @@ export function initializeUISounds(): void {
   uiSoundManager.registerSound("ds-button-select", selectSound);
 
   // UIボタン - やり直しボタンのみcat1.mp3、他はselect1.mp3
-  uiSoundManager.registerSound("button-undo", keroSound);
-  uiSoundManager.registerSound("button-redo", keroSound);
+  uiSoundManager.registerSound("button-undo", undoSound);
+  uiSoundManager.registerSound("button-redo", redoSound);
   uiSoundManager.registerSound("button-clear", selectSound);
   uiSoundManager.registerSound("button-settings", selectSound);
   uiSoundManager.registerSound("button-tool", selectSound);
