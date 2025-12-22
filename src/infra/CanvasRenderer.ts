@@ -177,7 +177,7 @@ export class CanvasRenderer implements DrawingRenderer {
    */
   private getNewStrokes(drawing: Drawing): Stroke[] {
     return drawing.strokes.filter(
-      (stroke) => !this.cachedStrokeIds.has(stroke.id)
+      (stroke) => !this.cachedStrokeIds.has(stroke.id),
     );
   }
 
@@ -190,7 +190,7 @@ export class CanvasRenderer implements DrawingRenderer {
     r: number,
     g: number,
     b: number,
-    a: number
+    a: number,
   ): void {
     if (
       !this.data ||
@@ -218,7 +218,7 @@ export class CanvasRenderer implements DrawingRenderer {
   renderStroke(
     stroke: Stroke,
     jitteredPoints: { x: number; y: number }[],
-    _elapsedTimeMs: number
+    _elapsedTimeMs: number,
   ): void {
     if (jitteredPoints.length === 0 || !this.data) return;
 
@@ -237,7 +237,7 @@ export class CanvasRenderer implements DrawingRenderer {
    */
   private renderSolidStroke(
     stroke: Stroke,
-    jitteredPoints: { x: number; y: number }[]
+    jitteredPoints: { x: number; y: number }[],
   ): void {
     const brushWidth = Math.round(stroke.brush.width);
     const variant = stroke.brush.variant as BrushVariant | undefined;
@@ -278,7 +278,7 @@ export class CanvasRenderer implements DrawingRenderer {
         r,
         g,
         b,
-        a
+        a,
       );
       return;
     }
@@ -359,7 +359,7 @@ export class CanvasRenderer implements DrawingRenderer {
     r: number,
     g: number,
     b: number,
-    a: number
+    a: number,
   ): void {
     if (strokeKind === "erase" && variant === "eraserLine") {
       // 消しゴム（横線）: 横方向に拡大
@@ -400,7 +400,7 @@ export class CanvasRenderer implements DrawingRenderer {
    */
   private renderPatternStroke(
     stroke: Stroke,
-    jitteredPoints: { x: number; y: number }[]
+    jitteredPoints: { x: number; y: number }[],
   ): void {
     if (stroke.brush.kind !== "pattern" || !stroke.brush.patternId) return;
 
@@ -459,7 +459,7 @@ export class CanvasRenderer implements DrawingRenderer {
       color.r,
       color.g,
       color.b,
-      brushWidth
+      brushWidth,
     );
   }
 
@@ -472,9 +472,13 @@ export class CanvasRenderer implements DrawingRenderer {
     r: number,
     g: number,
     b: number,
-    brushWidth: number
+    brushWidth: number,
   ): void {
     if (!this.data) return;
+
+    if (tile.width <= 0 || tile.height <= 0 || tile.alpha.length === 0) {
+      return;
+    }
 
     for (const { x, y } of areaPixels) {
       if (brushWidth === 1) {
@@ -560,7 +564,7 @@ export class CanvasRenderer implements DrawingRenderer {
         0,
         0,
         this.lastWidth * dpr,
-        this.lastHeight * dpr
+        this.lastHeight * dpr,
       );
       this.ctx.restore();
     }
@@ -602,7 +606,7 @@ export class CanvasRenderer implements DrawingRenderer {
       throw new Error(
         `Frame index must be between 0 and ${
           FRAME_COUNT - 1
-        }, got ${frameIndex}`
+        }, got ${frameIndex}`,
       );
     }
 
@@ -655,7 +659,7 @@ export class CanvasRenderer implements DrawingRenderer {
    * 差分描画: 前のImageBitmapに新しいストロークだけを重ねる
    */
   private async renderFrameWithDiff(
-    params: RenderFrameWithDiffParams
+    params: RenderFrameWithDiffParams,
   ): Promise<ImageBitmap> {
     const {
       drawing,
@@ -684,7 +688,7 @@ export class CanvasRenderer implements DrawingRenderer {
     });
     if (!tempCtx) {
       throw new Error(
-        `Failed to get 2D context for temp canvas (${this.lastWidth}x${this.lastHeight})`
+        `Failed to get 2D context for temp canvas (${this.lastWidth}x${this.lastHeight})`,
       );
     }
     tempCtx.imageSmoothingEnabled = false;
@@ -707,33 +711,35 @@ export class CanvasRenderer implements DrawingRenderer {
       0,
       0,
       this.lastWidth,
-      this.lastHeight
+      this.lastHeight,
     );
     const tempData = tempImageData.data;
 
     // ImageDataを一時的に置き換え
     const originalImageData = this.imageData;
     const originalData = this.data;
-    this.imageData = tempImageData;
-    this.data = tempData;
+    try {
+      this.imageData = tempImageData;
+      this.data = tempData;
 
-    // 新しいストロークを描画
-    for (const stroke of newStrokes) {
-      // jitterを計算して描画
-      const jittered = applyJitterToStroke({
-        stroke,
-        elapsedTimeMs: frameElapsedTimeMs,
-        jitterConfig,
-      });
-      this.renderStroke(stroke, jittered, frameElapsedTimeMs);
+      // 新しいストロークを描画
+      for (const stroke of newStrokes) {
+        // jitterを計算して描画
+        const jittered = applyJitterToStroke({
+          stroke,
+          elapsedTimeMs: frameElapsedTimeMs,
+          jitterConfig,
+        });
+        this.renderStroke(stroke, jittered, frameElapsedTimeMs);
+      }
+
+      // ImageDataをCanvasに書き戻す
+      tempCtx.putImageData(tempImageData, 0, 0);
+    } finally {
+      // ImageDataを元に戻す（エラーが発生しても必ず復元）
+      this.imageData = originalImageData;
+      this.data = originalData;
     }
-
-    // ImageDataをCanvasに書き戻す
-    tempCtx.putImageData(tempImageData, 0, 0);
-
-    // ImageDataを元に戻す
-    this.imageData = originalImageData;
-    this.data = originalData;
 
     // ImageBitmapを作成
     const newBitmap = await createImageBitmap(tempCanvas);
@@ -756,7 +762,7 @@ export class CanvasRenderer implements DrawingRenderer {
    * 全ストロークからフレームを生成
    */
   private async renderFrameFromScratch(
-    params: RenderFrameFromScratchParams
+    params: RenderFrameFromScratchParams,
   ): Promise<ImageBitmap> {
     const { drawing, frameIndex, frameElapsedTimeMs, jitterConfig } = params;
     // ImageDataを初期化
@@ -779,7 +785,7 @@ export class CanvasRenderer implements DrawingRenderer {
           this.offscreenCanvas !== null
         }, Context: ${this.offscreenCtx !== null}, ImageData: ${
           this.imageData !== null
-        }`
+        }`,
       );
     }
     this.offscreenCtx.putImageData(this.imageData, 0, 0);
@@ -820,7 +826,7 @@ export class CanvasRenderer implements DrawingRenderer {
       0,
       0,
       this.lastWidth * dpr,
-      this.lastHeight * dpr
+      this.lastHeight * dpr,
     );
     this.ctx.restore();
   }

@@ -55,7 +55,7 @@ export function DesktopLayout({ canvas, tools, dsButtons }: LayoutProps) {
           </div>
 
           {/* Top Screen System */}
-          <div className="relative w-full max-w-[420px] aspect-[4/3] bg-(--ugo-bezel-bg) rounded-sm p-2 shadow-[inset_0_1px_8px_rgba(0,0,0,0.8)] border-[2px] border-(--ugo-bezel-border)">
+          <div className="relative w-full max-w-[420px] aspect-3/2 bg-(--ugo-bezel-bg) rounded-sm p-2 shadow-[inset_0_1px_8px_rgba(0,0,0,0.8)] border-[2px] border-(--ugo-bezel-border)">
             {/* Glossy Screen */}
             <div className="relative w-full h-full bg-white shadow-[0_0_40px_rgba(255,255,255,0.05)] overflow-hidden rounded-[2px]">
               {canvas}
