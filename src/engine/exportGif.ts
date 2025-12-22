@@ -1,6 +1,6 @@
 import type { JitterConfig } from "../core/jitter";
 import type { Drawing } from "../core/types";
-import { FRAME_COUNT, renderDrawingAtTime } from "./frameRenderer";
+import { renderDrawingAtTime } from "./frameRenderer";
 import type { DrawingRenderer, GifEncoder } from "./ports";
 
 type RendererWithImageData = DrawingRenderer & {
@@ -18,10 +18,7 @@ export async function exportDrawingAsGif(options: {
   fps: number;
   durationMs: number;
 }): Promise<Blob> {
-  const { drawing, renderer, gif, jitterConfig, fps } = options;
-
-  // 3フレーム固定
-  const frameInterval = 1000 / (jitterConfig.frequency * FRAME_COUNT);
+  const { drawing, renderer, gif, jitterConfig, fps, durationMs } = options;
 
   gif.begin(drawing.width, drawing.height, fps);
 
@@ -33,11 +30,24 @@ export async function exportDrawingAsGif(options: {
     typeof renderer.getFrameCount === "function"
   ) {
     const frameCount = renderer.getFrameCount();
-    for (let i = 0; i < frameCount; i++) {
-      const frameElapsedTimeMs = i * frameInterval;
+    // durationMsに基づいて必要なフレーム数を計算
+    const frameInterval = 1000 / fps;
+    const totalFrames = Math.ceil(durationMs / frameInterval);
+
+    // 3フレームのアニメーションをループさせる
+    const jitterFrameInterval = 1000 / (jitterConfig.frequency * frameCount);
+
+    for (let i = 0; i < totalFrames; i += 1) {
+      const elapsedTimeMs = i * frameInterval;
+      // 3フレームの中から適切なフレームを選択
+      const frameIndex = Math.floor(
+        (elapsedTimeMs / jitterFrameInterval) % frameCount,
+      );
+      const frameElapsedTimeMs = frameIndex * jitterFrameInterval;
+
       const bitmap = await renderer.getFrameBitmap({
         drawing,
-        frameIndex: i,
+        frameIndex,
         jitterConfig,
         elapsedTimeMs: frameElapsedTimeMs,
       });
@@ -62,9 +72,9 @@ export async function exportDrawingAsGif(options: {
   } else {
     // フォールバック: 通常の描画
     const frameInterval = 1000 / fps;
-    const frameCount = Math.ceil(options.durationMs / frameInterval);
+    const totalFrames = Math.ceil(durationMs / frameInterval);
 
-    for (let i = 0; i < frameCount; i += 1) {
+    for (let i = 0; i < totalFrames; i += 1) {
       const elapsedTimeMs = i * frameInterval;
       renderDrawingAtTime({
         drawing,
