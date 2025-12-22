@@ -35,6 +35,8 @@ interface WigglyCanvasProps {
   backgroundColor: string;
   jitterConfig: JitterConfig;
   onEngineInit: (engine: WigglyEngine) => void;
+  onUndo?: () => void;
+  onRedo?: () => void;
 }
 
 export function WigglyCanvas({
@@ -48,6 +50,8 @@ export function WigglyCanvas({
   backgroundColor,
   jitterConfig,
   onEngineInit,
+  onUndo,
+  onRedo,
 }: WigglyCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const engineRef = useRef<WigglyEngine | null>(null);
@@ -297,8 +301,98 @@ export function WigglyCanvas({
     };
   }, []); // Run once on mount
 
+  // キャンバスエリア限定のタッチジェスチャー処理（undo/redo）
+  // シンプルで確実な実装: 2本指/3本指で同時にタップしたらundo/redoを実行
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const touchStateRef = useRef<{
+    startTime: number;
+    touchCount: number;
+    initialPositions: Array<{ x: number; y: number }>;
+    maxMoveDistance: number;
+  } | null>(null);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || !onUndo || !onRedo) return;
+
+    const handleTouchStart = (ev: TouchEvent) => {
+      // 2本指または3本指の場合のみ処理
+      const touchCount = ev.touches.length;
+      if (touchCount === 2 || touchCount === 3) {
+        touchStateRef.current = {
+          startTime: performance.now(),
+          touchCount,
+          initialPositions: Array.from(ev.touches).map((t) => ({
+            x: t.clientX,
+            y: t.clientY,
+          })),
+          maxMoveDistance: 0,
+        };
+      }
+    };
+
+    const handleTouchMove = (ev: TouchEvent) => {
+      const state = touchStateRef.current;
+      if (!state) return;
+
+      // 最大移動距離を更新
+      for (let i = 0; i < ev.touches.length && i < state.initialPositions.length; i += 1) {
+        const touch = ev.touches[i];
+        const initial = state.initialPositions[i];
+        const dx = touch.clientX - initial.x;
+        const dy = touch.clientY - initial.y;
+        const distance = Math.hypot(dx, dy);
+        state.maxMoveDistance = Math.max(state.maxMoveDistance, distance);
+      }
+    };
+
+    const handleTouchEnd = (ev: TouchEvent) => {
+      const state = touchStateRef.current;
+      // すべてのタッチが終了した場合のみ処理
+      if (state && ev.touches.length === 0) {
+        const duration = performance.now() - state.startTime;
+        const isTap = duration < 300 && state.maxMoveDistance < 15;
+
+        if (isTap && state.touchCount === 2) {
+          // 二本指タップ: undo
+          onUndo();
+        } else if (isTap && state.touchCount === 3) {
+          // 三本指タップ: redo
+          onRedo();
+        }
+
+        touchStateRef.current = null;
+      }
+    };
+
+    const handleTouchCancel = () => {
+      touchStateRef.current = null;
+    };
+
+    container.addEventListener("touchstart", handleTouchStart, {
+      passive: true,
+    });
+    container.addEventListener("touchmove", handleTouchMove, {
+      passive: true,
+    });
+    container.addEventListener("touchend", handleTouchEnd, {
+      passive: true,
+    });
+    container.addEventListener("touchcancel", handleTouchCancel, {
+      passive: true,
+    });
+
+    return () => {
+      container.removeEventListener("touchstart", handleTouchStart);
+      container.removeEventListener("touchmove", handleTouchMove);
+      container.removeEventListener("touchend", handleTouchEnd);
+      container.removeEventListener("touchcancel", handleTouchCancel);
+    };
+  }, [onUndo, onRedo]);
+
   return (
     <div
+      ref={containerRef}
       className="relative w-full h-full touch-none select-none overflow-hidden flex items-center justify-center"
       style={{ backgroundColor }}
     >
