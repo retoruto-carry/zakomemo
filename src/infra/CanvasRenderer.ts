@@ -264,8 +264,9 @@ export class CanvasRenderer implements DrawingRenderer {
     }
 
     if (width === 1) {
-      // width=1の場合: 周囲のピクセル（上下左右）をチェックして、どれかがalpha>0なら描画
+      // width=1の場合: 周囲のピクセルをチェックして、どれかがalpha>0なら描画
       // これにより、1pxずれても線が途切れないようにする
+      // 横線パターンや縦線パターンでも途切れないように、より広い範囲をチェック
       let maxAlpha = 0;
       const offsets = [
         [0, 0], // 中心
@@ -273,6 +274,14 @@ export class CanvasRenderer implements DrawingRenderer {
         [1, 0], // 右
         [0, -1], // 上
         [0, 1], // 下
+        [-1, -1], // 左上
+        [1, -1], // 右上
+        [-1, 1], // 左下
+        [1, 1], // 右下
+        [-2, 0], // 左2
+        [2, 0], // 右2
+        [0, -2], // 上2
+        [0, 2], // 下2
       ];
 
       for (const [dx, dy] of offsets) {
