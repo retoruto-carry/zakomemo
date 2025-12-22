@@ -35,10 +35,6 @@ interface WigglyCanvasProps {
   backgroundColor: string;
   jitterConfig: JitterConfig;
   onEngineInit: (engine: WigglyEngine) => void;
-  /** タッチジェスチャーによるundo（WigglyEditorでuseTouchUndoRedoフックを使用するため、このコンポーネント内では未使用） */
-  onUndo?: () => void;
-  /** タッチジェスチャーによるredo（WigglyEditorでuseTouchUndoRedoフックを使用するため、このコンポーネント内では未使用） */
-  onRedo?: () => void;
 }
 
 export function WigglyCanvas({
@@ -52,8 +48,6 @@ export function WigglyCanvas({
   backgroundColor,
   jitterConfig,
   onEngineInit,
-  onUndo: _onUndo,
-  onRedo: _onRedo,
 }: WigglyCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const engineRef = useRef<WigglyEngine | null>(null);
@@ -147,12 +141,12 @@ export function WigglyCanvas({
 
       // マルチタッチ（2本指以上）の検出
       // pointerdownイベントが発火した時点で、既にアクティブなポインターが1本以上ある場合、
-      // マルチタッチと判断して描画を無効にし、undo/redoジェスチャーやピンチジェスチャーを優先します
+      // マルチタッチと判断して描画を無効にし、ピンチジェスチャーを優先します
       const activePointerCount = activePointersRef.current.size;
       if (activePointerCount >= 1) {
         // マルチタッチ状態を記録
         isMultiTouchRef.current = true;
-        // 描画を開始せず、undo/redoジェスチャーやピンチジェスチャーを優先
+        // 描画を開始せず、ピンチジェスチャーを優先
         // ポインター情報は記録するが、描画は開始しない
         // preventDefaultは呼ばない（ピンチジェスチャーを許可するため）
         const { internal } = toCanvasPos(ev);

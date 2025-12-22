@@ -9,7 +9,6 @@ import type { Tool, WigglyEngine } from "@/engine/WigglyEngine";
 import { CanvasRenderer } from "@/infra/CanvasRenderer";
 import { GifEncGifEncoder } from "@/infra/GifEncGifEncoder";
 import { initializeUISounds, uiSoundManager } from "@/infra/uiSounds";
-import { useTouchUndoRedo } from "./hooks/useTouchUndoRedo";
 import { DesktopLayout } from "./layouts/DesktopLayout";
 import { MobileLayout } from "./layouts/MobileLayout";
 import {
@@ -104,21 +103,6 @@ export function WigglyEditor() {
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, []);
-
-  // Touch Screen Undo/Redo (モバイルのみ)
-  const handleTouchUndo = useCallback(() => {
-    engineRef.current?.undo();
-  }, []);
-  const handleTouchRedo = useCallback(() => {
-    engineRef.current?.redo();
-  }, []);
-
-  // モバイルレイアウトの場合のみタッチジェスチャーを有効化
-  useTouchUndoRedo({
-    onUndo: handleTouchUndo,
-    onRedo: handleTouchRedo,
-    enabled: !isDesktop,
-  });
 
   const handleExportGif = async () => {
     const engine = engineRef.current;
@@ -416,8 +400,6 @@ export function WigglyEditor() {
             backgroundColor={backgroundColor}
             jitterConfig={jitterConfig}
             onEngineInit={onEngineInit}
-            onUndo={handleTouchUndo}
-            onRedo={handleTouchRedo}
           />
         }
         tools={

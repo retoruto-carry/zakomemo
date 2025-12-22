@@ -115,7 +115,7 @@ export class WebAudioStrokeSound implements StrokeSound {
       });
       // クリーンアップリストから削除
       this.interactionHandlers = this.interactionHandlers.filter(
-        (h) => h.handler !== handleInteraction
+        (h) => h.handler !== handleInteraction,
       );
     };
     events.forEach((event) => {
@@ -136,7 +136,7 @@ export class WebAudioStrokeSound implements StrokeSound {
     // 最初の1つ（pen）は優先的に生成、残りはバックグラウンドで
     const generateBuffer = (
       tool: "pen" | "pattern" | "eraser",
-      priority: boolean = false
+      priority: boolean = false,
     ) => {
       if (this.noiseBuffers.has(tool)) return;
 
@@ -144,7 +144,7 @@ export class WebAudioStrokeSound implements StrokeSound {
         try {
           const buffer = this.createPinkNoiseBuffer(
             WebAudioStrokeSound.NOISE_BUFFER_DURATION,
-            context.sampleRate
+            context.sampleRate,
           );
           this.noiseBuffers.set(tool, buffer);
         } catch {
@@ -197,7 +197,7 @@ export class WebAudioStrokeSound implements StrokeSound {
    */
   private createPinkNoiseBuffer(
     duration: number,
-    sampleRate: number
+    sampleRate: number,
   ): AudioBuffer {
     const context = this.ensureAudioContext();
     if (!context) throw new Error("AudioContext unavailable");
@@ -315,7 +315,7 @@ export class WebAudioStrokeSound implements StrokeSound {
     if (!buffer) {
       buffer = this.createPinkNoiseBuffer(
         WebAudioStrokeSound.NOISE_BUFFER_DURATION,
-        context.sampleRate
+        context.sampleRate,
       );
       this.noiseBuffers.set(tool, buffer);
     }
@@ -336,7 +336,7 @@ export class WebAudioStrokeSound implements StrokeSound {
    */
   private calculateSmoothedSpeed(
     currentLength: number,
-    currentTime: number
+    currentTime: number,
   ): number {
     // 新しいサンプルを追加
     this.speedSamples.push({ length: currentLength, time: currentTime });
@@ -384,7 +384,7 @@ export class WebAudioStrokeSound implements StrokeSound {
    */
   private updateVolumeAndFrequency(
     tool: "pen" | "pattern" | "eraser",
-    speed: number
+    speed: number,
   ): void {
     const context = this.ensureAudioContext();
     if (!context) return;
@@ -410,7 +410,7 @@ export class WebAudioStrokeSound implements StrokeSound {
         gainNode.gain.setValueAtTime(gainNode.gain.value, currentTime);
         gainNode.gain.exponentialRampToValueAtTime(
           Math.max(minVolume, 0.001),
-          currentTime + smoothTime
+          currentTime + smoothTime,
         );
         return;
       }
@@ -421,7 +421,7 @@ export class WebAudioStrokeSound implements StrokeSound {
       // exponentialRampToValueAtTimeでより滑らかなフェードアウト
       gainNode.gain.exponentialRampToValueAtTime(
         Math.max(volume, 0.001), // 0に近い値で指数カーブを適用
-        currentTime + smoothTime
+        currentTime + smoothTime,
       );
       return;
     }
@@ -432,12 +432,12 @@ export class WebAudioStrokeSound implements StrokeSound {
     // exponentialRampToValueAtTimeは0から開始できないため、最小値0.001を保証
     gainNode.gain.setValueAtTime(
       Math.max(gainNode.gain.value, 0.001),
-      currentTime
+      currentTime,
     );
     // exponentialRampToValueAtTimeでより滑らかな変化
     gainNode.gain.exponentialRampToValueAtTime(
       Math.max(volume, 0.001),
-      currentTime + smoothTime
+      currentTime + smoothTime,
     );
 
     // 周波数: 基本周波数 * (0.9 + speed * 0.65) (平方根カーブ)
@@ -451,14 +451,11 @@ export class WebAudioStrokeSound implements StrokeSound {
     filterNode.frequency.cancelScheduledValues(currentTime);
     // exponentialRampToValueAtTimeは0から開始できないため、最小値20Hzを保証
     const currentFreq = filterNode.frequency.value;
-    filterNode.frequency.setValueAtTime(
-      Math.max(currentFreq, 20),
-      currentTime
-    );
+    filterNode.frequency.setValueAtTime(Math.max(currentFreq, 20), currentTime);
     // exponentialRampToValueAtTimeでより滑らかな変化
     filterNode.frequency.exponentialRampToValueAtTime(
       Math.max(targetFreq, 20), // 20Hz以下は避ける
-      currentTime + smoothTime
+      currentTime + smoothTime,
     );
   }
 
@@ -508,7 +505,7 @@ export class WebAudioStrokeSound implements StrokeSound {
       gainNode.gain.setValueAtTime(0.001, currentTime);
       gainNode.gain.exponentialRampToValueAtTime(
         initialVolume,
-        currentTime + WebAudioStrokeSound.FADE_IN_TIME
+        currentTime + WebAudioStrokeSound.FADE_IN_TIME,
       );
     }
 
@@ -577,18 +574,18 @@ export class WebAudioStrokeSound implements StrokeSound {
     // exponentialRampToValueAtTimeは0から開始できないため、最小値0.001を保証
     gainNode.gain.setValueAtTime(
       Math.max(gainNode.gain.value, 0.001),
-      currentTime
+      currentTime,
     );
     // exponentialRampToValueAtTimeで滑らかなフェードアウト（早めに）
     gainNode.gain.exponentialRampToValueAtTime(
       0.001,
-      currentTime + fadeOutTime
+      currentTime + fadeOutTime,
     );
 
     // フェードアウト完了後にノイズを停止（少し余裕を持たせる）
     const stopDelay = Math.max(
       fadeOutTime * 1000 + 10,
-      WebAudioStrokeSound.MIN_STOP_DELAY_MS
+      WebAudioStrokeSound.MIN_STOP_DELAY_MS,
     );
     setTimeout(() => {
       const noiseNode = this.noiseNodes.get(tool);
