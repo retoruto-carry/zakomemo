@@ -68,4 +68,81 @@ describe("renderDrawingAtTime", () => {
     expect(rendered.jittered[0].x).not.toBe(drawing.strokes[0].points[0].x);
     expect(rendered.time).toBe(100);
   });
+
+  test("ジッター適用後の座標は整数にスナップされる", () => {
+    const drawing: Drawing = {
+      width: 200,
+      height: 100,
+      strokes: [
+        {
+          id: "s1",
+          kind: "draw",
+          brush: {
+            kind: "solid",
+            color: "#000",
+            width: 4,
+            opacity: 1,
+          },
+          points: [
+            { x: 0, y: 0, t: 0 },
+            { x: 10, y: 10, t: 10 },
+          ],
+        },
+      ],
+    };
+
+    const renderer = new MockRenderer();
+    renderDrawingAtTime(
+      drawing,
+      renderer,
+      { amplitude: 1, frequency: 0.01 },
+      100,
+    );
+
+    const rendered = renderer.strokes[0];
+    // すべてのジッター適用後の座標が整数であることを確認
+    rendered.jittered.forEach((p) => {
+      expect(Number.isInteger(p.x)).toBe(true);
+      expect(Number.isInteger(p.y)).toBe(true);
+    });
+  });
+
+  test("パターンストロークでも座標は整数にスナップされる", () => {
+    const drawing: Drawing = {
+      width: 200,
+      height: 100,
+      strokes: [
+        {
+          id: "s1",
+          kind: "draw",
+          brush: {
+            kind: "pattern",
+            color: "#000",
+            width: 4,
+            opacity: 1,
+            patternId: "dots",
+          },
+          points: [
+            { x: 0, y: 0, t: 0 },
+            { x: 10, y: 10, t: 10 },
+          ],
+        },
+      ],
+    };
+
+    const renderer = new MockRenderer();
+    renderDrawingAtTime(
+      drawing,
+      renderer,
+      { amplitude: 1, frequency: 0.01 },
+      100,
+    );
+
+    const rendered = renderer.strokes[0];
+    // すべてのジッター適用後の座標が整数であることを確認
+    rendered.jittered.forEach((p) => {
+      expect(Number.isInteger(p.x)).toBe(true);
+      expect(Number.isInteger(p.y)).toBe(true);
+    });
+  });
 });

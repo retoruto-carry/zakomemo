@@ -188,4 +188,40 @@ describe("WigglyEngine", () => {
     engine.destroy();
     expect(cancelSpy).toHaveBeenCalled();
   });
+
+  test("座標は整数にスナップされる", () => {
+    const { engine, time } = createEngine();
+    time.set(0);
+    engine.pointerDown(10.7, 20.3);
+    const drawing = engine.getDrawing();
+    const point = drawing.strokes[0].points[0];
+    expect(Number.isInteger(point.x)).toBe(true);
+    expect(Number.isInteger(point.y)).toBe(true);
+    expect(point.x).toBe(11);
+    expect(point.y).toBe(20);
+  });
+
+  test("ブラシサイズは整数にスナップされる", () => {
+    const { engine } = createEngine();
+    engine.setBrushWidth(10.7);
+    engine.pointerDown(0, 0);
+    const drawing = engine.getDrawing();
+    expect(Number.isInteger(drawing.strokes[0].brush.width)).toBe(true);
+    expect(drawing.strokes[0].brush.width).toBe(11);
+  });
+
+  test("小数座標の移動も整数にスナップされる", () => {
+    const { engine, time } = createEngine();
+    time.set(0);
+    engine.pointerDown(0, 0);
+    time.set(10);
+    engine.pointerMove(10.6, 20.4);
+    const drawing = engine.getDrawing();
+    const lastPoint =
+      drawing.strokes[0].points[drawing.strokes[0].points.length - 1];
+    expect(Number.isInteger(lastPoint.x)).toBe(true);
+    expect(Number.isInteger(lastPoint.y)).toBe(true);
+    expect(lastPoint.x).toBe(11);
+    expect(lastPoint.y).toBe(20);
+  });
 });

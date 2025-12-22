@@ -39,6 +39,9 @@ describe("pixelArt", () => {
     test("最小値は1", () => {
       expect(snapBrushWidth(0.4)).toBe(1);
       expect(snapBrushWidth(0.6)).toBe(1);
+      expect(snapBrushWidth(0)).toBe(1);
+      expect(snapBrushWidth(-1)).toBe(1);
+      expect(snapBrushWidth(-10)).toBe(1);
     });
   });
 
@@ -134,6 +137,39 @@ describe("pixelArt", () => {
         expect(Number.isInteger(p.x)).toBe(true);
         expect(Number.isInteger(p.y)).toBe(true);
       });
+    });
+
+    test("小数座標を渡した場合は整数に丸められる", () => {
+      const result = bresenhamLine(0.4, 0.6, 5.3, 5.7);
+      // すべての点が整数座標であることを確認
+      result.forEach((p) => {
+        expect(Number.isInteger(p.x)).toBe(true);
+        expect(Number.isInteger(p.y)).toBe(true);
+      });
+      // 始点と終点が正しく丸められていることを確認
+      expect(result[0]).toEqual({ x: 0, y: 1 });
+      expect(result[result.length - 1]).toEqual({ x: 5, y: 6 });
+    });
+
+    test("負の座標でも正しく動作", () => {
+      const result = bresenhamLine(-5, -3, 0, 0);
+      result.forEach((p) => {
+        expect(Number.isInteger(p.x)).toBe(true);
+        expect(Number.isInteger(p.y)).toBe(true);
+      });
+      expect(result[0]).toEqual({ x: -5, y: -3 });
+      expect(result[result.length - 1]).toEqual({ x: 0, y: 0 });
+    });
+
+    test("長い線でも正しく動作", () => {
+      const result = bresenhamLine(0, 0, 100, 50);
+      expect(result.length).toBeGreaterThan(1);
+      result.forEach((p) => {
+        expect(Number.isInteger(p.x)).toBe(true);
+        expect(Number.isInteger(p.y)).toBe(true);
+      });
+      expect(result[0]).toEqual({ x: 0, y: 0 });
+      expect(result[result.length - 1]).toEqual({ x: 100, y: 50 });
     });
   });
 });
