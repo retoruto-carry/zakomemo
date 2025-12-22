@@ -369,7 +369,7 @@ export function WigglyEditor() {
         input[type="range"].pen-width-slider::-webkit-slider-thumb {
           width: 24px;
           height: 24px;
-          margin-top: -10px;
+          margin-top: -4px;
         }
 
         input[type="range"].pen-width-slider::-moz-range-thumb {
