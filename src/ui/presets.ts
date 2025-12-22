@@ -474,7 +474,9 @@ export function generateBodyColorFromBase(hex: string): BodyColor {
     const R = clamp((num >> 16) - amt);
     const G = clamp(((num >> 8) & 0x00ff) - amt);
     const B = clamp((num & 0x0000ff) - amt);
-    return `#${(0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1)}`;
+    return `#${(0x1000000 + R * 0x10000 + G * 0x100 + B)
+      .toString(16)
+      .slice(1)}`;
   };
 
   const lighten = (color: string, percent: number) => {
@@ -484,7 +486,9 @@ export function generateBodyColorFromBase(hex: string): BodyColor {
     const R = clamp((num >> 16) + amt);
     const G = clamp(((num >> 8) & 0x00ff) + amt);
     const B = clamp((num & 0x0000ff) + amt);
-    return `#${(0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1)}`;
+    return `#${(0x1000000 + R * 0x10000 + G * 0x100 + B)
+      .toString(16)
+      .slice(1)}`;
   };
 
   const dark = isDark(normalizedHex);
