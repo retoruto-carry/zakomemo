@@ -2,6 +2,11 @@
 
 import { useEffect, useRef } from "react";
 
+// ジェスチャー検出の閾値定数
+const DEFAULT_MAX_TAP_DISTANCE_PX = 15;
+const DEFAULT_MIN_PINCH_DISTANCE_PX = 30;
+const DEFAULT_MIN_PINCH_DURATION_MS = 150;
+
 interface TouchInfo {
   id: number;
   startX: number;
@@ -41,14 +46,23 @@ export function useTouchUndoRedo({
   onUndo,
   onRedo,
   maxTapDuration = 300,
-  maxTapDistance = 15,
-  minPinchDistance = 30,
-  minPinchDuration = 150,
+  maxTapDistance = DEFAULT_MAX_TAP_DISTANCE_PX,
+  minPinchDistance = DEFAULT_MIN_PINCH_DISTANCE_PX,
+  minPinchDuration = DEFAULT_MIN_PINCH_DURATION_MS,
   enabled = true,
   target = null,
 }: UseTouchUndoRedoOptions) {
   const touchesRef = useRef<Map<number, TouchInfo>>(new Map());
   const targetRef = useRef<HTMLElement | Document | null>(null);
+  // コールバックをrefで保持して、setTimeout内でも最新のコールバックを呼び出す
+  const onUndoRef = useRef(onUndo);
+  const onRedoRef = useRef(onRedo);
+
+  // コールバックのrefを更新
+  useEffect(() => {
+    onUndoRef.current = onUndo;
+    onRedoRef.current = onRedo;
+  }, [onUndo, onRedo]);
 
   useEffect(() => {
     if (!enabled) return;
@@ -153,13 +167,14 @@ export function useTouchUndoRedo({
 
             if (allTaps) {
               // 短いディレイを追加して、他のジェスチャーとの競合を避ける
+              // refを使用して最新のコールバックを確実に呼び出す
               setTimeout(() => {
                 if (touchCount === 2) {
                   // 二本指タップ: undo
-                  onUndo();
+                  onUndoRef.current();
                 } else if (touchCount === 3) {
                   // 三本指タップ: redo
-                  onRedo();
+                  onRedoRef.current();
                 }
               }, 0);
             }
@@ -169,6 +184,9 @@ export function useTouchUndoRedo({
         touchesRef.current.clear();
       } else {
         // まだタッチが残っている場合、終了したタッチのみを削除
+        // 指を順番に離した場合でも、すべての指が離れるまでタッチ情報を保持するため、
+        // 終了したタッチのみを削除し、残りのタッチ情報は保持する
+        // これにより、2本指や3本指で順次離した場合でも正しく検出できる
         for (let i = 0; i < ev.changedTouches.length; i += 1) {
           const touch = ev.changedTouches[i];
           touchesRef.current.delete(touch.identifier);
@@ -221,8 +239,6 @@ export function useTouchUndoRedo({
       );
     };
   }, [
-    onUndo,
-    onRedo,
     maxTapDuration,
     maxTapDistance,
     minPinchDistance,

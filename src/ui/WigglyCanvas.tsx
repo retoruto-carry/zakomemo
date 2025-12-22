@@ -35,7 +35,9 @@ interface WigglyCanvasProps {
   backgroundColor: string;
   jitterConfig: JitterConfig;
   onEngineInit: (engine: WigglyEngine) => void;
+  /** タッチジェスチャーによるundo（WigglyEditorでuseTouchUndoRedoフックを使用するため、このコンポーネント内では未使用） */
   onUndo?: () => void;
+  /** タッチジェスチャーによるredo（WigglyEditorでuseTouchUndoRedoフックを使用するため、このコンポーネント内では未使用） */
   onRedo?: () => void;
 }
 
