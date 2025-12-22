@@ -265,27 +265,34 @@ export class CanvasRenderer implements DrawingRenderer {
 
     if (width === 1) {
       // width=1の場合: パターンは「領域」として描画する
-      // 各ピクセルについて、そのピクセルがパターンの「描画領域」内にあるかチェック
-      // 横線パターンや縦線パターンでも途切れないように、Y方向（またはX方向）の範囲を広げてチェック
-      // パターンのタイル内で、alpha>0の行（または列）に近い場合は描画する
+      // 各ピクセルについて、周囲の一定範囲内でalpha>0のピクセルを見つけたら描画する
+      // これにより、どのパターンでも1pxずれても線が途切れないようにする
       let maxAlpha = 0;
 
-      // Y方向に広い範囲をチェック（横線パターンに対応）
-      // タイルの高さ分だけ上下をチェックして、alpha>0の行を見つける
-      for (let dy = -tile.height; dy <= tile.height; dy++) {
-        const py = y + dy;
-        const tileX = ((x % tile.width) + tile.width) % tile.width;
-        const tileY = ((py % tile.height) + tile.height) % tile.height;
-        const alphaIndex = tileY * tile.width + tileX;
+      // タイルサイズに応じた範囲を全方向にチェック
+      // タイルの幅と高さの最大値を使用して、どのパターンでも対応できるようにする
+      const searchRadius = Math.max(tile.width, tile.height);
 
-        if (alphaIndex >= 0 && alphaIndex < tile.alpha.length) {
-          const alpha = tile.alpha[alphaIndex];
-          // 距離に応じて重み付け（近いほど重みが大きい）
-          const distance = Math.abs(dy);
-          const weight = distance === 0 ? 1.0 : 1.0 / (1.0 + distance * 0.5);
-          const weightedAlpha = alpha * weight;
-          if (weightedAlpha > maxAlpha) {
-            maxAlpha = weightedAlpha;
+      for (let dy = -searchRadius; dy <= searchRadius; dy++) {
+        for (let dx = -searchRadius; dx <= searchRadius; dx++) {
+          const px = x + dx;
+          const py = y + dy;
+          const tileX = ((px % tile.width) + tile.width) % tile.width;
+          const tileY = ((py % tile.height) + tile.height) % tile.height;
+          const alphaIndex = tileY * tile.width + tileX;
+
+          if (alphaIndex >= 0 && alphaIndex < tile.alpha.length) {
+            const alpha = tile.alpha[alphaIndex];
+            if (alpha > 0) {
+              // 距離に応じて重み付け（近いほど重みが大きい）
+              const distance = Math.sqrt(dx * dx + dy * dy);
+              const weight =
+                distance === 0 ? 1.0 : 1.0 / (1.0 + distance * 0.3);
+              const weightedAlpha = alpha * weight;
+              if (weightedAlpha > maxAlpha) {
+                maxAlpha = weightedAlpha;
+              }
+            }
           }
         }
       }
