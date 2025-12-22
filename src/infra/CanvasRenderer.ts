@@ -269,32 +269,53 @@ export class CanvasRenderer implements DrawingRenderer {
       // これにより、どのパターンでも1pxずれても線が途切れないようにする
       let maxAlpha = 0;
 
-      // パフォーマンス最適化: 検索範囲を固定値（3ピクセル）に制限
-      // これにより、1ピクセルあたりのチェック数を49回（7×7）に削減
-      // 3ピクセル以内であれば、どのパターンでも対応できる
+      // パフォーマンス最適化:
+      // 1. 検索範囲を固定値（3ピクセル）に制限
+      // 2. 距離の近い順にチェック（中心から外側へ）することで、早期終了が可能
+      // 3. Math.sqrt()を完全に避けて、距離の2乗で比較することで高速化
       const searchRadius = 3;
+      const maxDistanceSq = searchRadius * searchRadius;
 
-      for (let dy = -searchRadius; dy <= searchRadius; dy++) {
-        for (let dx = -searchRadius; dx <= searchRadius; dx++) {
-          const px = x + dx;
-          const py = y + dy;
-          const tileX = ((px % tile.width) + tile.width) % tile.width;
-          const tileY = ((py % tile.height) + tile.height) % tile.height;
-          const alphaIndex = tileY * tile.width + tileX;
+      // 距離の近い順にチェック（中心から外側へ）
+      // 距離0, 1, 2, 3の順でチェック
+      for (let distance = 0; distance <= searchRadius; distance++) {
+        let foundClose = false;
 
-          if (alphaIndex >= 0 && alphaIndex < tile.alpha.length) {
-            const alpha = tile.alpha[alphaIndex];
-            if (alpha > 0) {
-              // 距離に応じて重み付け（近いほど重みが大きい）
-              const distance = Math.sqrt(dx * dx + dy * dy);
-              const weight =
-                distance === 0 ? 1.0 : 1.0 / (1.0 + distance * 0.3);
-              const weightedAlpha = alpha * weight;
-              if (weightedAlpha > maxAlpha) {
-                maxAlpha = weightedAlpha;
+        // 現在の距離の範囲内の点をチェック（正方形の範囲）
+        for (let dy = -distance; dy <= distance; dy++) {
+          for (let dx = -distance; dx <= distance; dx++) {
+            // 距離の2乗でチェック（Math.sqrt()を避ける）
+            const dSq = dx * dx + dy * dy;
+            if (dSq > maxDistanceSq) continue;
+
+            const px = x + dx;
+            const py = y + dy;
+            const tileX = ((px % tile.width) + tile.width) % tile.width;
+            const tileY = ((py % tile.height) + tile.height) % tile.height;
+            const alphaIndex = tileY * tile.width + tileX;
+
+            if (alphaIndex >= 0 && alphaIndex < tile.alpha.length) {
+              const alpha = tile.alpha[alphaIndex];
+              if (alpha > 0) {
+                // 距離の2乗を使用して重みを計算（Math.sqrt()を完全に避ける）
+                // 距離の2乗に基づく重み: 1 / (1 + dSq * k) の形式
+                // これにより、Math.sqrt()を使わずに距離に応じた重み付けが可能
+                const weight = dSq === 0 ? 1.0 : 1.0 / (1.0 + dSq * 0.1);
+                const weightedAlpha = alpha * weight;
+                if (weightedAlpha > maxAlpha) {
+                  maxAlpha = weightedAlpha;
+                  if (distance <= 1) {
+                    foundClose = true;
+                  }
+                }
               }
             }
           }
+        }
+
+        // 早期終了: 距離1以内でalpha>0を見つけ、重みが十分大きい場合は終了
+        if (foundClose && maxAlpha >= 0.7) {
+          break;
         }
       }
 
