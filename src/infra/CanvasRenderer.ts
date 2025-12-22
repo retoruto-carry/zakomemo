@@ -245,6 +245,8 @@ export class CanvasRenderer implements DrawingRenderer {
 
   /**
    * パターンの1ピクセルを描画
+   * width=1の場合でも、周囲のピクセルをチェックして、どれかがalpha>0なら描画する
+   * これにより、1pxずれても線が途切れないようにする
    */
   private drawPatternPixel(
     ctx: CanvasRenderingContext2D,
@@ -261,24 +263,54 @@ export class CanvasRenderer implements DrawingRenderer {
       return;
     }
 
-    // タイル内の位置を計算（繰り返しパターン）
-    const tileX = ((x % tile.width) + tile.width) % tile.width;
-    const tileY = ((y % tile.height) + tile.height) % tile.height;
-    const alphaIndex = tileY * tile.width + tileX;
+    if (width === 1) {
+      // width=1の場合: 周囲のピクセル（上下左右）をチェックして、どれかがalpha>0なら描画
+      // これにより、1pxずれても線が途切れないようにする
+      let maxAlpha = 0;
+      const offsets = [
+        [0, 0], // 中心
+        [-1, 0], // 左
+        [1, 0], // 右
+        [0, -1], // 上
+        [0, 1], // 下
+      ];
 
-    // 配列の範囲外アクセスを防ぐ
-    if (alphaIndex < 0 || alphaIndex >= tile.alpha.length) {
-      return;
-    }
+      for (const [dx, dy] of offsets) {
+        const px = x + dx;
+        const py = y + dy;
+        const tileX = ((px % tile.width) + tile.width) % tile.width;
+        const tileY = ((py % tile.height) + tile.height) % tile.height;
+        const alphaIndex = tileY * tile.width + tileX;
 
-    const alpha = tile.alpha[alphaIndex];
+        if (alphaIndex >= 0 && alphaIndex < tile.alpha.length) {
+          const alpha = tile.alpha[alphaIndex];
+          if (alpha > maxAlpha) {
+            maxAlpha = alpha;
+          }
+        }
+      }
 
-    if (alpha > 0) {
-      // 透明度に応じてピクセルを描画
-      ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${alpha})`;
-      if (width === 1) {
+      if (maxAlpha > 0) {
+        ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${maxAlpha})`;
         ctx.fillRect(x, y, 1, 1);
-      } else {
+      }
+    } else {
+      // 太い線の場合は従来通り
+      // タイル内の位置を計算（繰り返しパターン）
+      const tileX = ((x % tile.width) + tile.width) % tile.width;
+      const tileY = ((y % tile.height) + tile.height) % tile.height;
+      const alphaIndex = tileY * tile.width + tileX;
+
+      // 配列の範囲外アクセスを防ぐ
+      if (alphaIndex < 0 || alphaIndex >= tile.alpha.length) {
+        return;
+      }
+
+      const alpha = tile.alpha[alphaIndex];
+
+      if (alpha > 0) {
+        // 透明度に応じてピクセルを描画
+        ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${alpha})`;
         // 太い線の場合は各ピクセルを拡大して描画
         const halfWidth = Math.floor(width / 2);
         for (let dy = -halfWidth; dy <= halfWidth; dy++) {
