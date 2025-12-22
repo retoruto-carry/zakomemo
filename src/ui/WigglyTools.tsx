@@ -498,8 +498,9 @@ export const WigglyTools = React.forwardRef<
               aria-hidden="true"
             />
             {/* Corner Indicator */}
-            <button
-              type="button"
+            <div
+              role="button"
+              tabIndex={0}
               onClick={(e) => {
                 e.stopPropagation();
                 if (activePopup === "pattern") {
@@ -509,6 +510,19 @@ export const WigglyTools = React.forwardRef<
                 }
                 setTool("pattern");
                 setActivePopup(activePopup === "pattern" ? "none" : "pattern");
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  if (activePopup === "pattern") {
+                    uiSoundManager.play("popup-close", { stopPrevious: true });
+                  } else {
+                    uiSoundManager.play("button-tool", { stopPrevious: true });
+                  }
+                  setTool("pattern");
+                  setActivePopup(activePopup === "pattern" ? "none" : "pattern");
+                }
               }}
               className={`absolute bottom-1.5 right-1.5 w-9 h-9 border-[3px] rounded-[3px] flex items-center justify-center transition-all hover:scale-105 active:scale-95 z-[90] focus:outline-none focus-visible:ring-2 focus-visible:ring-black cursor-pointer ${tool === "pattern" ? "border-black bg-white" : "border-[#d2b48c] bg-white"}`}
             >
@@ -527,7 +541,7 @@ export const WigglyTools = React.forwardRef<
                   imageRendering: "pixelated",
                 }}
               />
-            </button>
+            </div>
 
             {/* COMPACT POPUP: Pattern Grid (Faithful Dot Style) */}
             {activePopup === "pattern" && (
@@ -649,8 +663,9 @@ export const WigglyTools = React.forwardRef<
               aria-hidden="true"
             />
             {/* Corner Indicator */}
-            <button
-              type="button"
+            <div
+              role="button"
+              tabIndex={0}
               onClick={(e) => {
                 e.stopPropagation();
                 if (activePopup === "eraser") {
@@ -660,6 +675,19 @@ export const WigglyTools = React.forwardRef<
                 }
                 setTool("eraser");
                 setActivePopup(activePopup === "eraser" ? "none" : "eraser");
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  if (activePopup === "eraser") {
+                    uiSoundManager.play("popup-close", { stopPrevious: true });
+                  } else {
+                    uiSoundManager.play("button-tool", { stopPrevious: true });
+                  }
+                  setTool("eraser");
+                  setActivePopup(activePopup === "eraser" ? "none" : "eraser");
+                }
               }}
               className={`absolute bottom-1.5 right-1.5 w-9 h-9 border-[3px] rounded-[3px] flex items-center justify-center transition-all hover:scale-105 active:scale-95 z-[90] focus:outline-none focus-visible:ring-2 focus-visible:ring-black cursor-pointer ${tool === "eraser" ? "border-black bg-white" : "border-[#d2b48c] bg-white"}`}
             >
@@ -675,7 +703,7 @@ export const WigglyTools = React.forwardRef<
                     : ""
                   } bg-white border-[1.5px] ${tool === "eraser" ? "border-black" : "border-[#d2b48c]"} shadow-inner`}
               />
-            </button>
+            </div>
 
             {/* COMPACT POPUP: Eraser Grid */}
             {activePopup === "eraser" && (
