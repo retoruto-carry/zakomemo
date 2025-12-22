@@ -108,7 +108,8 @@ export class CanvasRenderer implements DrawingRenderer {
     }
 
     // 複数点の場合はBresenhamアルゴリズムで各ピクセルを描画
-    const pixels = new Set<string>(); // 重複を避けるためSetを使用
+    // パフォーマンス最適化: Map<number, Set<number>>を使用（文字列操作を避ける）
+    const pixels = new Map<number, Set<number>>(); // x -> Set<y>
 
     for (let i = 0; i < jitteredPoints.length; i++) {
       const current = jitteredPoints[i];
@@ -117,7 +118,8 @@ export class CanvasRenderer implements DrawingRenderer {
 
       if (i === 0) {
         // 最初の点
-        pixels.add(`${x},${y}`);
+        if (!pixels.has(x)) pixels.set(x, new Set());
+        pixels.get(x)?.add(y);
       } else {
         // 前の点から現在の点までBresenhamで線を描画
         const prev = jitteredPoints[i - 1];
@@ -125,15 +127,17 @@ export class CanvasRenderer implements DrawingRenderer {
         const prevY = Math.round(prev.y);
         const linePixels = bresenhamLine(prevX, prevY, x, y);
         linePixels.forEach((pixel) => {
-          pixels.add(`${pixel.x},${pixel.y}`);
+          if (!pixels.has(pixel.x)) pixels.set(pixel.x, new Set());
+          pixels.get(pixel.x)?.add(pixel.y);
         });
       }
     }
 
     // 各ピクセルを描画
-    pixels.forEach((key) => {
-      const [x, y] = key.split(",").map(Number);
-      this.drawPixel(ctx, x, y, brushWidth, variant, stroke.kind);
+    pixels.forEach((ys, x) => {
+      ys.forEach((y) => {
+        this.drawPixel(ctx, x, y, brushWidth, variant, stroke.kind);
+      });
     });
 
     ctx.restore();
@@ -204,7 +208,8 @@ export class CanvasRenderer implements DrawingRenderer {
     }
 
     // 複数点の場合はBresenhamアルゴリズムで各ピクセルを描画
-    const pixels = new Set<string>(); // 重複を避けるためSetを使用
+    // パフォーマンス最適化: Map<number, Set<number>>を使用（文字列操作を避ける）
+    const pixels = new Map<number, Set<number>>(); // x -> Set<y>
 
     for (let i = 0; i < jitteredPoints.length; i++) {
       const current = jitteredPoints[i];
@@ -213,7 +218,8 @@ export class CanvasRenderer implements DrawingRenderer {
 
       if (i === 0) {
         // 最初の点
-        pixels.add(`${x},${y}`);
+        if (!pixels.has(x)) pixels.set(x, new Set());
+        pixels.get(x)?.add(y);
       } else {
         // 前の点から現在の点までBresenhamで線を描画
         const prev = jitteredPoints[i - 1];
@@ -221,15 +227,17 @@ export class CanvasRenderer implements DrawingRenderer {
         const prevY = Math.round(prev.y);
         const linePixels = bresenhamLine(prevX, prevY, x, y);
         linePixels.forEach((pixel) => {
-          pixels.add(`${pixel.x},${pixel.y}`);
+          if (!pixels.has(pixel.x)) pixels.set(pixel.x, new Set());
+          pixels.get(pixel.x)?.add(pixel.y);
         });
       }
     }
 
     // 各ピクセルを描画
-    pixels.forEach((key) => {
-      const [x, y] = key.split(",").map(Number);
-      this.drawPatternPixel(ctx, x, y, brushWidth, tile, r, g, b);
+    pixels.forEach((ys, x) => {
+      ys.forEach((y) => {
+        this.drawPatternPixel(ctx, x, y, brushWidth, tile, r, g, b);
+      });
     });
 
     ctx.restore();
