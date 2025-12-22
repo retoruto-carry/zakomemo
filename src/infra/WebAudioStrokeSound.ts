@@ -469,7 +469,10 @@ export class WebAudioStrokeSound implements StrokeSound {
     for (const [tool, gainNode] of this.gainNodes) {
       if (tool !== info.tool) {
         gainNode.gain.cancelScheduledValues(currentTime);
-        gainNode.gain.setValueAtTime(gainNode.gain.value, currentTime);
+        const currentGain = gainNode.gain.value;
+        // exponentialRampToValueAtTimeは0から開始できないため、現在の値が0の場合は0.001から開始
+        const startGain = currentGain > 0 ? currentGain : 0.001;
+        gainNode.gain.setValueAtTime(startGain, currentTime);
         gainNode.gain.exponentialRampToValueAtTime(0.001, currentTime + 0.05);
       }
     }
@@ -482,8 +485,9 @@ export class WebAudioStrokeSound implements StrokeSound {
     if (gainNode) {
       gainNode.gain.cancelScheduledValues(currentTime);
       // 初期音量を少し上げて即座に音が出るようにする
+      // exponentialRampToValueAtTimeは0から開始できないため、0.001から開始
       const initialVolume = WebAudioStrokeSound.FADE_IN_INITIAL_VOLUME;
-      gainNode.gain.setValueAtTime(0, currentTime);
+      gainNode.gain.setValueAtTime(0.001, currentTime);
       gainNode.gain.exponentialRampToValueAtTime(
         initialVolume,
         currentTime + WebAudioStrokeSound.FADE_IN_TIME
