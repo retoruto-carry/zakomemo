@@ -336,7 +336,11 @@ export function WigglyCanvas({
       if (!state) return;
 
       // 最大移動距離を更新
-      for (let i = 0; i < ev.touches.length && i < state.initialPositions.length; i += 1) {
+      for (
+        let i = 0;
+        i < ev.touches.length && i < state.initialPositions.length;
+        i += 1
+      ) {
         const touch = ev.touches[i];
         const initial = state.initialPositions[i];
         const dx = touch.clientX - initial.x;
