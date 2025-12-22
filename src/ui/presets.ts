@@ -1,3 +1,14 @@
+import type { Drawing } from "@/core/types";
+
+/**
+ * デフォルトの描画サイズ
+ */
+export const DEFAULT_DRAWING: Drawing = {
+  width: 960,
+  height: 640,
+  strokes: [],
+};
+
 export interface BodyColor {
   bg: string;
   border: string;

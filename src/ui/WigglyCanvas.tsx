@@ -3,9 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import { createWigglyEngine } from "@/app/createWigglyEngine";
 import type { JitterConfig } from "@/core/jitter";
-import type { BrushPatternId, Drawing } from "@/core/types";
+import type { BrushPatternId } from "@/core/types";
 import type { EraserVariant, PenVariant } from "@/engine/variants";
 import type { Tool, WigglyEngine } from "@/engine/WigglyEngine";
+import { DEFAULT_DRAWING } from "./presets";
 
 const ERASER_GUIDE = {
   minSize: 12,
@@ -25,10 +26,9 @@ type PointerInfo = {
 };
 
 interface WigglyCanvasProps {
-  initialDrawing: Drawing;
   tool: Tool;
   color: string;
-  width: number;
+  brushWidth: number;
   penVariant: PenVariant;
   eraserVariant: EraserVariant;
   patternId: BrushPatternId;
@@ -38,10 +38,9 @@ interface WigglyCanvasProps {
 }
 
 export function WigglyCanvas({
-  initialDrawing,
   tool,
   color,
-  width,
+  brushWidth,
   penVariant,
   eraserVariant,
   patternId,
@@ -72,8 +71,8 @@ export function WigglyCanvas({
     engineRef.current?.setBrushColor(color);
   }, [color]);
   useEffect(() => {
-    engineRef.current?.setBrushWidth(width);
-  }, [width]);
+    engineRef.current?.setBrushWidth(brushWidth);
+  }, [brushWidth]);
   useEffect(() => {
     engineRef.current?.setPattern(patternId);
   }, [patternId]);
@@ -102,7 +101,7 @@ export function WigglyCanvas({
 
     const engine = createWigglyEngine(
       canvas,
-      initialDrawing,
+      DEFAULT_DRAWING,
       backgroundColor,
       jitterConfig,
     );
@@ -307,8 +306,8 @@ export function WigglyCanvas({
     >
       <canvas
         ref={canvasRef}
-        width={initialDrawing.width}
-        height={initialDrawing.height}
+        width={DEFAULT_DRAWING.width}
+        height={DEFAULT_DRAWING.height}
         className="block touch-none"
         style={{
           touchAction: "pan-x pan-y pinch-zoom",
@@ -323,14 +322,14 @@ export function WigglyCanvas({
             width:
               eraserVariant === "eraserLine"
                 ? Math.max(
-                    width * ERASER_GUIDE.line.lengthMult,
+                    brushWidth * ERASER_GUIDE.line.lengthMult,
                     ERASER_GUIDE.minSize,
                   )
-                : Math.max(width, ERASER_GUIDE.minSize),
+                : Math.max(brushWidth, ERASER_GUIDE.minSize),
             height:
               eraserVariant === "eraserLine"
                 ? ERASER_GUIDE.line.height
-                : Math.max(width, ERASER_GUIDE.minSize),
+                : Math.max(brushWidth, ERASER_GUIDE.minSize),
             left: eraserPos.x,
             top: eraserPos.y,
             transform: "translate(-50%, -50%)",

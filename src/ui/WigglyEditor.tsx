@@ -14,16 +14,11 @@ import { MobileLayout } from "./layouts/MobileLayout";
 import {
   BACKGROUND_COLOR_PRESETS,
   BODY_PRESETS,
+  DEFAULT_DRAWING,
   PALETTE_PRESETS,
 } from "./presets";
 import { WigglyCanvas } from "./WigglyCanvas";
 import { WigglyTools, type WigglyToolsHandle } from "./WigglyTools";
-
-const initialDrawing: Drawing = {
-  width: 960,
-  height: 640,
-  strokes: [],
-};
 
 // Default palette: black, red, green, blue, yellow, purple
 const defaultPalette = PALETTE_PRESETS[0].colors;
@@ -46,7 +41,7 @@ export function WigglyEditor() {
   // State
   const [tool, setTool] = useState<Tool>("pen");
   const [color, setColor] = useState("var(--palette-0)");
-  const [width, setWidth] = useState(DEFAULT_PEN_WIDTH);
+  const [brushWidth, setBrushWidth] = useState(DEFAULT_PEN_WIDTH);
   // penVariantは現在"normal"のみなので定数として扱う
   const penVariant: PenVariant = "normal";
   const [eraserVariant, setEraserVariant] =
@@ -378,25 +373,24 @@ export function WigglyEditor() {
         dsButtons={
           isDesktop
             ? {
-                onA: handleDSButtonA,
-                onB: handleDSButtonB,
-                onX: handleDSButtonX,
-                onY: handleDSButtonY,
-                onUp: handleDSButtonUp,
-                onDown: handleDSButtonDown,
-                onLeft: handleDSButtonLeft,
-                onRight: handleDSButtonRight,
-                onStart: handleDSButtonStart,
-                onSelect: handleDSButtonSelect,
-              }
+              onA: handleDSButtonA,
+              onB: handleDSButtonB,
+              onX: handleDSButtonX,
+              onY: handleDSButtonY,
+              onUp: handleDSButtonUp,
+              onDown: handleDSButtonDown,
+              onLeft: handleDSButtonLeft,
+              onRight: handleDSButtonRight,
+              onStart: handleDSButtonStart,
+              onSelect: handleDSButtonSelect,
+            }
             : undefined
         }
         canvas={
           <WigglyCanvas
-            initialDrawing={initialDrawing}
             tool={tool}
             color={color}
-            width={width}
+            brushWidth={brushWidth}
             penVariant={penVariant}
             eraserVariant={eraserVariant}
             patternId={patternId}
@@ -412,8 +406,8 @@ export function WigglyEditor() {
             setTool={setTool}
             color={color}
             setColor={setColor}
-            width={width}
-            setWidth={setWidth}
+            brushWidth={brushWidth}
+            setBrushWidth={setBrushWidth}
             eraserVariant={eraserVariant}
             setEraserVariant={setEraserVariant}
             patternId={patternId}
