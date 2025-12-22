@@ -2,6 +2,7 @@
 
 import React, {
   type KeyboardEvent,
+  useEffect,
   useImperativeHandle,
   useRef,
   useState,
@@ -211,6 +212,13 @@ export const WigglyTools = React.forwardRef<
     "palette" | "body" | "background" | "jitter"
   >("palette");
   const undoGifRef = useRef<AnimatedGifHandle>(null);
+
+  // モバイルで「本体色」タブが選択されている場合、自動的に「背景色」タブに切り替え
+  useEffect(() => {
+    if (isMobile() && settingsTab === "body") {
+      setSettingsTab("background");
+    }
+  }, [settingsTab]);
   const playWidthSliderSound = useRef(
     throttle(() => {
       uiSoundManager.play("slider-change", { stopPrevious: true });
@@ -1010,20 +1018,22 @@ export const WigglyTools = React.forwardRef<
               >
                 パレット
               </button>
-              <button
-                type="button"
-                onClick={() => {
-                  uiSoundManager.play("settings-tab", { stopPrevious: true });
-                  setSettingsTab("body");
-                }}
-                className={`px-3 py-1.5 rounded-t-[8px] font-black text-sm transition-all cursor-pointer ${
-                  settingsTab === "body"
-                    ? "bg-[#fdfbf7] text-[#ff6b00] translate-y-px border-t-[3px] border-l-[3px] border-r-[3px] border-[#e7d1b1]"
-                    : "bg-[#ff9d5c] text-white hover:bg-[#ff8c00]"
-                }`}
-              >
-                本体色
-              </button>
+              {!isMobile() && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    uiSoundManager.play("settings-tab", { stopPrevious: true });
+                    setSettingsTab("body");
+                  }}
+                  className={`px-3 py-1.5 rounded-t-[8px] font-black text-sm transition-all cursor-pointer ${
+                    settingsTab === "body"
+                      ? "bg-[#fdfbf7] text-[#ff6b00] translate-y-px border-t-[3px] border-l-[3px] border-r-[3px] border-[#e7d1b1]"
+                      : "bg-[#ff9d5c] text-white hover:bg-[#ff8c00]"
+                  }`}
+                >
+                  本体色
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => {
