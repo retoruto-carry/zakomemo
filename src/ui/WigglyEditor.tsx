@@ -63,6 +63,9 @@ export function WigglyEditor() {
 
   // Palette & Body state
   const [palette, setPalette] = useState(defaultPalette);
+  const [selectedPaletteName, setSelectedPaletteName] = useState<string | null>(
+    PALETTE_PRESETS[0].name,
+  );
   const [bodyColor, setBodyColor] = useState(defaultBodyColor);
   const [backgroundColor, setBackgroundColor] = useState("#fdfbf7");
   const [jitterConfig, setJitterConfig] = useState<JitterConfig>({
@@ -438,6 +441,8 @@ export function WigglyEditor() {
             exportError={exportError}
             palette={palette}
             setPalette={setPalette}
+            selectedPaletteName={selectedPaletteName}
+            setSelectedPaletteName={setSelectedPaletteName}
             bodyColor={bodyColor}
             setBodyColor={setBodyColor}
             backgroundColor={backgroundColor}

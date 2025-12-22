@@ -155,6 +155,8 @@ interface WigglyToolsProps {
 
   palette: string[];
   setPalette: (palette: string[]) => void;
+  selectedPaletteName: string | null;
+  setSelectedPaletteName: (name: string | null) => void;
   bodyColor: BodyColor;
   setBodyColor: (bodyColor: BodyColor) => void;
   backgroundColor: string;
@@ -190,6 +192,8 @@ export const WigglyTools = React.forwardRef<
     onCloseExport,
     palette,
     setPalette,
+    selectedPaletteName,
+    setSelectedPaletteName,
     bodyColor,
     setBodyColor,
     backgroundColor,
@@ -1031,15 +1035,16 @@ export const WigglyTools = React.forwardRef<
                           stopPrevious: true,
                         });
                         setPalette(p.colors);
+                        setSelectedPaletteName(p.name);
                       }}
                       className={`flex items-center justify-between p-2.5 rounded-[4px] border-[3px] transition-all relative overflow-hidden cursor-pointer ${
-                        JSON.stringify(palette) === JSON.stringify(p.colors)
+                        selectedPaletteName === p.name
                           ? "border-black bg-[#ffff00] shadow-[4px_4px_0_rgba(0,0,0,0.1)]"
                           : "border-[#e7d1b1] bg-white hover:border-[#ff9d5c] shadow-[2px_2px_0_rgba(210,180,140,0.1)]"
                       }`}
                     >
                       <span
-                        className={`font-black text-sm ${JSON.stringify(palette) === JSON.stringify(p.colors) ? "text-black" : "text-[#a67c52]"}`}
+                        className={`font-black text-sm ${selectedPaletteName === p.name ? "text-black" : "text-[#a67c52]"}`}
                       >
                         {p.name}
                       </span>
@@ -1087,6 +1092,7 @@ export const WigglyTools = React.forwardRef<
                             const newPalette = [...palette];
                             newPalette[idx] = e.target.value;
                             setPalette(newPalette);
+                            setSelectedPaletteName(null);
                           }}
                           className="absolute inset-0 w-full h-full cursor-pointer opacity-0"
                         />
