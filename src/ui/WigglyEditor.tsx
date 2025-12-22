@@ -271,9 +271,7 @@ export function WigglyEditor() {
       : -1;
     if (currentPaletteIndex === -1) {
       setPalette(PALETTE_PRESETS[PALETTE_PRESETS.length - 1].colors);
-      setSelectedPaletteName(
-        PALETTE_PRESETS[PALETTE_PRESETS.length - 1].name,
-      );
+      setSelectedPaletteName(PALETTE_PRESETS[PALETTE_PRESETS.length - 1].name);
     } else {
       const prevIndex =
         currentPaletteIndex === 0
@@ -392,17 +390,17 @@ export function WigglyEditor() {
         dsButtons={
           isDesktop
             ? {
-              onA: handleDSButtonA,
-              onB: handleDSButtonB,
-              onX: handleDSButtonX,
-              onY: handleDSButtonY,
-              onUp: handleDSButtonUp,
-              onDown: handleDSButtonDown,
-              onLeft: handleDSButtonLeft,
-              onRight: handleDSButtonRight,
-              onStart: handleDSButtonStart,
-              onSelect: handleDSButtonSelect,
-            }
+                onA: handleDSButtonA,
+                onB: handleDSButtonB,
+                onX: handleDSButtonX,
+                onY: handleDSButtonY,
+                onUp: handleDSButtonUp,
+                onDown: handleDSButtonDown,
+                onLeft: handleDSButtonLeft,
+                onRight: handleDSButtonRight,
+                onStart: handleDSButtonStart,
+                onSelect: handleDSButtonSelect,
+              }
             : undefined
         }
         canvas={
