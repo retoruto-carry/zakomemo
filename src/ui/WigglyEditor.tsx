@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { JitterConfig } from "@/core/jitter";
-import type { BrushPatternId, Drawing } from "@/core/types";
+import type { BrushPatternId } from "@/core/types";
 import { exportDrawingAsGif } from "@/engine/exportGif";
 import type { EraserVariant, PenVariant } from "@/engine/variants";
 import type { Tool, WigglyEngine } from "@/engine/WigglyEngine";
@@ -14,7 +14,6 @@ import { MobileLayout } from "./layouts/MobileLayout";
 import {
   BACKGROUND_COLOR_PRESETS,
   BODY_PRESETS,
-  DEFAULT_DRAWING,
   PALETTE_PRESETS,
 } from "./presets";
 import { WigglyCanvas } from "./WigglyCanvas";
