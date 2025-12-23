@@ -9,7 +9,10 @@ import {
 import type { JitterConfig } from "../core/jitter";
 import { snapBrushWidth, snapToPixel } from "../core/pixelArt";
 import type { BrushSettings, Drawing, StrokeKind } from "../core/types";
-import { renderDrawingAtTime } from "./frameRenderer";
+import {
+  invalidatePendingRequests,
+  renderDrawingAtTime,
+} from "./frameRenderer";
 import type {
   DrawingRenderer,
   RafScheduler,
@@ -122,6 +125,9 @@ export class WigglyEngine {
     this.jitterConfig = jitterConfig;
     // jitterConfigが変わるとキャッシュが無効になるため、キャッシュをクリア
     this.clearRendererCache();
+    // 保留中の非同期レンダリングリクエストを無効化
+    // これにより、閉じられたImageBitmapを使用しようとする古いリクエストを防ぐ
+    invalidatePendingRequests();
     // Force immediate re-render with new jitter config
     this.lastRenderAt = 0;
   }
@@ -132,6 +138,9 @@ export class WigglyEngine {
 
   clearRendererCache(): void {
     this.renderer.clearPatternCache();
+    // 保留中の非同期レンダリングリクエストを無効化
+    // これにより、閉じられたImageBitmapを使用しようとする古いリクエストを防ぐ
+    invalidatePendingRequests();
   }
 
   canUndo(): boolean {

@@ -120,6 +120,14 @@ export type RenderDrawingAtTimeParams = {
 // 最新のフレームリクエストを追跡（競合状態を防ぐため）
 let latestRequestId = 0;
 
+/**
+ * 保留中の非同期レンダリングリクエストを無効化
+ * キャッシュが無効化された際に、古いリクエストが閉じられたImageBitmapを使用しないようにする
+ */
+export function invalidatePendingRequests(): void {
+  latestRequestId += 1;
+}
+
 export function renderDrawingAtTime(params: RenderDrawingAtTimeParams): void {
   const { drawing, renderer, jitterConfig, elapsedTimeMs } = params;
   // ImageBitmapキャッシュを使用する場合は、getFrameBitmapを使用
