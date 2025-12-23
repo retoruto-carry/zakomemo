@@ -33,17 +33,6 @@ type GetFrameBitmapParams = {
 };
 
 /**
- * 差分描画の引数
- */
-type RenderFrameWithDiffParams = {
-  drawing: Drawing;
-  frameIndex: number;
-  frameElapsedTimeMs: number;
-  jitterConfig: JitterConfig;
-  newStrokes: Stroke[];
-};
-
-/**
  * 全ストロークからフレーム生成の引数
  */
 type RenderFrameFromScratchParams = {
@@ -645,13 +634,15 @@ export class CanvasRenderer implements DrawingRenderer {
         return cached;
       }
 
-      // 新しいストロークがある場合: 差分描画
-      return await this.renderFrameWithDiff({
+      // 新しいストロークがある場合: すべてのフレームを再生成
+      // 理由: 差分描画では1つのフレームだけが更新されるが、
+      // アニメーションでは3フレームすべてが必要なため、すべてを更新する必要がある
+      // 消しゴムも同様に、既存のピクセルを消すため、全フレーム再生成が必要
+      return await this.renderFrameFromScratch({
         drawing,
         frameIndex,
         frameElapsedTimeMs,
         jitterConfig,
-        newStrokes,
       });
     }
 
@@ -662,111 +653,6 @@ export class CanvasRenderer implements DrawingRenderer {
       frameElapsedTimeMs,
       jitterConfig,
     });
-  }
-
-  /**
-   * 差分描画: 前のImageBitmapに新しいストロークだけを重ねる
-   */
-  private async renderFrameWithDiff(
-    params: RenderFrameWithDiffParams,
-  ): Promise<ImageBitmap> {
-    const {
-      drawing,
-      frameIndex,
-      frameElapsedTimeMs,
-      jitterConfig,
-      newStrokes,
-    } = params;
-    if (!this.frameBitmaps[frameIndex]) {
-      // 前のImageBitmapがない場合は、全ストロークから再生成
-      return await this.renderFrameFromScratch({
-        drawing,
-        frameIndex,
-        frameElapsedTimeMs,
-        jitterConfig,
-      });
-    }
-
-    // 前のImageBitmapをコピーして新しいストロークを描画
-    const tempCanvas = document.createElement("canvas");
-    tempCanvas.width = this.lastWidth;
-    tempCanvas.height = this.lastHeight;
-    const tempCtx = tempCanvas.getContext("2d", {
-      willReadFrequently: true,
-      alpha: true,
-    });
-    if (!tempCtx) {
-      throw new Error(
-        `Failed to get 2D context for temp canvas (${this.lastWidth}x${this.lastHeight})`,
-      );
-    }
-    tempCtx.imageSmoothingEnabled = false;
-
-    // 前のImageBitmapを描画
-    const previousBitmap = this.frameBitmaps[frameIndex];
-    if (!previousBitmap) {
-      // この時点でnullの場合は、全ストロークから再生成にフォールバック
-      return await this.renderFrameFromScratch({
-        drawing,
-        frameIndex,
-        frameElapsedTimeMs,
-        jitterConfig,
-      });
-    }
-    tempCtx.drawImage(previousBitmap, 0, 0);
-
-    // ImageDataを取得
-    const tempImageData = tempCtx.getImageData(
-      0,
-      0,
-      this.lastWidth,
-      this.lastHeight,
-    );
-    const tempData = tempImageData.data;
-
-    // ImageDataを一時的に置き換え
-    const originalImageData = this.imageData;
-    const originalData = this.data;
-    try {
-      this.imageData = tempImageData;
-      this.data = tempData;
-
-      // 新しいストロークを描画
-      for (const stroke of newStrokes) {
-        // jitterを計算して描画
-        const jittered = applyJitterToStroke({
-          stroke,
-          elapsedTimeMs: frameElapsedTimeMs,
-          jitterConfig,
-        });
-        this.renderStroke(stroke, jittered, frameElapsedTimeMs);
-      }
-
-      // ImageDataをCanvasに書き戻す
-      tempCtx.putImageData(tempImageData, 0, 0);
-    } finally {
-      // ImageDataを元に戻す（エラーが発生しても必ず復元）
-      this.imageData = originalImageData;
-      this.data = originalData;
-    }
-
-    // ImageBitmapを作成
-    const newBitmap = await createImageBitmap(tempCanvas);
-
-    // キャッシュを更新
-    this.frameBitmaps[frameIndex]?.close();
-    this.frameBitmaps[frameIndex] = newBitmap;
-
-    // キャッシュされたストロークIDを更新
-    for (const stroke of newStrokes) {
-      this.cachedStrokeIds.add(stroke.id);
-    }
-    // jitterConfigも更新（差分描画でもjitterConfigが変わっている可能性がある）
-    this.cachedJitterConfig = { ...jitterConfig }; // コピーを保存
-    // Drawingのハッシュも更新（差分描画後もキャッシュが有効になるように）
-    this.cachedDrawingHash = this.computeDrawingHash(drawing);
-
-    return newBitmap;
   }
 
   /**
