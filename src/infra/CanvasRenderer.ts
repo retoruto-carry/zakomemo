@@ -608,11 +608,6 @@ export class CanvasRenderer implements DrawingRenderer {
       this.clear(drawing.width, drawing.height);
     }
 
-    // フレームごとの経過時間を計算（3フレームを均等に分散）
-    // アニメーション速度: 10fps（100ms/フレーム）で固定
-    const frameInterval = 100; // 100ms = 10fps
-    const frameElapsedTimeMs = frameIndex * frameInterval;
-
     const drawingHash = this.computeDrawingHash(drawing);
 
     // キャッシュが有効かチェック
@@ -635,24 +630,58 @@ export class CanvasRenderer implements DrawingRenderer {
       }
 
       // 新しいストロークがある場合: すべてのフレームを再生成
-      // 理由: 差分描画では1つのフレームだけが更新されるが、
-      // アニメーションでは3フレームすべてが必要なため、すべてを更新する必要がある
+      // 理由: アニメーションでは3フレームすべてが必要なため、すべてを更新する必要がある
       // 消しゴムも同様に、既存のピクセルを消すため、全フレーム再生成が必要
-      return await this.renderFrameFromScratch({
-        drawing,
-        frameIndex,
-        frameElapsedTimeMs,
-        jitterConfig,
-      });
+      // 要求されたフレームを生成し、他のフレームも並列で生成する
+      await this.regenerateAllFrames(drawing, jitterConfig);
+      // 要求されたフレームを返す
+      const requestedBitmap = this.frameBitmaps[frameIndex];
+      if (!requestedBitmap) {
+        throw new Error(
+          `Frame bitmap at index ${frameIndex} is null after regeneration`,
+        );
+      }
+      return requestedBitmap;
     }
 
-    // キャッシュが無効な場合: 全ストロークから再生成
-    return await this.renderFrameFromScratch({
-      drawing,
-      frameIndex,
-      frameElapsedTimeMs,
-      jitterConfig,
-    });
+    // キャッシュが無効な場合: すべてのフレームを再生成
+    await this.regenerateAllFrames(drawing, jitterConfig);
+    // 要求されたフレームを返す
+    const requestedBitmap = this.frameBitmaps[frameIndex];
+    if (!requestedBitmap) {
+      throw new Error(
+        `Frame bitmap at index ${frameIndex} is null after regeneration`,
+      );
+    }
+    return requestedBitmap;
+  }
+
+  /**
+   * すべてのフレームを再生成（新しいストローク追加時やclear()後など）
+   */
+  private async regenerateAllFrames(
+    drawing: Drawing,
+    jitterConfig: JitterConfig,
+  ): Promise<void> {
+    const frameCount = FRAME_COUNT;
+    const frameInterval = 100; // 100ms = 10fps
+
+    // すべてのフレームを並列で生成
+    const promises: Promise<ImageBitmap>[] = [];
+    for (let i = 0; i < frameCount; i++) {
+      const frameElapsedTimeMs = i * frameInterval;
+      promises.push(
+        this.renderFrameFromScratch({
+          drawing,
+          frameIndex: i,
+          frameElapsedTimeMs,
+          jitterConfig,
+        }),
+      );
+    }
+
+    // すべてのフレームが生成されるまで待つ
+    await Promise.all(promises);
   }
 
   /**
