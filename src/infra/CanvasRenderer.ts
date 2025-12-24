@@ -808,10 +808,14 @@ export class CanvasRenderer implements DrawingRenderer {
 
     // 差分描画が可能な場合（drawingHashが一致しなくても、frameBitmapが存在し、jitterConfigが一致していれば）
     // ただし、ストロークが削除された場合や、ストロークの順序が変わった場合は全再生成が必要
+    // 注意: frameBitmapExistsがfalseの場合でも、履歴キャッシュに存在する可能性があるため、
+    // 履歴キャッシュをチェックしてから判断する
     const canUseDiffRendering =
       !drawingHashMatch &&
       jitterConfigMatch &&
-      frameBitmapExists &&
+      (frameBitmapExists ||
+        (historyCacheEntry !== null &&
+          historyCacheEntry.frameBitmaps[frameIndex] !== null)) &&
       this.cachedDrawingHash !== null;
 
     if (!isCacheFullyValid && !canUseDiffRendering) {
@@ -1224,8 +1228,10 @@ export class CanvasRenderer implements DrawingRenderer {
       // 非同期処理のため、awaitしない（描画をブロックしない）
       // 注意: saveToHistoryCache内でImageBitmapをクローンするため、
       // クローンする前に現在のframeBitmapsの状態を保存する必要がある
+      // ただし、描画中（isDrawingActive）の場合は、他のフレームがまだ生成されていない可能性があるため、
+      // 履歴キャッシュへの保存はスキップする
       const allFramesReady = this.frameBitmaps.every((b) => b !== null);
-      if (allFramesReady) {
+      if (allFramesReady && !this.isDrawingActive) {
         const drawingHash = this.computeDrawingHash(drawing);
         // ImageBitmapをクローンする前に、現在のframeBitmapsの参照を保存
         // 非同期処理中にframeBitmapsが変更される可能性があるため
@@ -1310,8 +1316,10 @@ export class CanvasRenderer implements DrawingRenderer {
     // 非同期処理のため、awaitしない（描画をブロックしない）
     // 注意: saveToHistoryCache内でImageBitmapをクローンするため、
     // クローンする前に現在のframeBitmapsの状態を保存する必要がある
+    // ただし、描画中（isDrawingActive）の場合は、他のフレームがまだ生成されていない可能性があるため、
+    // 履歴キャッシュへの保存はスキップする
     const allFramesReady = this.frameBitmaps.every((b) => b !== null);
-    if (allFramesReady) {
+    if (allFramesReady && !this.isDrawingActive) {
       const drawingHash = this.computeDrawingHash(drawing);
       // ImageBitmapをクローンする前に、現在のframeBitmapsの参照を保存
       // 非同期処理中にframeBitmapsが変更される可能性があるため
@@ -1336,17 +1344,26 @@ export class CanvasRenderer implements DrawingRenderer {
     this.ctx.save();
     this.ctx.setTransform(1, 0, 0, 1, 0, 0);
     this.ctx.imageSmoothingEnabled = false;
-    this.ctx.drawImage(
-      bitmap,
-      0,
-      0,
-      this.lastWidth,
-      this.lastHeight,
-      0,
-      0,
-      this.lastWidth * dpr,
-      this.lastHeight * dpr,
-    );
+    try {
+      this.ctx.drawImage(
+        bitmap,
+        0,
+        0,
+        this.lastWidth,
+        this.lastHeight,
+        0,
+        0,
+        this.lastWidth * dpr,
+        this.lastHeight * dpr,
+      );
+    } catch (error) {
+      // ImageBitmapが既に閉じられている場合（detached）のエラーハンドリング
+      console.error(
+        `[CanvasRenderer] flushFromBitmap: drawImage failed (bitmap may be detached)`,
+        error,
+      );
+      // エラーが発生しても処理は続行（次のフレームで再生成される）
+    }
     this.ctx.restore();
   }
 
