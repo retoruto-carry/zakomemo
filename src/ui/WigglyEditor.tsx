@@ -1,6 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  BACKGROUND_COLOR_PRESETS,
+  BODY_PRESETS,
+  PALETTE_PRESETS,
+} from "@/config/presets";
 import type { JitterConfig } from "@/core/jitter";
 import type { BrushPatternId } from "@/core/types";
 import { exportDrawingAsGif } from "@/engine/exportGif";
@@ -11,11 +16,6 @@ import { GifEncGifEncoder } from "@/infra/GifEncGifEncoder";
 import { initializeUISounds, uiSoundManager } from "@/infra/uiSounds";
 import { DesktopLayout } from "./layouts/DesktopLayout";
 import { MobileLayout } from "./layouts/MobileLayout";
-import {
-  BACKGROUND_COLOR_PRESETS,
-  BODY_PRESETS,
-  PALETTE_PRESETS,
-} from "./presets";
 import { WigglyCanvas } from "./WigglyCanvas";
 import { WigglyTools, type WigglyToolsHandle } from "./WigglyTools";
 

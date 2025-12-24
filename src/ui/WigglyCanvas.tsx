@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { DEFAULT_DRAWING } from "@/config/presets";
 import type { JitterConfig } from "@/core/jitter";
 import type { BrushPatternId } from "@/core/types";
 import { createWigglyEngine } from "@/engine/createWigglyEngine";
 import type { EraserVariant, PenVariant } from "@/engine/variants";
 import type { Tool, WigglyEngine } from "@/engine/WigglyEngine";
-import { DEFAULT_DRAWING } from "./presets";
 
 const ERASER_GUIDE = {
   minSize: 12,

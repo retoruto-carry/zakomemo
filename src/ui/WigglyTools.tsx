@@ -7,6 +7,13 @@ import React, {
   useRef,
   useState,
 } from "react";
+import {
+  BACKGROUND_COLOR_PRESETS,
+  BODY_PRESETS,
+  type BodyColor,
+  generateBodyColorFromBase,
+  PALETTE_PRESETS,
+} from "@/config/presets";
 import type { JitterConfig } from "@/core/jitter";
 import type { BrushPatternId } from "@/core/types";
 import type { EraserVariant } from "@/engine/variants";
@@ -16,13 +23,6 @@ import { isMobile } from "@/lib/share";
 import { throttle } from "@/lib/throttle";
 import { AnimatedGif, type AnimatedGifHandle } from "./components/AnimatedGif";
 import { ShareButton } from "./components/ShareButton";
-import {
-  BACKGROUND_COLOR_PRESETS,
-  BODY_PRESETS,
-  type BodyColor,
-  generateBodyColorFromBase,
-  PALETTE_PRESETS,
-} from "./presets";
 import { eraserVariants } from "./variants";
 
 export interface WigglyToolsHandle {
