@@ -215,9 +215,16 @@ export class CanvasRenderer implements DrawingRenderer {
    * 新しいストロークのみを取得（差分描画用）
    */
   private getNewStrokes(drawing: Drawing): Stroke[] {
-    return drawing.strokes.filter(
+    const newStrokes = drawing.strokes.filter(
       (stroke) => !this.cachedStrokeIds.has(stroke.id),
     );
+    if (newStrokes.length > 0) {
+      console.log(
+        `[CanvasRenderer] getNewStrokes: ${newStrokes.length}個の新しいストローク検出`,
+        newStrokes.map((s) => ({ id: s.id, points: s.points.length })),
+      );
+    }
+    return newStrokes;
   }
 
   /**
@@ -235,6 +242,17 @@ export class CanvasRenderer implements DrawingRenderer {
           cachedPointCount: cachedCount,
         });
       }
+    }
+    if (result.length > 0) {
+      console.log(
+        `[CanvasRenderer] getStrokesWithNewPoints: ${result.length}個のストロークに新しいポイント`,
+        result.map((r) => ({
+          id: r.stroke.id,
+          cached: r.cachedPointCount,
+          current: r.stroke.points.length,
+          new: r.stroke.points.length - r.cachedPointCount,
+        })),
+      );
     }
     return result;
   }
@@ -731,6 +749,9 @@ export class CanvasRenderer implements DrawingRenderer {
       this.isJitterConfigEqual(historyCacheEntry.jitterConfig, jitterConfig) &&
       historyCacheEntry.frameBitmaps[frameIndex] !== null
     ) {
+      console.log(
+        `[CanvasRenderer] getFrameBitmap: 履歴キャッシュヒット frameIndex=${frameIndex}`,
+      );
       // 履歴キャッシュから返す
       const cached = historyCacheEntry.frameBitmaps[frameIndex];
       if (!cached) {
@@ -762,8 +783,12 @@ export class CanvasRenderer implements DrawingRenderer {
     if (isCacheValid) {
       // 新しいストロークがあるかチェック
       const newStrokes = this.getNewStrokes(drawing);
-      if (newStrokes.length === 0) {
+      const strokesWithNewPoints = this.getStrokesWithNewPoints(drawing);
+      if (newStrokes.length === 0 && strokesWithNewPoints.length === 0) {
         // キャッシュが有効で新しいストロークがない場合は、既存のImageBitmapを返す
+        console.log(
+          `[CanvasRenderer] getFrameBitmap: キャッシュヒット frameIndex=${frameIndex}`,
+        );
         const cached = this.frameBitmaps[frameIndex];
         if (!cached) {
           throw new Error(`Frame bitmap at index ${frameIndex} is null`);
@@ -774,6 +799,9 @@ export class CanvasRenderer implements DrawingRenderer {
       // 新しいストロークがある場合: 差分描画で効率的に更新
       // 前のImageBitmapに新しいストロークだけを上書き
       // ただし、全消しの場合は全再生成（drawing.strokes.length === 0）
+      console.log(
+        `[CanvasRenderer] getFrameBitmap: 差分描画 frameIndex=${frameIndex}, newStrokes=${newStrokes.length}, strokesWithNewPoints=${strokesWithNewPoints.length}`,
+      );
       const frameElapsedTimeMs = frameIndex * 100; // 100ms = 10fps
       const requested =
         drawing.strokes.length === 0
@@ -800,6 +828,9 @@ export class CanvasRenderer implements DrawingRenderer {
     }
 
     // キャッシュが無効な場合: 要求されたフレームを優先的に生成
+    console.log(
+      `[CanvasRenderer] getFrameBitmap: キャッシュ無効、全再生成 frameIndex=${frameIndex}, strokes=${drawing.strokes.length}`,
+    );
     const frameElapsedTimeMs = frameIndex * 100; // 100ms = 10fps
     const requested = await this.renderFrameFromScratch({
       drawing,
@@ -826,8 +857,14 @@ export class CanvasRenderer implements DrawingRenderer {
   ): void {
     // ストローク描画中はバックグラウンド生成をスキップ
     if (this.isDrawingActive) {
+      console.log(
+        `[CanvasRenderer] regenerateOtherFramesAsync: スキップ（描画中） excludeIndex=${excludeIndex}`,
+      );
       return;
     }
+    console.log(
+      `[CanvasRenderer] regenerateOtherFramesAsync: 開始 excludeIndex=${excludeIndex}`,
+    );
 
     // 既存のバックグラウンド生成をキャンセル
     if (this.backgroundGenerationAbortController) {
@@ -902,9 +939,17 @@ export class CanvasRenderer implements DrawingRenderer {
       newStrokes,
     } = params;
 
+    const strokesWithNewPoints = this.getStrokesWithNewPoints(drawing);
+    console.log(
+      `[CanvasRenderer] renderFrameWithDiff: 開始 frameIndex=${frameIndex}, newStrokes=${newStrokes.length}, strokesWithNewPoints=${strokesWithNewPoints.length}`,
+    );
+
     // 前のImageBitmapを取得
     const previousBitmap = this.frameBitmaps[frameIndex];
     if (!previousBitmap) {
+      console.log(
+        `[CanvasRenderer] renderFrameWithDiff: 前のImageBitmapがないため全再生成にフォールバック`,
+      );
       // 前のImageBitmapがない場合は全再生成
       return await this.renderFrameFromScratch({
         drawing,
@@ -952,7 +997,6 @@ export class CanvasRenderer implements DrawingRenderer {
       }
 
       // 既存のストロークの新しいポイントだけを描画
-      const strokesWithNewPoints = this.getStrokesWithNewPoints(drawing);
       for (const { stroke, cachedPointCount } of strokesWithNewPoints) {
         // 新しいポイントを取得（前のポイントとの接続のため、1つ前のポイントも含める）
         const startIndex = Math.max(0, cachedPointCount - 1);
@@ -1022,6 +1066,9 @@ export class CanvasRenderer implements DrawingRenderer {
     params: RenderFrameFromScratchParams,
   ): Promise<ImageBitmap> {
     const { drawing, frameIndex, frameElapsedTimeMs, jitterConfig } = params;
+    console.log(
+      `[CanvasRenderer] renderFrameFromScratch: 開始 frameIndex=${frameIndex}, strokes=${drawing.strokes.length}`,
+    );
     // ImageDataを初期化
     this.initializeImageData(this.lastWidth, this.lastHeight);
 
@@ -1049,6 +1096,9 @@ export class CanvasRenderer implements DrawingRenderer {
 
     // ImageBitmapを作成
     const newBitmap = await createImageBitmap(this.offscreenCanvas);
+    console.log(
+      `[CanvasRenderer] renderFrameFromScratch: 完了 frameIndex=${frameIndex}`,
+    );
 
     // キャッシュを更新
     this.frameBitmaps[frameIndex]?.close();
