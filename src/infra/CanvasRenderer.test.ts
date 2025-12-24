@@ -651,6 +651,61 @@ describe("CanvasRenderer キャッシュ", () => {
       });
       expect(bitmapMany).toBeDefined();
     });
+
+    test("複数のストロークで多数のポイントを持つ場合", async () => {
+      // 各ストロークに多数のポイントを持つ
+      const strokeWithManyPoints = createTestStroke(
+        "s1",
+        Array.from({ length: 1000 }, (_, i) => ({
+          x: i % 100,
+          y: Math.floor(i / 100),
+          t: i * 10,
+        })),
+      );
+      const drawing = createTestDrawing([strokeWithManyPoints]);
+      const bitmap = await renderer.getFrameBitmap({
+        drawing,
+        frameIndex: 0,
+        jitterConfig: defaultJitterConfig,
+        elapsedTimeMs: 0,
+      });
+      expect(bitmap).toBeDefined();
+    });
+
+    test("非常に大きなブラシサイズ", async () => {
+      const largeBrushStroke = createTestStroke("s1");
+      largeBrushStroke.brush.width = 100; // 非常に大きなブラシサイズ
+      const drawing = createTestDrawing([largeBrushStroke]);
+      const bitmap = await renderer.getFrameBitmap({
+        drawing,
+        frameIndex: 0,
+        jitterConfig: defaultJitterConfig,
+        elapsedTimeMs: 0,
+      });
+      expect(bitmap).toBeDefined();
+    });
+
+    test("elapsedTimeMsの境界値（0、非常に大きな値）", async () => {
+      const drawing = createTestDrawing([createTestStroke("s1")]);
+
+      // elapsedTimeMs = 0（最小値）
+      const bitmap0 = await renderer.getFrameBitmap({
+        drawing,
+        frameIndex: 0,
+        jitterConfig: defaultJitterConfig,
+        elapsedTimeMs: 0,
+      });
+      expect(bitmap0).toBeDefined();
+
+      // elapsedTimeMs = 非常に大きな値（1000000ms = 約16分）
+      const bitmapLarge = await renderer.getFrameBitmap({
+        drawing,
+        frameIndex: 0,
+        jitterConfig: defaultJitterConfig,
+        elapsedTimeMs: 1000000,
+      });
+      expect(bitmapLarge).toBeDefined();
+    });
   });
 
   describe("競合状態", () => {
@@ -829,6 +884,134 @@ describe("CanvasRenderer キャッシュ", () => {
       expect(bitmap0Again).toBeDefined();
       expect(bitmap0Again.width).toBe(bitmaps[0].width);
       expect(bitmap0Again.height).toBe(bitmaps[0].height);
+    });
+
+    test("エラーハンドリングとフォールバックの統合", async () => {
+      const drawing = createTestDrawing([createTestStroke("s1")]);
+
+      // 正常なケース
+      const bitmap1 = await renderer.getFrameBitmap({
+        drawing,
+        frameIndex: 0,
+        jitterConfig: defaultJitterConfig,
+        elapsedTimeMs: 0,
+      });
+      expect(bitmap1).toBeDefined();
+
+      // 背景色を変更（キャッシュ無効化）
+      renderer.setBackgroundColor("#000000");
+
+      // 新しいストロークを追加（差分描画が試みられる）
+      const drawing2 = createTestDrawing([
+        createTestStroke("s1"),
+        createTestStroke("s2"),
+      ]);
+
+      // エラーが発生しても処理が続行されることを確認
+      const bitmap2 = await renderer.getFrameBitmap({
+        drawing: drawing2,
+        frameIndex: 0,
+        jitterConfig: defaultJitterConfig,
+        elapsedTimeMs: 0,
+      });
+      expect(bitmap2).toBeDefined();
+      expect(bitmap2.width).toBe(100);
+      expect(bitmap2.height).toBe(100);
+    });
+
+    test("キャッシュ無効化と再生成の統合", async () => {
+      const drawing1 = createTestDrawing([createTestStroke("s1")]);
+
+      // 初回描画
+      const bitmap1 = await renderer.getFrameBitmap({
+        drawing: drawing1,
+        frameIndex: 0,
+        jitterConfig: defaultJitterConfig,
+        elapsedTimeMs: 0,
+      });
+
+      // 背景色を変更（キャッシュ無効化）
+      renderer.setBackgroundColor("#000000");
+
+      // 同じdrawingで再度取得（キャッシュが無効化されているため、再生成される）
+      const bitmap2 = await renderer.getFrameBitmap({
+        drawing: drawing1,
+        frameIndex: 0,
+        jitterConfig: defaultJitterConfig,
+        elapsedTimeMs: 0,
+      });
+      expect(bitmap2).not.toBe(bitmap1);
+
+      // jitterConfigを変更（キャッシュ無効化）
+      const newJitterConfig: JitterConfig = {
+        amplitude: 2.0,
+        frequency: 0.01,
+      };
+
+      // 同じdrawingで再度取得（jitterConfigが変わっているため、再生成される）
+      const bitmap3 = await renderer.getFrameBitmap({
+        drawing: drawing1,
+        frameIndex: 0,
+        jitterConfig: newJitterConfig,
+        elapsedTimeMs: 0,
+      });
+      expect(bitmap3).not.toBe(bitmap2);
+    });
+
+    test("複数フレームの連続取得とキャッシュの統合", async () => {
+      const drawing = createTestDrawing([createTestStroke("s1")]);
+
+      // フレーム0を取得
+      const bitmap0_1 = await renderer.getFrameBitmap({
+        drawing,
+        frameIndex: 0,
+        jitterConfig: defaultJitterConfig,
+        elapsedTimeMs: 0,
+      });
+
+      // フレーム1を取得
+      const bitmap1_1 = await renderer.getFrameBitmap({
+        drawing,
+        frameIndex: 1,
+        jitterConfig: defaultJitterConfig,
+        elapsedTimeMs: 100,
+      });
+
+      // フレーム2を取得
+      const bitmap2_1 = await renderer.getFrameBitmap({
+        drawing,
+        frameIndex: 2,
+        jitterConfig: defaultJitterConfig,
+        elapsedTimeMs: 200,
+      });
+
+      // 同じフレームを再度取得（キャッシュから返される）
+      const bitmap0_2 = await renderer.getFrameBitmap({
+        drawing,
+        frameIndex: 0,
+        jitterConfig: defaultJitterConfig,
+        elapsedTimeMs: 0,
+      });
+      const bitmap1_2 = await renderer.getFrameBitmap({
+        drawing,
+        frameIndex: 1,
+        jitterConfig: defaultJitterConfig,
+        elapsedTimeMs: 100,
+      });
+      const bitmap2_2 = await renderer.getFrameBitmap({
+        drawing,
+        frameIndex: 2,
+        jitterConfig: defaultJitterConfig,
+        elapsedTimeMs: 200,
+      });
+
+      // キャッシュから返されることを確認
+      expect(bitmap0_2).toBeDefined();
+      expect(bitmap1_2).toBeDefined();
+      expect(bitmap2_2).toBeDefined();
+      expect(bitmap0_2.width).toBe(bitmap0_1.width);
+      expect(bitmap1_2.width).toBe(bitmap1_1.width);
+      expect(bitmap2_2.width).toBe(bitmap2_1.width);
     });
   });
 

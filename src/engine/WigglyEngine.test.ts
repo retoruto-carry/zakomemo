@@ -224,4 +224,175 @@ describe("WigglyEngine", () => {
     expect(lastPoint.x).toBe(11);
     expect(lastPoint.y).toBe(20);
   });
+
+  describe("統合テスト（描画フロー全体）", () => {
+    test("pointerDown → pointerMove → pointerUp → undo → redo の完全なフロー", () => {
+      const { engine, time } = createEngine();
+
+      // 1. pointerDown
+      time.set(0);
+      engine.pointerDown(10, 10);
+      let drawing = engine.getDrawing();
+      expect(drawing.strokes).toHaveLength(1);
+      expect(drawing.strokes[0].points).toHaveLength(1);
+
+      // 2. pointerMove（複数回）
+      time.set(10);
+      engine.pointerMove(20, 20);
+      time.set(20);
+      engine.pointerMove(30, 30);
+      drawing = engine.getDrawing();
+      expect(drawing.strokes[0].points.length).toBeGreaterThan(1);
+
+      // 3. pointerUp
+      time.set(30);
+      engine.pointerUp();
+      drawing = engine.getDrawing();
+      expect(drawing.strokes).toHaveLength(1);
+
+      // 4. undo
+      engine.undo();
+      drawing = engine.getDrawing();
+      expect(drawing.strokes).toHaveLength(0);
+
+      // 5. redo
+      engine.redo();
+      drawing = engine.getDrawing();
+      expect(drawing.strokes).toHaveLength(1);
+    });
+
+    test("複数のストロークを描画 → undo → redo → clear のフロー", () => {
+      const { engine, time } = createEngine();
+
+      // 1. 最初のストローク
+      time.set(0);
+      engine.pointerDown(0, 0);
+      time.set(10);
+      engine.pointerMove(10, 10);
+      engine.pointerUp();
+
+      // 2. 2番目のストローク
+      time.set(20);
+      engine.pointerDown(20, 20);
+      time.set(30);
+      engine.pointerMove(30, 30);
+      engine.pointerUp();
+
+      let drawing = engine.getDrawing();
+      expect(drawing.strokes).toHaveLength(2);
+
+      // 3. undo（2番目のストロークが削除される）
+      engine.undo();
+      drawing = engine.getDrawing();
+      expect(drawing.strokes).toHaveLength(1);
+
+      // 4. redo（2番目のストロークが復元される）
+      engine.redo();
+      drawing = engine.getDrawing();
+      expect(drawing.strokes).toHaveLength(2);
+
+      // 5. clear（すべてのストロークが削除される）
+      engine.clear();
+      drawing = engine.getDrawing();
+      expect(drawing.strokes).toHaveLength(0);
+
+      // 6. undo（clearが取り消される）
+      engine.undo();
+      drawing = engine.getDrawing();
+      expect(drawing.strokes).toHaveLength(2);
+    });
+
+    test("描画 → 背景色変更 → undo → redo のフロー", () => {
+      const { engine, time } = createEngine();
+
+      // 1. 描画
+      time.set(0);
+      engine.pointerDown(0, 0);
+      time.set(10);
+      engine.pointerMove(10, 10);
+      engine.pointerUp();
+
+      // 2. 背景色変更
+      engine.setBackgroundColor("#000000");
+      // 背景色変更は履歴に影響しないため、ストロークは残る
+      let drawing = engine.getDrawing();
+      expect(drawing.strokes).toHaveLength(1);
+
+      // 3. undo（描画が取り消される）
+      engine.undo();
+      drawing = engine.getDrawing();
+      expect(drawing.strokes).toHaveLength(0);
+
+      // 4. redo（描画が復元される）
+      engine.redo();
+      drawing = engine.getDrawing();
+      expect(drawing.strokes).toHaveLength(1);
+    });
+  });
+
+  describe("境界値", () => {
+    test("非常に多くのストローク", () => {
+      const { engine, time } = createEngine();
+
+      // 100個のストロークを描画
+      for (let i = 0; i < 100; i++) {
+        time.set(i * 10);
+        engine.pointerDown(i, i);
+        time.set(i * 10 + 5);
+        engine.pointerMove(i + 1, i + 1);
+        engine.pointerUp();
+      }
+
+      const drawing = engine.getDrawing();
+      expect(drawing.strokes).toHaveLength(100);
+    });
+
+    test("非常に長いストローク（多数のポイント）", () => {
+      const { engine, time } = createEngine();
+
+      time.set(0);
+      engine.pointerDown(0, 0);
+
+      // 1000個のポイントを追加
+      for (let i = 1; i <= 1000; i++) {
+        time.set(i * 10);
+        engine.pointerMove(i, i);
+      }
+
+      engine.pointerUp();
+
+      const drawing = engine.getDrawing();
+      expect(drawing.strokes).toHaveLength(1);
+      expect(drawing.strokes[0].points.length).toBeGreaterThan(100);
+    });
+
+    test("連続したundo/redo", () => {
+      const { engine, time } = createEngine();
+
+      // 5個のストロークを描画
+      for (let i = 0; i < 5; i++) {
+        time.set(i * 10);
+        engine.pointerDown(i, i);
+        time.set(i * 10 + 5);
+        engine.pointerMove(i + 1, i + 1);
+        engine.pointerUp();
+      }
+
+      // 5回undo
+      for (let i = 0; i < 5; i++) {
+        engine.undo();
+      }
+
+      let drawing = engine.getDrawing();
+      expect(drawing.strokes).toHaveLength(0);
+
+      // 5回redo
+      for (let i = 0; i < 5; i++) {
+        engine.redo();
+      }
+
+      drawing = engine.getDrawing();
+      expect(drawing.strokes).toHaveLength(5);
+    });
+  });
 });
