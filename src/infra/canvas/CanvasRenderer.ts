@@ -5,7 +5,7 @@ import {
   bresenhamLine,
   calculateThickLinePixels,
   getCirclePixelOffsets,
-} from "../../core/pixelArt";
+} from "../../core/rasterization";
 import type { BrushVariant, Drawing, Stroke } from "../../core/types";
 import { applyJitterToStroke } from "../../engine/frameRenderer";
 import type { DrawingRenderer } from "../../engine/ports";

@@ -3,9 +3,9 @@ import {
   calculateThickLinePixels,
   snapBrushWidth,
   snapToPixel,
-} from "./pixelArt";
+} from "./rasterization";
 
-describe("pixelArt", () => {
+describe("rasterization", () => {
   describe("snapToPixel", () => {
     test("整数座標はそのまま返す", () => {
       const result = snapToPixel(10, 20);

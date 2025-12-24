@@ -7,7 +7,7 @@ import {
   undoHistory,
 } from "../core/history";
 import type { JitterConfig } from "../core/jitter";
-import { snapBrushWidth, snapToPixel } from "../core/pixelArt";
+import { snapBrushWidth, snapToPixel } from "../core/rasterization";
 import type { BrushSettings, Drawing, StrokeKind } from "../core/types";
 import {
   invalidatePendingRequests,

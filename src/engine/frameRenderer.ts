@@ -1,6 +1,6 @@
 import type { JitterConfig } from "../core/jitter";
 import { computeJitter, computePatternJitter } from "../core/jitter";
-import { snapToPixel } from "../core/pixelArt";
+import { snapToPixel } from "../core/rasterization";
 import type { Drawing, Stroke } from "../core/types";
 import type { DrawingRenderer } from "./ports";
 

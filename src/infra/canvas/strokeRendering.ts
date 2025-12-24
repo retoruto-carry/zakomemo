@@ -9,7 +9,7 @@ import {
   bresenhamLine,
   calculateThickLinePixels,
   getCirclePixelOffsets,
-} from "../../core/pixelArt";
+} from "../../core/rasterization";
 import type { BrushVariant, Stroke } from "../../core/types";
 import { parseColorToRgb, resolveCssVariable } from "../colorUtil";
 import type { ImageDataContext } from "./imageDataManager";
