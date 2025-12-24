@@ -1048,8 +1048,13 @@ export class CanvasRenderer implements DrawingRenderer {
         .then((bitmap) => {
           // キャンセルされていない場合のみ更新
           if (!signal.aborted) {
-            this.frameBitmaps[i]?.close();
+            // 古いImageBitmapを保存
+            const oldBitmap = this.frameBitmaps[i];
+            // 新しいImageBitmapを設定（古いものはまだ使用中の可能性があるため、すぐにclose()しない）
             this.frameBitmaps[i] = bitmap;
+            // 古いImageBitmapは次のフレーム生成時にclose()される
+            // 注意: すぐにclose()するとdetachedエラーが発生する可能性があるため、
+            // renderFrameFromScratchやrenderFrameWithDiffでclose()される
           } else {
             // キャンセルされた場合は破棄
             bitmap.close();
@@ -1088,7 +1093,9 @@ export class CanvasRenderer implements DrawingRenderer {
     );
 
     // 前のImageBitmapを取得
-    const previousBitmap = this.frameBitmaps[frameIndex];
+    // 注意: frameBitmaps[frameIndex]が非同期で更新される可能性があるため、
+    // 取得した時点で有効かどうかをチェックする
+    let previousBitmap = this.frameBitmaps[frameIndex];
     if (!previousBitmap) {
       console.log(
         `[CanvasRenderer] renderFrameWithDiff: 前のImageBitmapがないため全再生成にフォールバック`,
@@ -1114,13 +1121,22 @@ export class CanvasRenderer implements DrawingRenderer {
       throw new Error("Failed to get 2D context for temp canvas");
     }
 
-    // drawImageの失敗を考慮（テスト環境などでImageBitmapがサポートされていない場合）
+    // drawImageの失敗を考慮（ImageBitmapが既に閉じられている場合など）
+    // 注意: previousBitmapが非同期で更新される可能性があるため、
+    // 取得した時点でのframeBitmaps[frameIndex]と比較して、まだ有効かどうかを確認する
     try {
+      // 現在のframeBitmaps[frameIndex]と比較して、まだ同じImageBitmapかどうかを確認
+      // もし更新されていた場合は、新しいImageBitmapを使用
+      const currentBitmap = this.frameBitmaps[frameIndex];
+      if (currentBitmap && currentBitmap !== previousBitmap) {
+        // frameBitmaps[frameIndex]が既に更新されている場合は、新しいImageBitmapを使用
+        previousBitmap = currentBitmap;
+      }
       tempCtx.drawImage(previousBitmap, 0, 0);
     } catch (error) {
       // drawImageが失敗した場合は、全再生成にフォールバック
       console.error(
-        `[CanvasRenderer] renderFrameWithDiff: drawImage failed, falling back to renderFrameFromScratch`,
+        `[CanvasRenderer] renderFrameWithDiff: drawImage failed (bitmap may be detached), falling back to renderFrameFromScratch`,
         error,
       );
       return await this.renderFrameFromScratch({
