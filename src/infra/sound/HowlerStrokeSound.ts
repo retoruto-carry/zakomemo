@@ -1,5 +1,5 @@
 import { Howl } from "howler";
-import type { StrokeSound, StrokeSoundInfo } from "../engine/ports";
+import type { StrokeSound, StrokeSoundInfo } from "../../engine/ports";
 
 /**
  * Howler.jsを使用した描画音の実装

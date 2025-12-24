@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { uiSoundManager } from "@/infra/uiSounds";
+import { uiSoundManager } from "@/infra/sound/uiSounds";
 import { shareToTwitter } from "@/lib/share";
 
 // X (Twitter) アイコン

@@ -18,7 +18,7 @@ import type { JitterConfig } from "@/core/jitter";
 import type { BrushPatternId } from "@/core/types";
 import type { EraserVariant } from "@/engine/variants";
 import type { Tool } from "@/engine/WigglyEngine";
-import { uiSoundManager } from "@/infra/uiSounds";
+import { uiSoundManager } from "@/infra/sound/uiSounds";
 import { isMobile } from "@/lib/share";
 import { throttle } from "@/lib/throttle";
 import { AnimatedGif, type AnimatedGifHandle } from "./components/AnimatedGif";

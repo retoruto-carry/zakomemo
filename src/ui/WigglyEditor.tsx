@@ -13,7 +13,7 @@ import type { EraserVariant, PenVariant } from "@/engine/variants";
 import type { Tool, WigglyEngine } from "@/engine/WigglyEngine";
 import { CanvasRenderer } from "@/infra/canvas/CanvasRenderer";
 import { GifEncGifEncoder } from "@/infra/GifEncGifEncoder";
-import { initializeUISounds, uiSoundManager } from "@/infra/uiSounds";
+import { initializeUISounds, uiSoundManager } from "@/infra/sound/uiSounds";
 import { DesktopLayout } from "./layouts/DesktopLayout";
 import { MobileLayout } from "./layouts/MobileLayout";
 import { WigglyCanvas } from "./WigglyCanvas";

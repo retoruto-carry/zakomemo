@@ -4,7 +4,7 @@ import { WigglyEngine } from "@/engine/WigglyEngine";
 import { BrowserRafScheduler } from "@/infra/BrowserRafScheduler";
 import { CanvasRenderer } from "@/infra/canvas/CanvasRenderer";
 import { RealTimeProvider } from "@/infra/RealTimeProvider";
-import { WebAudioStrokeSound } from "@/infra/WebAudioStrokeSound";
+import { WebAudioStrokeSound } from "@/infra/sound/WebAudioStrokeSound";
 
 function setupCanvasContext(
   canvas: HTMLCanvasElement,
