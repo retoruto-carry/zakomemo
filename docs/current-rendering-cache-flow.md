@@ -18,6 +18,7 @@
 
 ### 3. **キャッシュメタデータ**
 - `this.cachedStrokeIds`: キャッシュ済みのストロークIDのセット
+- `this.cachedStrokePointCounts`: ストロークIDごとのポイント数（ポイント単位の差分描画用）
 - `this.cachedDrawingHash`: 現在のDrawingのハッシュ
 - `this.cachedJitterConfig`: 現在のjitterConfig
 
@@ -61,18 +62,21 @@ CanvasRenderer.getFrameBitmap()
     → this.cachedDrawingHash === drawingHash をチェック
     → 新しいストロークがあるため、不一致
     
-  【ステップ3】新しいストロークを検出
+  【ステップ3】新しいストロークまたはポイント追加を検出
     → this.getNewStrokes() で新しいストロークを取得
-    → newStrokes.length > 0 の場合:
+    → this.getStrokesWithNewPoints() でポイント追加されたストロークを取得
+    → newStrokes.length > 0 または strokesWithNewPoints.length > 0 の場合:
     
       【ステップ3-1】要求されたフレームを優先的に生成
-        → renderFrameFromScratch() を同期的に実行
-          → ImageDataを初期化（背景色でクリア）
-          → 全ストロークを描画（jitter適用）
+        → 全消しの場合: renderFrameFromScratch() を同期的に実行
+        → 通常の場合: renderFrameWithDiff() を同期的に実行
+          → 前のImageBitmapからImageDataを取得
+          → 新しいストローク全体を描画（差分描画）
+          → 既存ストロークの新しいポイントだけを描画（ポイント単位の差分描画）
           → ImageDataをoffscreenCanvasに書き込み
           → createImageBitmap() でImageBitmapを作成
           → this.frameBitmaps[frameIndex] を更新
-          → this.cachedStrokeIds を更新
+          → this.cachedStrokeIds と this.cachedStrokePointCounts を更新
           → this.cachedDrawingHash を更新
           
           【重要】すべてのフレームが生成された場合:
