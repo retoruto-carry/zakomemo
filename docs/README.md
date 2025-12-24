@@ -9,8 +9,7 @@
 
 ### 実装詳細
 
-- **[rendering-system.md](./rendering-system.md)**: 描画システムとキャッシュの仕組み（概要）
-- **[current-rendering-cache-flow.md](./current-rendering-cache-flow.md)**: 描画・キャッシュの詳細な動作フロー
+- **[rendering-system.md](./rendering-system.md)**: 描画システムとキャッシュの仕組み（概念的な説明）
 - **[audio-implementation.md](./audio-implementation.md)**: 音声実装の詳細
 
 ### アルゴリズム・パフォーマンス
@@ -21,7 +20,7 @@
 ## ドキュメントの読み方
 
 1. **新規開発者**: `spec.md` → `pixel-art-design.md` → `rendering-system.md` の順に読む
-2. **キャッシュシステムの理解**: `rendering-system.md` → `current-rendering-cache-flow.md`
+2. **キャッシュシステムの理解**: `rendering-system.md`
 3. **アルゴリズムの理解**: `bresenham-algorithm.md`
 4. **パフォーマンス最適化**: `pixel-art-performance.md`
 
