@@ -236,4 +236,38 @@ describe("historyCache", () => {
       expect(removed).toContainEqual(entry1);
     });
   });
+
+  describe("境界値", () => {
+    it("MAX_HISTORY_CACHE_SIZEの境界値", () => {
+      const cache: HistoryCache = new Map();
+      const entries: HistoryCacheEntry[] = [];
+
+      // MAX_HISTORY_CACHE_SIZE（5）個のエントリを作成
+      for (let i = 0; i < 5; i++) {
+        const entry: HistoryCacheEntry = {
+          frameBitmaps: [null, null, null],
+          jitterConfig: { amplitude: 1.2, frequency: 0.008 },
+          timestamp: i * 1000,
+        };
+        entries.push(entry);
+        cache.set(`hash${i}`, entry);
+      }
+
+      // MAX_HISTORY_CACHE_SIZEちょうどの場合は何も削除されない
+      const removed1 = evictOldEntries(cache, 5);
+      expect(removed1).toEqual([]);
+      expect(cache.size).toBe(5);
+
+      // MAX_HISTORY_CACHE_SIZE + 1の場合は1つ削除される
+      const entry6: HistoryCacheEntry = {
+        frameBitmaps: [null, null, null],
+        jitterConfig: { amplitude: 1.2, frequency: 0.008 },
+        timestamp: 5000,
+      };
+      cache.set("hash5", entry6);
+      const removed2 = evictOldEntries(cache, 5);
+      expect(removed2.length).toBe(1);
+      expect(cache.size).toBe(5);
+    });
+  });
 });
