@@ -897,7 +897,8 @@ export class CanvasRenderer implements DrawingRenderer {
         // ただし、これは新しいストロークの可能性もあるため、より詳細なチェックが必要
         return !this.cachedStrokeIds.has(stroke.id);
       });
-      const hasDeletedOrReorderedStrokes = hasDeletedStrokes || hasReorderedStrokes;
+      const hasDeletedOrReorderedStrokes =
+        hasDeletedStrokes || hasReorderedStrokes;
 
       // ストロークが削除された場合や、ストロークの順序が変わった場合は全再生成
       if (hasDeletedOrReorderedStrokes) {
@@ -1115,7 +1116,23 @@ export class CanvasRenderer implements DrawingRenderer {
     if (!tempCtx) {
       throw new Error("Failed to get 2D context for temp canvas");
     }
-    tempCtx.drawImage(previousBitmap, 0, 0);
+
+    // drawImageの失敗を考慮（テスト環境などでImageBitmapがサポートされていない場合）
+    try {
+      tempCtx.drawImage(previousBitmap, 0, 0);
+    } catch (error) {
+      // drawImageが失敗した場合は、全再生成にフォールバック
+      console.error(
+        `[CanvasRenderer] renderFrameWithDiff: drawImage failed, falling back to renderFrameFromScratch`,
+        error,
+      );
+      return await this.renderFrameFromScratch({
+        drawing,
+        frameIndex,
+        frameElapsedTimeMs,
+        jitterConfig,
+      });
+    }
 
     // getImageDataの失敗を考慮（メモリ不足時など）
     let imageData: ImageData;
