@@ -1019,12 +1019,24 @@ export class CanvasRenderer implements DrawingRenderer {
       throw new Error("Failed to get 2D context for temp canvas");
     }
     tempCtx.drawImage(previousBitmap, 0, 0);
-    const imageData = tempCtx.getImageData(
-      0,
-      0,
-      this.lastWidth,
-      this.lastHeight,
-    );
+
+    // getImageDataの失敗を考慮（メモリ不足時など）
+    let imageData: ImageData;
+    try {
+      imageData = tempCtx.getImageData(0, 0, this.lastWidth, this.lastHeight);
+    } catch (error) {
+      // getImageDataが失敗した場合は、全再生成にフォールバック
+      console.error(
+        `[CanvasRenderer] renderFrameWithDiff: getImageData failed, falling back to renderFrameFromScratch`,
+        error,
+      );
+      return await this.renderFrameFromScratch({
+        drawing,
+        frameIndex,
+        frameElapsedTimeMs,
+        jitterConfig,
+      });
+    }
     const data = imageData.data;
 
     // 一時的にImageDataを置き換え
@@ -1108,6 +1120,11 @@ export class CanvasRenderer implements DrawingRenderer {
       // ImageDataを元に戻す
       this.imageData = originalImageData;
       this.data = originalData;
+      // tempCanvasを明示的にクリーンアップ（メモリリーク防止）
+      // 注意: DOM要素は自動的にGCされるが、明示的にnullに設定することで
+      // メモリ使用量を早めに解放できる可能性がある
+      tempCanvas.width = 0;
+      tempCanvas.height = 0;
     }
   }
 
