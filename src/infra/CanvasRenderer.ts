@@ -775,9 +775,6 @@ export class CanvasRenderer implements DrawingRenderer {
       // 注意: ImageBitmapにはclosedプロパティがないため、実際に使用してみてエラーが発生するかどうかで判断
       // ここでは、履歴キャッシュから取得したImageBitmapをそのまま返す
       // エラーが発生した場合は、frameRenderer.tsでフォールバック処理が行われる
-      console.log(
-        `[CanvasRenderer] getFrameBitmap: 履歴キャッシュヒット frameIndex=${frameIndex}`,
-      );
       // 現在のキャッシュも更新（次回の高速化のため）
       // ただし、履歴キャッシュのImageBitmapは参照を共有しているため、
       // ここでframeBitmapsに設定すると、後でclose()されたときに履歴キャッシュも無効になる
