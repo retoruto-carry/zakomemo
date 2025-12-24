@@ -792,20 +792,33 @@ export class CanvasRenderer implements DrawingRenderer {
     }
 
     // 通常のキャッシュが有効かチェック
-    // 条件: Drawingのハッシュが一致、jitterConfigが一致、ImageBitmapが存在
-    const isCacheValid =
-      this.cachedDrawingHash === drawingHash &&
-      this.isJitterConfigEqual(this.cachedJitterConfig, jitterConfig) &&
-      this.frameBitmaps[frameIndex] !== null;
+    // 条件: jitterConfigが一致、ImageBitmapが存在
+    // 注意: drawingHashが一致しなくても、frameBitmapが存在し、jitterConfigが一致していれば、
+    // 差分描画を使える（ポイントが追加されただけの場合）
+    const jitterConfigMatch = this.isJitterConfigEqual(
+      this.cachedJitterConfig,
+      jitterConfig,
+    );
+    const frameBitmapExists = this.frameBitmaps[frameIndex] !== null;
+    const drawingHashMatch = this.cachedDrawingHash === drawingHash;
 
-    if (!isCacheValid) {
+    // 完全にキャッシュが有効な場合（drawingHashも一致）
+    const isCacheFullyValid =
+      drawingHashMatch && jitterConfigMatch && frameBitmapExists;
+
+    // 差分描画が可能な場合（drawingHashが一致しなくても、frameBitmapが存在し、jitterConfigが一致していれば）
+    // ただし、ストロークが削除された場合や、ストロークの順序が変わった場合は全再生成が必要
+    const canUseDiffRendering =
+      !drawingHashMatch &&
+      jitterConfigMatch &&
+      frameBitmapExists &&
+      this.cachedDrawingHash !== null;
+
+    if (!isCacheFullyValid && !canUseDiffRendering) {
       console.log(`[CanvasRenderer] getFrameBitmap: キャッシュ無効の理由`, {
-        drawingHashMatch: this.cachedDrawingHash === drawingHash,
-        jitterConfigMatch: this.isJitterConfigEqual(
-          this.cachedJitterConfig,
-          jitterConfig,
-        ),
-        frameBitmapExists: this.frameBitmaps[frameIndex] !== null,
+        drawingHashMatch,
+        jitterConfigMatch,
+        frameBitmapExists,
         cachedDrawingHash: this.cachedDrawingHash,
         currentDrawingHash: drawingHash,
         cachedJitterConfig: this.cachedJitterConfig,
@@ -813,7 +826,7 @@ export class CanvasRenderer implements DrawingRenderer {
       });
     }
 
-    if (isCacheValid) {
+    if (isCacheFullyValid) {
       // 新しいストロークがあるかチェック
       const newStrokes = this.getNewStrokes(drawing);
       const strokesWithNewPoints = this.getStrokesWithNewPoints(drawing);
@@ -858,6 +871,90 @@ export class CanvasRenderer implements DrawingRenderer {
       this.regenerateOtherFramesAsync(drawing, jitterConfig, frameIndex);
 
       return requested;
+    }
+
+    // 差分描画が可能な場合（drawingHashが一致しなくても、frameBitmapが存在し、jitterConfigが一致していれば）
+    if (canUseDiffRendering) {
+      // 新しいストロークがあるかチェック
+      const newStrokes = this.getNewStrokes(drawing);
+      const strokesWithNewPoints = this.getStrokesWithNewPoints(drawing);
+
+      // ストロークが削除された場合や、ストロークの順序が変わった場合は全再生成が必要
+      // これを検出するため、以下の条件をチェック:
+      // 1. キャッシュされたストロークIDのうち、現在のdrawingに存在しないものがある（削除された）
+      // 2. 現在のdrawingのストロークのうち、キャッシュに含まれていないものがあり、かつ新しいストロークでもない（順序変更の可能性）
+      // ただし、新しいストロークが追加されただけの場合は問題ない
+      const cachedStrokeIdsArray = Array.from(this.cachedStrokeIds);
+      const hasDeletedStrokes = cachedStrokeIdsArray.some(
+        (cachedId) => !drawing.strokes.some((s) => s.id === cachedId),
+      );
+      const hasReorderedStrokes = drawing.strokes.some((stroke) => {
+        // 新しいストロークは除外
+        if (newStrokes.some((ns) => ns.id === stroke.id)) {
+          return false;
+        }
+        // キャッシュに含まれていないストロークが存在する場合、順序変更の可能性
+        // ただし、これは新しいストロークの可能性もあるため、より詳細なチェックが必要
+        return !this.cachedStrokeIds.has(stroke.id);
+      });
+      const hasDeletedOrReorderedStrokes = hasDeletedStrokes || hasReorderedStrokes;
+
+      // ストロークが削除された場合や、ストロークの順序が変わった場合は全再生成
+      if (hasDeletedOrReorderedStrokes) {
+        console.log(
+          `[CanvasRenderer] getFrameBitmap: ストロークが削除または順序変更されたため全再生成 frameIndex=${frameIndex}`,
+        );
+        const frameElapsedTimeMs = frameIndex * 100; // 100ms = 10fps
+        const requested = await this.renderFrameFromScratch({
+          drawing,
+          frameIndex,
+          frameElapsedTimeMs,
+          jitterConfig,
+        });
+        this.regenerateOtherFramesAsync(drawing, jitterConfig, frameIndex);
+        return requested;
+      }
+
+      // 差分描画が可能な場合
+      if (newStrokes.length > 0 || strokesWithNewPoints.length > 0) {
+        console.log(
+          `[CanvasRenderer] getFrameBitmap: 差分描画（drawingHash不一致） frameIndex=${frameIndex}, newStrokes=${newStrokes.length}, strokesWithNewPoints=${strokesWithNewPoints.length}`,
+        );
+        const frameElapsedTimeMs = frameIndex * 100; // 100ms = 10fps
+        const requested =
+          drawing.strokes.length === 0
+            ? // 全消しの場合は全再生成
+              await this.renderFrameFromScratch({
+                drawing,
+                frameIndex,
+                frameElapsedTimeMs,
+                jitterConfig,
+              })
+            : // 通常の場合は差分描画
+              await this.renderFrameWithDiff({
+                drawing,
+                frameIndex,
+                frameElapsedTimeMs,
+                jitterConfig,
+                newStrokes,
+              });
+
+        // 他のフレームは非同期で生成（ブロックしない）
+        this.regenerateOtherFramesAsync(drawing, jitterConfig, frameIndex);
+
+        return requested;
+      }
+
+      // 新しいストロークも新しいポイントもない場合は、既存のImageBitmapを返す
+      // （drawingHashが一致しないが、実際には変更がない場合）
+      console.log(
+        `[CanvasRenderer] getFrameBitmap: キャッシュヒット（drawingHash不一致だが変更なし） frameIndex=${frameIndex}`,
+      );
+      const cached = this.frameBitmaps[frameIndex];
+      if (!cached) {
+        throw new Error(`Frame bitmap at index ${frameIndex} is null`);
+      }
+      return cached;
     }
 
     // キャッシュが無効な場合: 要求されたフレームを優先的に生成
