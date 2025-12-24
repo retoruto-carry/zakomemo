@@ -1108,11 +1108,20 @@ export class CanvasRenderer implements DrawingRenderer {
 
       // すべてのフレームが生成された場合、履歴キャッシュに保存
       // 非同期処理のため、awaitしない（描画をブロックしない）
+      // 注意: saveToHistoryCache内でImageBitmapをクローンするため、
+      // クローンする前に現在のframeBitmapsの状態を保存する必要がある
       const allFramesReady = this.frameBitmaps.every((b) => b !== null);
       if (allFramesReady) {
         const drawingHash = this.computeDrawingHash(drawing);
+        // ImageBitmapをクローンする前に、現在のframeBitmapsの参照を保存
+        // 非同期処理中にframeBitmapsが変更される可能性があるため
+        const bitmapsToClone = [...this.frameBitmaps];
         // 非同期で実行（エラーが発生しても描画処理は続行）
-        void this.saveToHistoryCache(drawingHash, jitterConfig);
+        void this.saveToHistoryCacheWithBitmaps(
+          drawingHash,
+          jitterConfig,
+          bitmapsToClone,
+        );
       }
 
       return newBitmap;
@@ -1185,11 +1194,20 @@ export class CanvasRenderer implements DrawingRenderer {
     // すべてのフレームが生成された場合、履歴キャッシュに保存
     // ただし、すべてのフレームが生成されている場合のみ
     // 非同期処理のため、awaitしない（描画をブロックしない）
+    // 注意: saveToHistoryCache内でImageBitmapをクローンするため、
+    // クローンする前に現在のframeBitmapsの状態を保存する必要がある
     const allFramesReady = this.frameBitmaps.every((b) => b !== null);
     if (allFramesReady) {
       const drawingHash = this.computeDrawingHash(drawing);
+      // ImageBitmapをクローンする前に、現在のframeBitmapsの参照を保存
+      // 非同期処理中にframeBitmapsが変更される可能性があるため
+      const bitmapsToClone = [...this.frameBitmaps];
       // 非同期で実行（エラーが発生しても描画処理は続行）
-      void this.saveToHistoryCache(drawingHash, jitterConfig);
+      void this.saveToHistoryCacheWithBitmaps(
+        drawingHash,
+        jitterConfig,
+        bitmapsToClone,
+      );
     }
 
     return newBitmap;
@@ -1225,9 +1243,14 @@ export class CanvasRenderer implements DrawingRenderer {
    * ImageBitmapをクローンして保存することで、参照共有による問題を回避する。
    * 非同期処理のため、エラーが発生しても描画処理は続行される。
    */
-  private async saveToHistoryCache(
+  /**
+   * 履歴キャッシュに保存（非同期、エラーハンドリング付き）
+   * @param bitmapsToClone クローンするImageBitmapの配列（非同期処理中に変更されないように）
+   */
+  private async saveToHistoryCacheWithBitmaps(
     drawingHash: string,
     jitterConfig: JitterConfig,
+    bitmapsToClone: (ImageBitmap | null)[],
   ): Promise<void> {
     try {
       // ImageBitmapをクローン（参照を共有しないようにする）
@@ -1235,13 +1258,23 @@ export class CanvasRenderer implements DrawingRenderer {
       const clonePromises: Promise<void>[] = [];
 
       for (let i = 0; i < FRAME_COUNT; i++) {
-        const bitmap = this.frameBitmaps[i];
+        const bitmap = bitmapsToClone[i];
         if (bitmap) {
           // createImageBitmapでクローン（非同期）
+          // 注意: bitmapが既に閉じられている可能性があるため、エラーハンドリングが必要
           clonePromises.push(
-            createImageBitmap(bitmap).then((cloned) => {
-              clonedBitmaps[i] = cloned;
-            }),
+            createImageBitmap(bitmap)
+              .then((cloned) => {
+                clonedBitmaps[i] = cloned;
+              })
+              .catch((error) => {
+                // ImageBitmapが既に閉じられている場合など、クローンに失敗した場合はスキップ
+                console.warn(
+                  `[CanvasRenderer] saveToHistoryCache: フレーム${i}のクローンに失敗`,
+                  error,
+                );
+                clonedBitmaps[i] = null;
+              }),
           );
         } else {
           clonedBitmaps[i] = null;
