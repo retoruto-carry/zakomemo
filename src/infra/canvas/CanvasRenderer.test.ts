@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test } from "vitest";
-import type { JitterConfig } from "../core/jitter";
-import type { Drawing, Stroke } from "../core/types";
+import type { JitterConfig } from "../../core/jitter";
+import type { Drawing, Stroke } from "../../core/types";
 import { CanvasRenderer } from "./CanvasRenderer";
 
 /**
@@ -126,8 +126,9 @@ describe("CanvasRenderer キャッシュ", () => {
         elapsedTimeMs: 0,
       });
 
-      // 同じImageBitmapインスタンスが返される（キャッシュヒット）
-      expect(bitmap2).toBe(bitmap1);
+      // キャッシュから返される（クローンされるため、同じインスタンスではないが、内容は同じ）
+      expect(bitmap2.width).toBe(bitmap1.width);
+      expect(bitmap2.height).toBe(bitmap1.height);
     });
   });
 
@@ -188,8 +189,9 @@ describe("CanvasRenderer キャッシュ", () => {
         elapsedTimeMs: 0,
       });
 
-      // キャッシュから返される
-      expect(bitmap2).toBe(bitmap1);
+      // キャッシュから返される（クローンされるため、同じインスタンスではないが、内容は同じ）
+      expect(bitmap2.width).toBe(bitmap1.width);
+      expect(bitmap2.height).toBe(bitmap1.height);
     });
   });
 
@@ -264,8 +266,9 @@ describe("CanvasRenderer キャッシュ", () => {
         elapsedTimeMs: 0,
       });
 
-      // キャッシュから返される
-      expect(bitmap2).toBe(bitmap1);
+      // キャッシュから返される（クローンされるため、同じインスタンスではないが、内容は同じ）
+      expect(bitmap2.width).toBe(bitmap1.width);
+      expect(bitmap2.height).toBe(bitmap1.height);
     });
   });
 
@@ -340,8 +343,9 @@ describe("CanvasRenderer キャッシュ", () => {
         elapsedTimeMs: 0,
       });
 
-      // キャッシュから返される
-      expect(bitmap2).toBe(bitmap1);
+      // キャッシュから返される（クローンされるため、同じインスタンスではないが、内容は同じ）
+      expect(bitmap2.width).toBe(bitmap1.width);
+      expect(bitmap2.height).toBe(bitmap1.height);
     });
   });
 
@@ -425,8 +429,9 @@ describe("CanvasRenderer キャッシュ", () => {
         elapsedTimeMs: 0,
       });
 
-      // キャッシュから返される
-      expect(bitmap2).toBe(bitmap1);
+      // キャッシュから返される（クローンされるため、同じインスタンスではないが、内容は同じ）
+      expect(bitmap2.width).toBe(bitmap1.width);
+      expect(bitmap2.height).toBe(bitmap1.height);
     });
   });
 
@@ -798,7 +803,9 @@ describe("CanvasRenderer キャッシュ", () => {
         jitterConfig: defaultJitterConfig,
         elapsedTimeMs: 0,
       });
-      expect(bitmap1Again).toBe(bitmap1);
+      // キャッシュから返される（クローンされるため、同じインスタンスではないが、内容は同じ）
+      expect(bitmap1Again.width).toBe(bitmap1.width);
+      expect(bitmap1Again.height).toBe(bitmap1.height);
 
       // 3. 新しいストロークを追加（差分描画）
       const drawing2 = createTestDrawing([
@@ -1071,7 +1078,9 @@ describe("CanvasRenderer キャッシュ", () => {
         jitterConfig: defaultJitterConfig,
         elapsedTimeMs: 0,
       });
-      expect(bitmap4).toBe(bitmap3);
+      // キャッシュから返される（クローンされるため、同じインスタンスではないが、内容は同じ）
+      expect(bitmap4.width).toBe(bitmap3.width);
+      expect(bitmap4.height).toBe(bitmap3.height);
     });
 
     test("背景色変更 → ストローク追加 → jitterConfig変更", async () => {

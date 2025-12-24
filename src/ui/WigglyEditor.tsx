@@ -11,7 +11,7 @@ import type { BrushPatternId } from "@/core/types";
 import { exportDrawingAsGif } from "@/engine/exportGif";
 import type { EraserVariant, PenVariant } from "@/engine/variants";
 import type { Tool, WigglyEngine } from "@/engine/WigglyEngine";
-import { CanvasRenderer } from "@/infra/CanvasRenderer";
+import { CanvasRenderer } from "@/infra/canvas/CanvasRenderer";
 import { GifEncGifEncoder } from "@/infra/GifEncGifEncoder";
 import { initializeUISounds, uiSoundManager } from "@/infra/uiSounds";
 import { DesktopLayout } from "./layouts/DesktopLayout";

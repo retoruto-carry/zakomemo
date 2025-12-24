@@ -2,7 +2,7 @@ import type { JitterConfig } from "@/core/jitter";
 import type { Drawing } from "@/core/types";
 import { WigglyEngine } from "@/engine/WigglyEngine";
 import { BrowserRafScheduler } from "@/infra/BrowserRafScheduler";
-import { CanvasRenderer } from "@/infra/CanvasRenderer";
+import { CanvasRenderer } from "@/infra/canvas/CanvasRenderer";
 import { RealTimeProvider } from "@/infra/RealTimeProvider";
 import { WebAudioStrokeSound } from "@/infra/WebAudioStrokeSound";
 

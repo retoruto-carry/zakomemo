@@ -1,66 +1,26 @@
-import type { JitterConfig } from "../core/jitter";
-import { getPatternDefinition } from "../core/patterns";
-import type { PatternTile } from "../core/patternTypes";
-import { bresenhamLine, calculateThickLinePixels } from "../core/pixelArt";
-import type { BrushVariant, Drawing, Stroke } from "../core/types";
-import { applyJitterToStroke } from "../engine/frameRenderer";
-import type { DrawingRenderer } from "../engine/ports";
-import { parseColorToRgb, resolveCssVariable } from "./colorUtil";
+import type { JitterConfig } from "../../core/jitter";
+import { getPatternDefinition } from "../../core/patterns";
+import type { PatternTile } from "../../core/patternTypes";
+import { bresenhamLine, calculateThickLinePixels } from "../../core/pixelArt";
+import type { BrushVariant, Drawing, Stroke } from "../../core/types";
+import { applyJitterToStroke } from "../../engine/frameRenderer";
+import type { DrawingRenderer } from "../../engine/ports";
+import { parseColorToRgb, resolveCssVariable } from "../colorUtil";
 import {
   clearHistoryCache,
   getFromHistoryCache,
   type HistoryCache,
   MAX_HISTORY_CACHE_SIZE,
   saveAndEvict,
-} from "./historyCache";
-
-/**
- * CanvasRendererの初期化オプション
- */
-interface CanvasRendererOptions {
-  /** Canvas 2Dコンテキスト */
-  ctx: CanvasRenderingContext2D;
-  /** 背景色（CSS色文字列） */
-  backgroundColor: string;
-}
-
-/**
- * フレーム数（固定）
- */
-const FRAME_COUNT = 3;
-
-/**
- * フレームBitmap取得の引数
- */
-type GetFrameBitmapParams = {
-  drawing: Drawing;
-  frameIndex: number;
-  jitterConfig: JitterConfig;
-  elapsedTimeMs: number;
-};
-
-/**
- * 全ストロークからフレーム生成の引数
- */
-type RenderFrameFromScratchParams = {
-  drawing: Drawing;
-  frameIndex: number;
-  frameElapsedTimeMs: number;
-  jitterConfig: JitterConfig;
-};
-
-type RenderFrameWithDiffParams = {
-  drawing: Drawing;
-  frameIndex: number;
-  frameElapsedTimeMs: number;
-  jitterConfig: JitterConfig;
-  newStrokes: Stroke[];
-};
-
-type StrokeWithNewPoints = {
-  stroke: Stroke;
-  cachedPointCount: number;
-};
+} from "../historyCache";
+import { FRAME_COUNT } from "./constants";
+import type {
+  CanvasRendererOptions,
+  GetFrameBitmapParams,
+  RenderFrameFromScratchParams,
+  RenderFrameWithDiffParams,
+  StrokeWithNewPoints,
+} from "./types";
 
 /**
  * Canvas 2D APIを使用して描画を行うレンダラー実装
@@ -735,7 +695,7 @@ export class CanvasRenderer implements DrawingRenderer {
    * @throws {Error} frameIndexが範囲外の場合
    */
   async getFrameBitmap(params: GetFrameBitmapParams): Promise<ImageBitmap> {
-    const { drawing, frameIndex, jitterConfig } = params;
+    const { drawing, frameIndex, jitterConfig, elapsedTimeMs } = params;
     if (frameIndex < 0 || frameIndex >= FRAME_COUNT) {
       throw new Error(
         `Frame index must be between 0 and ${
@@ -833,14 +793,13 @@ export class CanvasRenderer implements DrawingRenderer {
       const strokesWithNewPoints = this.getStrokesWithNewPoints(drawing);
       if (newStrokes.length === 0 && strokesWithNewPoints.length === 0) {
         // キャッシュが有効で新しいストロークがない場合は、既存のImageBitmapを返す
-        console.log(
-          `[CanvasRenderer] getFrameBitmap: キャッシュヒット frameIndex=${frameIndex}`,
-        );
+        // 注意: 非同期更新による競合を防ぐため、ImageBitmapをクローンして返す
         const cached = this.frameBitmaps[frameIndex];
         if (!cached) {
           throw new Error(`Frame bitmap at index ${frameIndex} is null`);
         }
-        return cached;
+        // クローンして返す（regenerateOtherFramesAsyncによる非同期更新との競合を防ぐ）
+        return await createImageBitmap(cached);
       }
 
       // 新しいストロークがある場合: 差分描画で効率的に更新
@@ -849,7 +808,10 @@ export class CanvasRenderer implements DrawingRenderer {
       console.log(
         `[CanvasRenderer] getFrameBitmap: 差分描画 frameIndex=${frameIndex}, newStrokes=${newStrokes.length}, strokesWithNewPoints=${strokesWithNewPoints.length}`,
       );
-      const frameElapsedTimeMs = frameIndex * 100; // 100ms = 10fps
+      // elapsedTimeMsを使用（パターンのjitterが正しく動作するため）
+      // フレームごとのオフセットを加える（各フレームで異なるjitterを適用）
+      const frameInterval = 100; // 100ms = 10fps
+      const frameElapsedTimeMs = elapsedTimeMs + frameIndex * frameInterval;
       const requested =
         drawing.strokes.length === 0
           ? // 全消しの場合は全再生成
@@ -872,7 +834,12 @@ export class CanvasRenderer implements DrawingRenderer {
       // 描画中（isDrawingActive）の時、または全消し（drawing.strokes.length === 0）の時は呼ぶ
       // アニメーションループでは既に3フレームすべてが生成されているため、通常は不要
       if (this.isDrawingActive || drawing.strokes.length === 0) {
-        this.regenerateOtherFramesAsync(drawing, jitterConfig, frameIndex);
+        this.regenerateOtherFramesAsync(
+          drawing,
+          jitterConfig,
+          frameIndex,
+          elapsedTimeMs,
+        );
       }
 
       return requested;
@@ -910,7 +877,9 @@ export class CanvasRenderer implements DrawingRenderer {
         console.log(
           `[CanvasRenderer] getFrameBitmap: ストロークが削除または順序変更されたため全再生成 frameIndex=${frameIndex}`,
         );
-        const frameElapsedTimeMs = frameIndex * 100; // 100ms = 10fps
+        // elapsedTimeMsを使用（パターンのjitterが正しく動作するため）
+        const frameInterval = 100; // 100ms = 10fps
+        const frameElapsedTimeMs = elapsedTimeMs + frameIndex * frameInterval;
         const requested = await this.renderFrameFromScratch({
           drawing,
           frameIndex,
@@ -920,7 +889,12 @@ export class CanvasRenderer implements DrawingRenderer {
         // 他のフレームは非同期で生成（ブロックしない）
         // 描画中（isDrawingActive）の時、または全消し（drawing.strokes.length === 0）の時は呼ぶ
         if (this.isDrawingActive || drawing.strokes.length === 0) {
-          this.regenerateOtherFramesAsync(drawing, jitterConfig, frameIndex);
+          this.regenerateOtherFramesAsync(
+            drawing,
+            jitterConfig,
+            frameIndex,
+            elapsedTimeMs,
+          );
         }
         return requested;
       }
@@ -930,7 +904,9 @@ export class CanvasRenderer implements DrawingRenderer {
         console.log(
           `[CanvasRenderer] getFrameBitmap: 差分描画（drawingHash不一致） frameIndex=${frameIndex}, newStrokes=${newStrokes.length}, strokesWithNewPoints=${strokesWithNewPoints.length}`,
         );
-        const frameElapsedTimeMs = frameIndex * 100; // 100ms = 10fps
+        // elapsedTimeMsを使用（パターンのjitterが正しく動作するため）
+        const frameInterval = 100; // 100ms = 10fps
+        const frameElapsedTimeMs = elapsedTimeMs + frameIndex * frameInterval;
         const requested =
           drawing.strokes.length === 0
             ? // 全消しの場合は全再生成
@@ -952,7 +928,12 @@ export class CanvasRenderer implements DrawingRenderer {
         // 他のフレームは非同期で生成（ブロックしない）
         // 描画中（isDrawingActive）の時、または全消し（drawing.strokes.length === 0）の時は呼ぶ
         if (this.isDrawingActive || drawing.strokes.length === 0) {
-          this.regenerateOtherFramesAsync(drawing, jitterConfig, frameIndex);
+          this.regenerateOtherFramesAsync(
+            drawing,
+            jitterConfig,
+            frameIndex,
+            elapsedTimeMs,
+          );
         }
 
         return requested;
@@ -960,21 +941,22 @@ export class CanvasRenderer implements DrawingRenderer {
 
       // 新しいストロークも新しいポイントもない場合は、既存のImageBitmapを返す
       // （drawingHashが一致しないが、実際には変更がない場合）
-      console.log(
-        `[CanvasRenderer] getFrameBitmap: キャッシュヒット（drawingHash不一致だが変更なし） frameIndex=${frameIndex}`,
-      );
+      // 注意: 非同期更新による競合を防ぐため、ImageBitmapをクローンして返す
       const cached = this.frameBitmaps[frameIndex];
       if (!cached) {
         throw new Error(`Frame bitmap at index ${frameIndex} is null`);
       }
-      return cached;
+      // クローンして返す（regenerateOtherFramesAsyncによる非同期更新との競合を防ぐ）
+      return await createImageBitmap(cached);
     }
 
     // キャッシュが無効な場合: 要求されたフレームを優先的に生成
     console.log(
       `[CanvasRenderer] getFrameBitmap: キャッシュ無効、全再生成 frameIndex=${frameIndex}, strokes=${drawing.strokes.length}`,
     );
-    const frameElapsedTimeMs = frameIndex * 100; // 100ms = 10fps
+    // elapsedTimeMsを使用（パターンのjitterが正しく動作するため）
+    const frameInterval = 100; // 100ms = 10fps
+    const frameElapsedTimeMs = elapsedTimeMs + frameIndex * frameInterval;
     const requested = await this.renderFrameFromScratch({
       drawing,
       frameIndex,
@@ -986,7 +968,12 @@ export class CanvasRenderer implements DrawingRenderer {
     // 描画中（isDrawingActive）の時、または全消し（drawing.strokes.length === 0）の時は呼ぶ
     // アニメーションループでは既に3フレームすべてが生成されているため、通常は不要
     if (this.isDrawingActive || drawing.strokes.length === 0) {
-      this.regenerateOtherFramesAsync(drawing, jitterConfig, frameIndex);
+      this.regenerateOtherFramesAsync(
+        drawing,
+        jitterConfig,
+        frameIndex,
+        elapsedTimeMs,
+      );
     }
 
     return requested;
@@ -1001,6 +988,7 @@ export class CanvasRenderer implements DrawingRenderer {
     drawing: Drawing,
     jitterConfig: JitterConfig,
     excludeIndex: number,
+    baseElapsedTimeMs: number,
   ): void {
     console.log(
       `[CanvasRenderer] regenerateOtherFramesAsync: 開始 excludeIndex=${excludeIndex}, isDrawingActive=${this.isDrawingActive}`,
@@ -1020,7 +1008,9 @@ export class CanvasRenderer implements DrawingRenderer {
     for (let i = 0; i < frameCount; i++) {
       if (i === excludeIndex) continue;
 
-      const frameElapsedTimeMs = i * frameInterval;
+      // elapsedTimeMsを使用（パターンのjitterが正しく動作するため）
+      // フレームごとのオフセットを加える（各フレームで異なるjitterを適用）
+      const frameElapsedTimeMs = baseElapsedTimeMs + i * frameInterval;
       // 非同期で実行（ブロックしない）
       // 新しいストロークまたは新しいポイントがある場合は差分描画、ない場合は全再生成
       // ただし、全消しの場合は全再生成（drawing.strokes.length === 0）
@@ -1062,8 +1052,7 @@ export class CanvasRenderer implements DrawingRenderer {
         .then((bitmap) => {
           // キャンセルされていない場合のみ更新
           if (!signal.aborted) {
-            // 古いImageBitmapを保存
-            const oldBitmap = this.frameBitmaps[i];
+            // 古いImageBitmapは次のフレーム生成時にclose()される
             // 新しいImageBitmapを設定（古いものはまだ使用中の可能性があるため、すぐにclose()しない）
             this.frameBitmaps[i] = bitmap;
             // 古いImageBitmapは次のフレーム生成時にclose()される
