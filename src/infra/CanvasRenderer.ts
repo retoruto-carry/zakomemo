@@ -872,7 +872,11 @@ export class CanvasRenderer implements DrawingRenderer {
             });
 
       // 他のフレームは非同期で生成（ブロックしない）
-      this.regenerateOtherFramesAsync(drawing, jitterConfig, frameIndex);
+      // ただし、描画中（isDrawingActive）の時のみ呼ぶ
+      // アニメーションループでは既に3フレームすべてが生成されているため、不要
+      if (this.isDrawingActive) {
+        this.regenerateOtherFramesAsync(drawing, jitterConfig, frameIndex);
+      }
 
       return requested;
     }
@@ -916,7 +920,11 @@ export class CanvasRenderer implements DrawingRenderer {
           frameElapsedTimeMs,
           jitterConfig,
         });
-        this.regenerateOtherFramesAsync(drawing, jitterConfig, frameIndex);
+        // 他のフレームは非同期で生成（ブロックしない）
+        // ただし、描画中（isDrawingActive）の時のみ呼ぶ
+        if (this.isDrawingActive) {
+          this.regenerateOtherFramesAsync(drawing, jitterConfig, frameIndex);
+        }
         return requested;
       }
 
@@ -945,7 +953,10 @@ export class CanvasRenderer implements DrawingRenderer {
               });
 
         // 他のフレームは非同期で生成（ブロックしない）
-        this.regenerateOtherFramesAsync(drawing, jitterConfig, frameIndex);
+        // ただし、描画中（isDrawingActive）の時のみ呼ぶ
+        if (this.isDrawingActive) {
+          this.regenerateOtherFramesAsync(drawing, jitterConfig, frameIndex);
+        }
 
         return requested;
       }
@@ -975,7 +986,11 @@ export class CanvasRenderer implements DrawingRenderer {
     });
 
     // 他のフレームは非同期で生成（ブロックしない）
-    this.regenerateOtherFramesAsync(drawing, jitterConfig, frameIndex);
+    // ただし、描画中（isDrawingActive）の時のみ呼ぶ
+    // アニメーションループでは既に3フレームすべてが生成されているため、不要
+    if (this.isDrawingActive) {
+      this.regenerateOtherFramesAsync(drawing, jitterConfig, frameIndex);
+    }
 
     return requested;
   }
