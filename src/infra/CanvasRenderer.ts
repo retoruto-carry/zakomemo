@@ -157,6 +157,11 @@ export class CanvasRenderer implements DrawingRenderer {
    * 注意: undo/redo時はclearHistory=falseで呼ばれる（履歴キャッシュを保持するため）
    */
   private invalidateCache(clearHistory = true): void {
+    // 既存のバックグラウンド生成をキャンセル
+    if (this.backgroundGenerationAbortController) {
+      this.backgroundGenerationAbortController.abort();
+      this.backgroundGenerationAbortController = null;
+    }
     // 既存のImageBitmapを破棄
     for (let i = 0; i < this.frameBitmaps.length; i++) {
       if (this.frameBitmaps[i]) {
@@ -706,6 +711,14 @@ export class CanvasRenderer implements DrawingRenderer {
   }
 
   /**
+   * ストローク描画中の状態を設定
+   * バックグラウンド生成を制御するために使用
+   */
+  setIsDrawingActive(active: boolean): void {
+    this.isDrawingActive = active;
+  }
+
+  /**
    * フレーム数を取得（固定値）
    */
   getFrameCount(): number {
@@ -882,21 +895,24 @@ export class CanvasRenderer implements DrawingRenderer {
 
       const frameElapsedTimeMs = i * frameInterval;
       // 非同期で実行（ブロックしない）
-      // 新しいストロークがある場合は差分描画、ない場合は全再生成
+      // 新しいストロークまたは新しいポイントがある場合は差分描画、ない場合は全再生成
       // ただし、全消しの場合は全再生成（drawing.strokes.length === 0）
       const newStrokes = this.getNewStrokes(drawing);
+      const strokesWithNewPoints = this.getStrokesWithNewPoints(drawing);
+      const hasNewContent =
+        newStrokes.length > 0 || strokesWithNewPoints.length > 0;
       const renderPromise =
         drawing.strokes.length === 0 ||
-        newStrokes.length === 0 ||
+        !hasNewContent ||
         this.frameBitmaps[i] === null
-          ? // 全再生成（全消し、または新しいストロークがない、または前のImageBitmapがない場合）
+          ? // 全再生成（全消し、または新しいコンテンツがない、または前のImageBitmapがない場合）
             this.renderFrameFromScratch({
               drawing,
               frameIndex: i,
               frameElapsedTimeMs,
               jitterConfig,
             })
-          : // 差分描画（新しいストロークがあり、前のImageBitmapがある場合）
+          : // 差分描画（新しいストロークまたは新しいポイントがあり、前のImageBitmapがある場合）
             this.renderFrameWithDiff({
               drawing,
               frameIndex: i,

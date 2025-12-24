@@ -185,6 +185,14 @@ export class WigglyEngine {
     this.strokeStartTime = now;
     this.strokeLength = 0;
 
+    // レンダラーがsetIsDrawingActiveメソッドを持っている場合、描画開始を通知
+    if (
+      "setIsDrawingActive" in this.renderer &&
+      typeof this.renderer.setIsDrawingActive === "function"
+    ) {
+      this.renderer.setIsDrawingActive(true);
+    }
+
     this.sound?.onStrokeStart({
       tool: this.currentTool,
       speed: 0,
@@ -269,6 +277,15 @@ export class WigglyEngine {
     );
     this.strokeStartDrawing = null;
     this.currentStrokeId = null;
+
+    // レンダラーがsetIsDrawingActiveメソッドを持っている場合、描画終了を通知
+    if (
+      "setIsDrawingActive" in this.renderer &&
+      typeof this.renderer.setIsDrawingActive === "function"
+    ) {
+      this.renderer.setIsDrawingActive(false);
+    }
+
     this.onHistoryChange?.();
   }
 
