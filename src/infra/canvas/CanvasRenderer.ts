@@ -1,7 +1,11 @@
 import type { JitterConfig } from "../../core/jitter";
 import { getPatternDefinition } from "../../core/patterns";
 import type { PatternTile } from "../../core/patternTypes";
-import { bresenhamLine, calculateThickLinePixels } from "../../core/pixelArt";
+import {
+  bresenhamLine,
+  calculateThickLinePixels,
+  getCirclePixelOffsets,
+} from "../../core/pixelArt";
 import type { BrushVariant, Drawing, Stroke } from "../../core/types";
 import { applyJitterToStroke } from "../../engine/frameRenderer";
 import type { DrawingRenderer } from "../../engine/ports";
@@ -467,14 +471,10 @@ export class CanvasRenderer implements DrawingRenderer {
         this.setPixel(x, y, r, g, b, a);
       } else {
         const radius = Math.floor(width / 2);
-        const radiusSq = radius * radius;
-        for (let dy = -radius; dy <= radius; dy++) {
-          for (let dx = -radius; dx <= radius; dx++) {
-            const dSq = dx * dx + dy * dy;
-            if (dSq <= radiusSq) {
-              this.setPixel(x + dx, y + dy, r, g, b, a);
-            }
-          }
+        // テーブル化されたオフセットを使用（毎回計算しない）
+        const offsets = getCirclePixelOffsets(radius);
+        for (const { dx, dy } of offsets) {
+          this.setPixel(x + dx, y + dy, r, g, b, a);
         }
       }
     }

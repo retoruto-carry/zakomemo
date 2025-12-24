@@ -94,9 +94,50 @@ export function bresenhamLine(
 }
 
 /**
- * 太い線のための領域を計算（中心線の周囲のピクセルを取得）
- * パフォーマンス最適化: 各中心線上のピクセルについて円を描画する代わりに、
- * 中心線の周囲の領域を直接計算して塗りつぶす
+ * 半径ごとの円オフセットテーブル（キャッシュ）
+ * キー: 半径、値: その半径の円内のオフセット配列
+ */
+const circleOffsetCache = new Map<number, Array<{ dx: number; dy: number }>>();
+
+/**
+ * 指定半径の円内のオフセットを取得（テーブル化）
+ * パフォーマンス最適化: 半径ごとにオフセットを事前計算してキャッシュ
+ * @param radius 半径
+ * @returns 円内のオフセット配列 [{dx, dy}, ...]
+ */
+function getCircleOffsets(radius: number): Array<{ dx: number; dy: number }> {
+  if (radius <= 0) {
+    return [{ dx: 0, dy: 0 }];
+  }
+
+  // キャッシュをチェック
+  const cached = circleOffsetCache.get(radius);
+  if (cached) {
+    return cached;
+  }
+
+  // テーブルを生成
+  const offsets: Array<{ dx: number; dy: number }> = [];
+  const radiusSq = radius * radius;
+
+  for (let dy = -radius; dy <= radius; dy++) {
+    for (let dx = -radius; dx <= radius; dx++) {
+      const dSq = dx * dx + dy * dy;
+      if (dSq <= radiusSq) {
+        offsets.push({ dx, dy });
+      }
+    }
+  }
+
+  // キャッシュに保存
+  circleOffsetCache.set(radius, offsets);
+  return offsets;
+}
+
+/**
+ * スキャンライン方式で太い線の領域を計算
+ * パフォーマンス最適化: 各y行ごとのxMin/xMaxを計算してから塗る
+ * これにより、太さが増えても計算量が面積に比例する
  * @param centerPixels 中心線上のピクセル座標の配列
  * @param width 線の太さ
  * @returns 塗りつぶすべきピクセル座標の配列（重複排除済み）
@@ -109,24 +150,79 @@ export function calculateThickLinePixels(
     return centerPixels;
   }
 
-  const pixels = new Map<number, Set<number>>(); // x -> Set<y>
-  const radius = Math.floor(width / 2);
-  const radiusSq = radius * radius;
+  if (centerPixels.length === 0) {
+    return [];
+  }
 
-  // 各中心線上のピクセルについて、周囲のピクセルを計算
+  const radius = Math.floor(width / 2);
+  if (radius <= 0) {
+    return centerPixels;
+  }
+
+  // bounding boxを計算
+  let minX = centerPixels[0].x;
+  let maxX = centerPixels[0].x;
+  let minY = centerPixels[0].y;
+  let maxY = centerPixels[0].y;
+
+  for (const p of centerPixels) {
+    minX = Math.min(minX, p.x);
+    maxX = Math.max(maxX, p.x);
+    minY = Math.min(minY, p.y);
+    maxY = Math.max(maxY, p.y);
+  }
+
+  // 半径分のマージンを追加
+  minX -= radius;
+  maxX += radius;
+  minY -= radius;
+  maxY += radius;
+
+  const height = maxY - minY + 1;
+  if (height <= 0) {
+    return [];
+  }
+
+  // y行ごとのxMin/xMaxを初期化
+  const xMin = new Int16Array(height).fill(32767); // +INFの代わり
+  const xMax = new Int16Array(height).fill(-32768); // -INFの代わり
+
+  // 円の断面幅テーブル（dy → dx）を事前計算
+  const circleDX: number[] = [];
+  const radiusSq = radius * radius;
+  for (let dy = 0; dy <= radius; dy++) {
+    const dx = Math.floor(Math.sqrt(radiusSq - dy * dy));
+    circleDX[dy] = dx;
+  }
+
+  // 中心線を走査して、各点の円が寄与する範囲を更新
   for (const center of centerPixels) {
-    // 円形の範囲内のピクセルを計算
+    const cx = center.x;
+    const cy = center.y;
+
     for (let dy = -radius; dy <= radius; dy++) {
-      for (let dx = -radius; dx <= radius; dx++) {
-        // 距離の2乗でチェック（Math.sqrt()を避ける）
-        const dSq = dx * dx + dy * dy;
-        if (dSq <= radiusSq) {
-          const x = center.x + dx;
-          const y = center.y + dy;
-          if (!pixels.has(x)) pixels.set(x, new Set());
-          pixels.get(x)?.add(y);
-        }
-      }
+      const y = cy + dy;
+      if (y < minY || y > maxY) continue;
+
+      const row = y - minY;
+      const absDy = Math.abs(dy);
+      const dx = circleDX[absDy] ?? 0;
+
+      xMin[row] = Math.min(xMin[row], cx - dx);
+      xMax[row] = Math.max(xMax[row], cx + dx);
+    }
+  }
+
+  // スキャンラインで塗るピクセルを集める
+  const pixels = new Map<number, Set<number>>(); // x -> Set<y>
+
+  for (let row = 0; row < height; row++) {
+    if (xMin[row] > xMax[row]) continue; // この行は塗らない
+
+    const y = minY + row;
+    for (let x = xMin[row]; x <= xMax[row]; x++) {
+      if (!pixels.has(x)) pixels.set(x, new Set());
+      pixels.get(x)?.add(y);
     }
   }
 
@@ -139,4 +235,16 @@ export function calculateThickLinePixels(
   });
 
   return result;
+}
+
+/**
+ * 円を描画するためのオフセット配列を取得（テーブル化）
+ * パフォーマンス最適化: 半径ごとにオフセットを事前計算
+ * @param radius 半径
+ * @returns 円内のオフセット配列 [{dx, dy}, ...]
+ */
+export function getCirclePixelOffsets(
+  radius: number,
+): Array<{ dx: number; dy: number }> {
+  return getCircleOffsets(radius);
 }
