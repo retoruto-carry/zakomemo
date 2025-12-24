@@ -62,6 +62,22 @@ describe("CanvasRenderer キャッシュ", () => {
           } as ImageBitmap;
           return bitmap;
         }
+        // ImageBitmapからのクローンもサポート
+        if (
+          typeof source === "object" &&
+          source !== null &&
+          "width" in source &&
+          "height" in source &&
+          "close" in source
+        ) {
+          // モックのImageBitmapを作成（クローン）
+          const bitmap = {
+            width: (source as ImageBitmap).width,
+            height: (source as ImageBitmap).height,
+            close: () => {},
+          } as ImageBitmap;
+          return bitmap;
+        }
         throw new Error("Unsupported source type");
       };
     }

@@ -159,7 +159,64 @@ export function renderDrawingAtTime(params: RenderDrawingAtTimeParams): void {
           bitmap.close(); // 使用しないImageBitmapは破棄
           return;
         }
-        renderer.flushFromBitmap(bitmap);
+        try {
+          renderer.flushFromBitmap(bitmap);
+        } catch (err) {
+          // ImageBitmapが無効な場合（例: 既にclose()されている）
+          console.error("Failed to flush bitmap (detached):", err);
+          bitmap.close(); // 無効なImageBitmapを破棄
+          // キャッシュを無効化して再生成を試みる
+          if (
+            "clearPatternCache" in renderer &&
+            typeof renderer.clearPatternCache === "function"
+          ) {
+            renderer.clearPatternCache();
+          }
+          // 再生成を試みる（キャッシュが無効化されているため、次回getFrameBitmapで再生成される）
+          renderer
+            .getFrameBitmap({
+              drawing,
+              frameIndex: currentFrameIndex,
+              jitterConfig,
+              elapsedTimeMs,
+            })
+            .then((newBitmap: ImageBitmap) => {
+              // このリクエストが最新でない場合は無視
+              if (requestId !== latestRequestId) {
+                newBitmap.close();
+                return;
+              }
+              try {
+                renderer.flushFromBitmap(newBitmap);
+              } catch (retryErr) {
+                console.error("Failed to flush bitmap after retry:", retryErr);
+                newBitmap.close();
+                // 最終的なフォールバック
+                renderDrawingAtTimeFallback({
+                  drawing,
+                  renderer,
+                  jitterConfig,
+                  elapsedTimeMs,
+                });
+              }
+            })
+            .catch((retryErr: unknown) => {
+              if (requestId !== latestRequestId) {
+                return;
+              }
+              console.error(
+                "Failed to get frame bitmap after retry:",
+                retryErr,
+              );
+              // 最終的なフォールバック
+              renderDrawingAtTimeFallback({
+                drawing,
+                renderer,
+                jitterConfig,
+                elapsedTimeMs,
+              });
+            });
+        }
       })
       .catch((err: unknown) => {
         // このリクエストが最新でない場合は無視

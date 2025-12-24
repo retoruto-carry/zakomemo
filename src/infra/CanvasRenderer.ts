@@ -302,6 +302,9 @@ export class CanvasRenderer implements DrawingRenderer {
     const drawingHash = this.computeDrawingHash(drawing);
     this.cachedDrawingHash = drawingHash;
     this.cachedJitterConfig = { ...jitterConfig };
+    console.log(
+      `[CanvasRenderer] updateCacheForScratch: キャッシュ更新 drawingHash=${drawingHash}, strokes=${drawing.strokes.length}`,
+    );
   }
 
   /**
@@ -762,21 +765,23 @@ export class CanvasRenderer implements DrawingRenderer {
       this.isJitterConfigEqual(historyCacheEntry.jitterConfig, jitterConfig) &&
       historyCacheEntry.frameBitmaps[frameIndex] !== null
     ) {
-      console.log(
-        `[CanvasRenderer] getFrameBitmap: 履歴キャッシュヒット frameIndex=${frameIndex}`,
-      );
-      // 履歴キャッシュから返す
       const cached = historyCacheEntry.frameBitmaps[frameIndex];
       if (!cached) {
         throw new Error(
           `Frame bitmap at index ${frameIndex} is null in history cache`,
         );
       }
+      // ImageBitmapが有効かどうかを確認（無効な場合は再生成）
+      // 注意: ImageBitmapにはclosedプロパティがないため、実際に使用してみてエラーが発生するかどうかで判断
+      // ここでは、履歴キャッシュから取得したImageBitmapをそのまま返す
+      // エラーが発生した場合は、frameRenderer.tsでフォールバック処理が行われる
+      console.log(
+        `[CanvasRenderer] getFrameBitmap: 履歴キャッシュヒット frameIndex=${frameIndex}`,
+      );
       // 現在のキャッシュも更新（次回の高速化のため）
-      for (let i = 0; i < FRAME_COUNT; i++) {
-        this.frameBitmaps[i]?.close();
-        this.frameBitmaps[i] = historyCacheEntry.frameBitmaps[i];
-      }
+      // ただし、履歴キャッシュのImageBitmapは参照を共有しているため、
+      // ここでframeBitmapsに設定すると、後でclose()されたときに履歴キャッシュも無効になる
+      // そのため、履歴キャッシュから取得したImageBitmapは、frameBitmapsには設定しない
       this.cachedDrawingHash = drawingHash;
       this.cachedJitterConfig = { ...jitterConfig };
       this.cachedStrokeIds.clear();
@@ -792,6 +797,21 @@ export class CanvasRenderer implements DrawingRenderer {
       this.cachedDrawingHash === drawingHash &&
       this.isJitterConfigEqual(this.cachedJitterConfig, jitterConfig) &&
       this.frameBitmaps[frameIndex] !== null;
+
+    if (!isCacheValid) {
+      console.log(`[CanvasRenderer] getFrameBitmap: キャッシュ無効の理由`, {
+        drawingHashMatch: this.cachedDrawingHash === drawingHash,
+        jitterConfigMatch: this.isJitterConfigEqual(
+          this.cachedJitterConfig,
+          jitterConfig,
+        ),
+        frameBitmapExists: this.frameBitmaps[frameIndex] !== null,
+        cachedDrawingHash: this.cachedDrawingHash,
+        currentDrawingHash: drawingHash,
+        cachedJitterConfig: this.cachedJitterConfig,
+        currentJitterConfig: jitterConfig,
+      });
+    }
 
     if (isCacheValid) {
       // 新しいストロークがあるかチェック
@@ -906,20 +926,28 @@ export class CanvasRenderer implements DrawingRenderer {
         !hasNewContent ||
         this.frameBitmaps[i] === null
           ? // 全再生成（全消し、または新しいコンテンツがない、または前のImageBitmapがない場合）
-            this.renderFrameFromScratch({
-              drawing,
-              frameIndex: i,
-              frameElapsedTimeMs,
-              jitterConfig,
-            })
+            // バックグラウンド生成ではキャッシュを更新しない（要求されたフレームが既に更新しているため）
+            this.renderFrameFromScratch(
+              {
+                drawing,
+                frameIndex: i,
+                frameElapsedTimeMs,
+                jitterConfig,
+              },
+              false, // updateCache = false
+            )
           : // 差分描画（新しいストロークまたは新しいポイントがあり、前のImageBitmapがある場合）
-            this.renderFrameWithDiff({
-              drawing,
-              frameIndex: i,
-              frameElapsedTimeMs,
-              jitterConfig,
-              newStrokes,
-            });
+            // バックグラウンド生成ではキャッシュを更新しない（要求されたフレームが既に更新しているため）
+            this.renderFrameWithDiff(
+              {
+                drawing,
+                frameIndex: i,
+                frameElapsedTimeMs,
+                jitterConfig,
+                newStrokes,
+              },
+              false, // updateCache = false
+            );
 
       renderPromise
         .then((bitmap) => {
@@ -943,9 +971,13 @@ export class CanvasRenderer implements DrawingRenderer {
   /**
    * 差分描画: 前のImageBitmapに新しいストロークだけを上書き
    * リアルタイム描画時のパフォーマンス最適化
+   * @param updateCache キャッシュを更新するか（デフォルト: true）
+   * 注意: `regenerateOtherFramesAsync`から呼ばれる場合は、要求されたフレームが既にキャッシュを更新しているため、
+   * バックグラウンド生成ではキャッシュを更新しない（競合を避けるため）
    */
   private async renderFrameWithDiff(
     params: RenderFrameWithDiffParams,
+    updateCache = true,
   ): Promise<ImageBitmap> {
     const {
       drawing,
@@ -1052,19 +1084,23 @@ export class CanvasRenderer implements DrawingRenderer {
       this.frameBitmaps[frameIndex]?.close();
       this.frameBitmaps[frameIndex] = newBitmap;
 
-      // キャッシュを更新
-      this.updateCacheForDiff(
-        newStrokes,
-        strokesWithNewPoints,
-        drawing,
-        jitterConfig,
-      );
+      // キャッシュを更新（要求されたフレームのみ）
+      if (updateCache) {
+        this.updateCacheForDiff(
+          newStrokes,
+          strokesWithNewPoints,
+          drawing,
+          jitterConfig,
+        );
+      }
 
       // すべてのフレームが生成された場合、履歴キャッシュに保存
+      // 非同期処理のため、awaitしない（描画をブロックしない）
       const allFramesReady = this.frameBitmaps.every((b) => b !== null);
       if (allFramesReady) {
         const drawingHash = this.computeDrawingHash(drawing);
-        this.saveToHistoryCache(drawingHash, jitterConfig);
+        // 非同期で実行（エラーが発生しても描画処理は続行）
+        void this.saveToHistoryCache(drawingHash, jitterConfig);
       }
 
       return newBitmap;
@@ -1077,13 +1113,17 @@ export class CanvasRenderer implements DrawingRenderer {
 
   /**
    * 全ストロークからフレームを生成
+   * @param updateCache キャッシュを更新するか（デフォルト: true）
+   * 注意: `regenerateOtherFramesAsync`から呼ばれる場合は、要求されたフレームが既にキャッシュを更新しているため、
+   * バックグラウンド生成ではキャッシュを更新しない（競合を避けるため）
    */
   private async renderFrameFromScratch(
     params: RenderFrameFromScratchParams,
+    updateCache = true,
   ): Promise<ImageBitmap> {
     const { drawing, frameIndex, frameElapsedTimeMs, jitterConfig } = params;
     console.log(
-      `[CanvasRenderer] renderFrameFromScratch: 開始 frameIndex=${frameIndex}, strokes=${drawing.strokes.length}`,
+      `[CanvasRenderer] renderFrameFromScratch: 開始 frameIndex=${frameIndex}, strokes=${drawing.strokes.length}, updateCache=${updateCache}`,
     );
     // ImageDataを初期化
     this.initializeImageData(this.lastWidth, this.lastHeight);
@@ -1120,15 +1160,19 @@ export class CanvasRenderer implements DrawingRenderer {
     this.frameBitmaps[frameIndex]?.close();
     this.frameBitmaps[frameIndex] = newBitmap;
 
-    // キャッシュを更新
-    this.updateCacheForScratch(drawing, jitterConfig);
+    // キャッシュを更新（要求されたフレームのみ）
+    if (updateCache) {
+      this.updateCacheForScratch(drawing, jitterConfig);
+    }
 
     // すべてのフレームが生成された場合、履歴キャッシュに保存
     // ただし、すべてのフレームが生成されている場合のみ
+    // 非同期処理のため、awaitしない（描画をブロックしない）
     const allFramesReady = this.frameBitmaps.every((b) => b !== null);
     if (allFramesReady) {
       const drawingHash = this.computeDrawingHash(drawing);
-      this.saveToHistoryCache(drawingHash, jitterConfig);
+      // 非同期で実行（エラーが発生しても描画処理は続行）
+      void this.saveToHistoryCache(drawingHash, jitterConfig);
     }
 
     return newBitmap;
@@ -1161,54 +1205,61 @@ export class CanvasRenderer implements DrawingRenderer {
    * 履歴キャッシュに保存
    * すべてのフレームが生成された場合に呼ばれる
    *
-   * 注意: 現在の実装では、ImageBitmapの参照を共有している（暫定実装）。
-   * これにより、以下の問題が発生する可能性がある:
-   * 1. `invalidateCache(false)`が呼ばれた場合、`this.frameBitmaps`が`close()`されると、
-   *    履歴キャッシュのImageBitmapも無効になる
-   * 2. `renderFrameFromScratch`で新しいImageBitmapが生成された場合、
-   *    古いImageBitmapが`close()`されると、履歴キャッシュのImageBitmapも無効になる
-   *
-   * ただし、現在の実装では:
-   * - `clearPatternCache()`は`invalidateCache()`を呼び出し、デフォルトで`clearHistory=true`
-   * - 履歴キャッシュもクリアされるため、参照共有による問題は発生しにくい
-   *
-   * 将来的には、ImageBitmapを適切にクローンする実装が必要:
-   * - `createImageBitmap`を使用して非同期でクローン
-   * - または、`offscreenCanvas`に描画してから再生成
-   * 詳細は `docs/imagebitmap-clone-analysis.md` を参照
+   * ImageBitmapをクローンして保存することで、参照共有による問題を回避する。
+   * 非同期処理のため、エラーが発生しても描画処理は続行される。
    */
-  private saveToHistoryCache(
+  private async saveToHistoryCache(
     drawingHash: string,
     jitterConfig: JitterConfig,
-  ): void {
-    // ImageBitmapをクローン（参照を共有しないようにする）
-    // 注意: ImageBitmapは直接クローンできないため、
-    // 暫定的に、現在のframeBitmapsの参照を保存
-    // TODO: 適切にクローンする実装が必要（非同期処理が必要）
-    const clonedBitmaps: (ImageBitmap | null)[] = [];
-    for (let i = 0; i < FRAME_COUNT; i++) {
-      clonedBitmaps[i] = this.frameBitmaps[i]; // 暫定: 参照を共有
-    }
+  ): Promise<void> {
+    try {
+      // ImageBitmapをクローン（参照を共有しないようにする）
+      const clonedBitmaps: (ImageBitmap | null)[] = [];
+      const clonePromises: Promise<void>[] = [];
 
-    // 履歴キャッシュに保存し、古いエントリを削除
-    const toClose = saveAndEvict(
-      this.historyCache,
-      drawingHash,
-      {
-        frameBitmaps: clonedBitmaps,
-        jitterConfig: { ...jitterConfig },
-        timestamp: Date.now(),
-      },
-      MAX_HISTORY_CACHE_SIZE,
-    );
-
-    // 削除されたエントリのImageBitmapを破棄
-    for (const entry of toClose) {
-      for (const bitmap of entry.frameBitmaps) {
+      for (let i = 0; i < FRAME_COUNT; i++) {
+        const bitmap = this.frameBitmaps[i];
         if (bitmap) {
-          bitmap.close();
+          // createImageBitmapでクローン（非同期）
+          clonePromises.push(
+            createImageBitmap(bitmap).then((cloned) => {
+              clonedBitmaps[i] = cloned;
+            }),
+          );
+        } else {
+          clonedBitmaps[i] = null;
         }
       }
+
+      // すべてのクローンが完了するまで待機
+      await Promise.all(clonePromises);
+
+      // 履歴キャッシュに保存し、古いエントリを削除
+      const toClose = saveAndEvict(
+        this.historyCache,
+        drawingHash,
+        {
+          frameBitmaps: clonedBitmaps,
+          jitterConfig: { ...jitterConfig },
+          timestamp: Date.now(),
+        },
+        MAX_HISTORY_CACHE_SIZE,
+      );
+
+      // 削除されたエントリのImageBitmapを破棄
+      for (const entry of toClose) {
+        for (const bitmap of entry.frameBitmaps) {
+          if (bitmap) {
+            bitmap.close();
+          }
+        }
+      }
+    } catch (error) {
+      // エラーが発生しても描画処理は続行（ログのみ出力）
+      console.error(
+        `[CanvasRenderer] saveToHistoryCache: エラーが発生しました`,
+        error,
+      );
     }
   }
 

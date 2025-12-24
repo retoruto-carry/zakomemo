@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { createWigglyEngine } from "@/app/createWigglyEngine";
 import type { JitterConfig } from "@/core/jitter";
 import type { BrushPatternId } from "@/core/types";
+import { createWigglyEngine } from "@/engine/createWigglyEngine";
 import type { EraserVariant, PenVariant } from "@/engine/variants";
 import type { Tool, WigglyEngine } from "@/engine/WigglyEngine";
 import { DEFAULT_DRAWING } from "./presets";
