@@ -1048,6 +1048,8 @@ export class CanvasRenderer implements DrawingRenderer {
             )
           : // 差分描画（新しいストロークまたは新しいポイントがあり、前のImageBitmapがある場合）
             // バックグラウンド生成ではキャッシュを更新しない（要求されたフレームが既に更新しているため）
+            // renderFrameWithDiff内でstrokesWithNewPointsを再取得するため、
+            // newStrokesのみを渡す（strokesWithNewPointsはrenderFrameWithDiff内で取得）
             this.renderFrameWithDiff(
               {
                 drawing,
