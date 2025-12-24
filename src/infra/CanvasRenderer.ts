@@ -983,22 +983,15 @@ export class CanvasRenderer implements DrawingRenderer {
   /**
    * 他のフレームを非同期で再生成（バックグラウンド生成）
    * 描画をブロックしないように、非同期で実行
-   * ストローク描画中は実行しない（パフォーマンスへの影響を避ける）
+   * 注意: 描画中でも他のフレームを生成する必要がある（アニメーションに3フレームすべてが必要なため）
    */
   private regenerateOtherFramesAsync(
     drawing: Drawing,
     jitterConfig: JitterConfig,
     excludeIndex: number,
   ): void {
-    // ストローク描画中はバックグラウンド生成をスキップ
-    if (this.isDrawingActive) {
-      console.log(
-        `[CanvasRenderer] regenerateOtherFramesAsync: スキップ（描画中） excludeIndex=${excludeIndex}`,
-      );
-      return;
-    }
     console.log(
-      `[CanvasRenderer] regenerateOtherFramesAsync: 開始 excludeIndex=${excludeIndex}`,
+      `[CanvasRenderer] regenerateOtherFramesAsync: 開始 excludeIndex=${excludeIndex}, isDrawingActive=${this.isDrawingActive}`,
     );
 
     // 既存のバックグラウンド生成をキャンセル
