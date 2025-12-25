@@ -190,4 +190,79 @@ describe("CycleBitmapCache", () => {
       }),
     ).toBeNull();
   });
+
+  test("アクセスしたエントリはLRUの末尾に移動する", () => {
+    const cache = new CycleBitmapCache({
+      cycleCount: 3,
+      createTracker: () => new StrokeChangeTracker(),
+      maxEntries: 2,
+    });
+    const bitmapA = createBitmapMock();
+    const bitmapB = createBitmapMock();
+    const bitmapC = createBitmapMock();
+
+    cache.commit({
+      key: { drawingRevision: 1, jitterKey: "j", cycleIndex: 0 },
+      cacheKey: "d1|1|j|0",
+      renderCacheEpoch: 1,
+      bitmap: bitmapA,
+    });
+    cache.commit({
+      key: { drawingRevision: 2, jitterKey: "j", cycleIndex: 1 },
+      cacheKey: "d2|1|j|1",
+      renderCacheEpoch: 1,
+      bitmap: bitmapB,
+    });
+
+    cache.getBitmap({
+      key: { drawingRevision: 1, jitterKey: "j", cycleIndex: 0 },
+      cacheKey: "d1|1|j|0",
+      renderCacheEpoch: 1,
+    });
+
+    cache.commit({
+      key: { drawingRevision: 3, jitterKey: "j", cycleIndex: 2 },
+      cacheKey: "d3|1|j|2",
+      renderCacheEpoch: 1,
+      bitmap: bitmapC,
+    });
+
+    expect(bitmapB.close).toHaveBeenCalled();
+    expect(bitmapA.close).not.toHaveBeenCalled();
+  });
+
+  test("resetCycleでLRUの対象cycleが破棄される", () => {
+    const cache = new CycleBitmapCache({
+      cycleCount: 3,
+      createTracker: () => new StrokeChangeTracker(),
+      maxEntries: 3,
+    });
+    const bitmapA = createBitmapMock();
+    const bitmapB = createBitmapMock();
+
+    cache.commit({
+      key: { drawingRevision: 1, jitterKey: "j", cycleIndex: 0 },
+      cacheKey: "d1|1|j|0",
+      renderCacheEpoch: 1,
+      bitmap: bitmapA,
+    });
+    cache.commit({
+      key: { drawingRevision: 2, jitterKey: "j", cycleIndex: 1 },
+      cacheKey: "d2|1|j|1",
+      renderCacheEpoch: 1,
+      bitmap: bitmapB,
+    });
+
+    cache.resetCycle({ cycleIndex: 1 });
+
+    expect(bitmapB.close).toHaveBeenCalled();
+    expect(bitmapA.close).not.toHaveBeenCalled();
+    expect(
+      cache.getBitmap({
+        key: { drawingRevision: 2, jitterKey: "j", cycleIndex: 1 },
+        cacheKey: "d2|1|j|1",
+        renderCacheEpoch: 1,
+      }),
+    ).toBeNull();
+  });
 });
