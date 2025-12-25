@@ -21,7 +21,9 @@ type LruEntry = {
  */
 export class CycleBitmapCache {
   private states: CycleState[];
+  /** cacheKey -> ImageBitmap のLRU */
   private lru = new Map<string, LruEntry>();
+  /** LRUに保持するImageBitmapの最大件数 */
   private maxEntries: number;
 
   constructor({
