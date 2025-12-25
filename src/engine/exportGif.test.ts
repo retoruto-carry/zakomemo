@@ -22,7 +22,7 @@ class MockRenderer implements DrawingRenderer {
     this.renders.push({ stroke, time: elapsedTimeMs });
   }
 
-  clearPatternCache(): void {
+  invalidateRenderCache(): void {
     // noop for mock
   }
 

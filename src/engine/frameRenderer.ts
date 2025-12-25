@@ -185,10 +185,10 @@ export function renderDrawingAtTime(params: RenderDrawingAtTimeParams): void {
           console.error("Failed to flush bitmap (detached):", err);
           // キャッシュを無効化して再生成を試みる
           if (
-            "clearPatternCache" in renderer &&
-            typeof renderer.clearPatternCache === "function"
+            "invalidateRenderCache" in renderer &&
+            typeof renderer.invalidateRenderCache === "function"
           ) {
-            renderer.clearPatternCache();
+            renderer.invalidateRenderCache();
           }
           // 再生成を試みる（キャッシュが無効化されているため、次回getCycleBitmapで再生成される）
           renderer

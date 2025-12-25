@@ -29,7 +29,7 @@ class MockRenderer implements DrawingRenderer {
     this.clears.push({ width, height });
   }
 
-  clearPatternCache(): void {
+  invalidateRenderCache(): void {
     // noop for mock
   }
 

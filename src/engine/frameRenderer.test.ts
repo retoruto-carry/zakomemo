@@ -29,7 +29,7 @@ class MockRenderer implements DrawingRenderer {
     });
   }
 
-  clearPatternCache(): void {
+  invalidateRenderCache(): void {
     // noop for mock
   }
 }
@@ -51,7 +51,7 @@ function createCycleRenderer(): CycleRendererStub {
   const renderer: CycleRendererStub = {
     clear: () => {},
     renderStroke: () => {},
-    clearPatternCache: () => {},
+    invalidateRenderCache: () => {},
     getCycleCount: () => 1,
     getCycleBitmap,
     flushFromBitmap: () => {},

@@ -149,7 +149,7 @@ describe("CanvasRenderer (cycle bitmap cache)", () => {
     ).rejects.toThrow();
   });
 
-  test("clearPatternCacheでキャッシュが無効化される", async () => {
+  test("invalidateRenderCacheでキャッシュが無効化される", async () => {
     const drawing = createTestDrawing([createTestStroke("s1")]);
 
     await renderer.getCycleBitmap({
@@ -160,7 +160,7 @@ describe("CanvasRenderer (cycle bitmap cache)", () => {
       elapsedTimeMs: 0,
     });
 
-    renderer.clearPatternCache();
+    renderer.invalidateRenderCache();
 
     await renderer.getCycleBitmap({
       drawing,

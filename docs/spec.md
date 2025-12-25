@@ -70,7 +70,7 @@
 ## エンジン層（engine）
 
 - Ports:
-  - DrawingRenderer(clear/renderStroke/clearPatternCache)
+  - DrawingRenderer(clear/renderStroke/invalidateRenderCache)
   - TimeProvider(now)
   - RafScheduler(request/cancel)
   - GifEncoder(begin/addFrame/finish)

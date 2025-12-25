@@ -10,7 +10,8 @@ export interface DrawingRenderer {
     jitteredPoints: { x: number; y: number }[],
     elapsedTimeMs: number,
   ): void;
-  clearPatternCache(): void;
+  /** 描画キャッシュを無効化する */
+  invalidateRenderCache(): void;
 }
 
 /**

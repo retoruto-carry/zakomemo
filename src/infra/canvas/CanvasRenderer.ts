@@ -51,7 +51,7 @@ export class CanvasRenderer implements DrawingRenderer {
     this.invalidateCache();
   }
 
-  clearPatternCache(): void {
+  invalidateRenderCache(): void {
     this.invalidateCache();
   }
 

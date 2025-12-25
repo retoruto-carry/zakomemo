@@ -135,7 +135,7 @@ export class WigglyEngine {
   }
 
   clearRendererCache(): void {
-    this.renderer.clearPatternCache();
+    this.renderer.invalidateRenderCache();
     // 保留中の非同期レンダリングリクエストを無効化
     // これにより、閉じられたImageBitmapを使用しようとする古いリクエストを防ぐ
     invalidatePendingRequests(this.renderer);
