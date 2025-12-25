@@ -49,6 +49,47 @@ class MockGifEncoder implements GifEncoder {
   }
 }
 
+class MockCycleRenderer implements DrawingRenderer {
+  revisions: number[] = [];
+  closeSpy = vi.fn();
+  constructor(
+    private width: number,
+    private height: number,
+  ) {}
+
+  clear(_width: number, _height: number): void {
+    // モック用の空実装
+  }
+
+  renderStroke(
+    _stroke: Stroke,
+    _points: { x: number; y: number }[],
+    _elapsedTimeMs: number,
+  ): void {
+    // モック用の空実装
+  }
+
+  invalidateRenderCache(): void {
+    // モック用の空実装
+  }
+
+  getCycleCount(): number {
+    return 3;
+  }
+
+  async getCycleBitmap(params: {
+    drawingRevision: number;
+  }): Promise<ImageBitmap> {
+    this.revisions.push(params.drawingRevision);
+    const canvas = document.createElement("canvas");
+    canvas.width = this.width;
+    canvas.height = this.height;
+    const bitmap = canvas as unknown as ImageBitmap;
+    (bitmap as { close: () => void }).close = this.closeSpy;
+    return bitmap;
+  }
+}
+
 const drawing: Drawing = {
   width: 20,
   height: 20,
@@ -82,5 +123,24 @@ describe("exportDrawingAsGif", () => {
     expect(gif.beginArgs).toEqual({ width: 20, height: 20, fps: 10 });
     expect(gif.frames).toHaveLength(2);
     expect(blob).toBeInstanceOf(Blob);
+  });
+
+  test("getCycleBitmapにdrawingRevisionが渡される", async () => {
+    const renderer = new MockCycleRenderer(drawing.width, drawing.height);
+    const gif = new MockGifEncoder();
+
+    await exportDrawingAsGif({
+      drawing,
+      drawingRevision: 42,
+      renderer,
+      gif,
+      jitterConfig: { amplitude: 0, frequency: 1 },
+      fps: 10,
+      durationMs: 200,
+    });
+
+    expect(renderer.revisions).toEqual([42, 42]);
+    expect(gif.frames).toHaveLength(2);
+    expect(renderer.closeSpy).toHaveBeenCalledTimes(2);
   });
 });

@@ -17,6 +17,7 @@ export type GetCycleBitmapParams = {
 };
 
 interface CycleBitmapRenderer extends DrawingRenderer {
+  /** 取得したImageBitmapのcloseは呼び出し側が行う */
   getCycleBitmap(params: GetCycleBitmapParams): Promise<ImageBitmap>;
   getCycleCount(): number;
   flushFromBitmap(bitmap: ImageBitmap): void;

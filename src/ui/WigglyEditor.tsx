@@ -102,6 +102,7 @@ export function WigglyEditor() {
     const engine = engineRef.current;
     const drawing = engine?.getDrawing();
     if (!engine || !drawing) return;
+    const drawingRevision = engine.getDrawingRevision();
 
     setIsExporting(true);
     setExportError(null);
@@ -127,6 +128,7 @@ export function WigglyEditor() {
       gifEncoder.setBackgroundColor(backgroundColor);
       const blob = await exportDrawingAsGif({
         drawing,
+        drawingRevision,
         renderer,
         gif: gifEncoder,
         jitterConfig,

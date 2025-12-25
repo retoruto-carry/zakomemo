@@ -112,6 +112,8 @@ export class WigglyEngine {
       typeof this.renderer.setBackgroundColor === "function"
     ) {
       this.renderer.setBackgroundColor(backgroundColor);
+      // 背景色変更前のリクエストを無効化して古いImageBitmapを捨てる
+      invalidatePendingRequests(this.renderer);
       // 背景色変更を即座に反映するために次の描画を強制
       this.lastRenderAt = 0;
     }
@@ -310,6 +312,13 @@ export class WigglyEngine {
 
   getDrawing(): Drawing {
     return this.history.present;
+  }
+
+  /**
+   * Drawingの版番号を返す
+   */
+  getDrawingRevision(): number {
+    return this.drawingRevision;
   }
 
   clear(): void {

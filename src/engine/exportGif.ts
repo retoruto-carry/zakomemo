@@ -11,6 +11,8 @@ type RendererWithImageData = DrawingRenderer & {
 export type ExportGifOptions = {
   /** 描画データ */
   drawing: Drawing;
+  /** Drawingの版番号（キャッシュ無効化用） */
+  drawingRevision?: number;
   /** 描画レンダラー */
   renderer: RendererWithImageData;
   /** GIFエンコーダー */
@@ -33,6 +35,7 @@ export async function exportDrawingAsGif(
   options: ExportGifOptions,
 ): Promise<Blob> {
   const { drawing, renderer, gif, jitterConfig, fps, durationMs } = options;
+  const drawingRevision = options.drawingRevision ?? 0;
 
   gif.begin(drawing.width, drawing.height, fps);
 
@@ -71,7 +74,7 @@ export async function exportDrawingAsGif(
 
       const bitmap = await renderer.getCycleBitmap({
         drawing,
-        drawingRevision: 0,
+        drawingRevision,
         cycleIndex,
         jitterConfig,
         elapsedTimeMs,
@@ -102,7 +105,7 @@ export async function exportDrawingAsGif(
       const elapsedTimeMs = i * frameInterval;
       renderDrawingAtTime({
         drawing,
-        drawingRevision: 0,
+        drawingRevision,
         renderer,
         jitterConfig,
         elapsedTimeMs,

@@ -1,4 +1,5 @@
 import type { Drawing, Stroke } from "../core/types";
+import * as frameRenderer from "./frameRenderer";
 import type {
   DrawingRenderer,
   RafScheduler,
@@ -180,6 +181,35 @@ describe("WigglyEngine", () => {
     expect(renderer.rendered).toHaveLength(1);
     const { jittered } = renderer.rendered[0];
     expect(jittered[0].x).not.toBe(0);
+  });
+
+  test("背景色変更で保留中リクエストを無効化する", () => {
+    class MockRendererWithBackground extends MockRenderer {
+      setBackgroundColor = vi.fn();
+    }
+
+    const time = new MockTime();
+    const raf = new MockRaf();
+    const renderer = new MockRendererWithBackground(
+      initialDrawing.width,
+      initialDrawing.height,
+    );
+    const engine = new WigglyEngine({
+      initialDrawing,
+      renderer,
+      time,
+      raf,
+      jitterConfig: { amplitude: 0, frequency: 1 },
+    });
+    const invalidateSpy = vi.spyOn(frameRenderer, "invalidatePendingRequests");
+
+    engine.setBackgroundColor("#000000");
+
+    expect(renderer.setBackgroundColor).toHaveBeenCalledWith("#000000");
+    expect(invalidateSpy).toHaveBeenCalledWith(renderer);
+
+    engine.destroy();
+    invalidateSpy.mockRestore();
   });
 
   test("destroy cancels RAF loop", () => {

@@ -97,6 +97,7 @@ export class CanvasRenderer implements DrawingRenderer {
   /**
    * 指定のDrawing状態と時間に対応するcycleのImageBitmapを取得する。
    * キャッシュとin-flightを再利用して重複生成を避ける。
+   * 返却したImageBitmapは呼び出し側がcloseする（内部キャッシュはcloneを保持）。
    */
   async getCycleBitmap(params: GetCycleBitmapParams): Promise<ImageBitmap> {
     const {
