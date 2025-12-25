@@ -632,17 +632,18 @@ export const WigglyTools = React.forwardRef<
           </div>
 
           {/* 消しゴム */}
-          <button
-            type="button"
-            onClick={() => {
-              uiSoundManager.play("button-tool", { stopPrevious: true });
-              handleToolClick("eraser");
-            }}
-            onKeyDown={handleButtonKeyDown(() => {
-              uiSoundManager.play("button-tool", { stopPrevious: true });
-              handleToolClick("eraser");
-            })}
-            className={`
+          <div className="relative w-full h-full">
+            <button
+              type="button"
+              onClick={() => {
+                uiSoundManager.play("button-tool", { stopPrevious: true });
+                handleToolClick("eraser");
+              }}
+              onKeyDown={handleButtonKeyDown(() => {
+                uiSoundManager.play("button-tool", { stopPrevious: true });
+                handleToolClick("eraser");
+              })}
+              className={`
                   relative flex flex-col items-center justify-center p-1.5 transition-all active:scale-[0.98] w-full h-full rounded-[8px] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2
                   ${
                     tool === "eraser"
@@ -650,35 +651,34 @@ export const WigglyTools = React.forwardRef<
                       : "bg-[#fffdeb] border-[4px] border-[#d2b48c] shadow-[4px_4px_0_rgba(210,180,140,0.3)]"
                   }
             `}
-          >
-            <div
-              className={`absolute top-2 left-2 text-sm font-black z-50 ${tool === "eraser" ? "text-black" : "text-[#a67c52]"}`}
-              style={{
-                WebkitTextStroke:
-                  tool === "eraser" ? "3px #fff700" : "3px #fffdeb",
-                paintOrder: "stroke fill",
-              }}
             >
-              消しゴム
-            </div>
-            {/* biome-ignore lint/performance/noImgElement: ツールアイコン表示のため */}
-            <img
-              src={
-                tool === "eraser"
-                  ? "/images/eraser_on.png"
-                  : "/images/eraser_off.png"
-              }
-              alt="消しゴム"
-              className="w-20 h-20 object-contain drop-shadow-sm"
-              aria-hidden="true"
-            />
+              <div
+                className={`absolute top-2 left-2 text-sm font-black z-50 ${tool === "eraser" ? "text-black" : "text-[#a67c52]"}`}
+                style={{
+                  WebkitTextStroke:
+                    tool === "eraser" ? "3px #fff700" : "3px #fffdeb",
+                  paintOrder: "stroke fill",
+                }}
+              >
+                消しゴム
+              </div>
+              {/* biome-ignore lint/performance/noImgElement: ツールアイコン表示のため */}
+              <img
+                src={
+                  tool === "eraser"
+                    ? "/images/eraser_on.png"
+                    : "/images/eraser_off.png"
+                }
+                alt="消しゴム"
+                className="w-20 h-20 object-contain drop-shadow-sm"
+                aria-hidden="true"
+              />
+            </button>
+
             {/* 角インジケータ */}
-            {/* biome-ignore lint/a11y/useSemanticElements: button要素のネストを避けるためdivを使用 */}
-            <div
-              role="button"
-              tabIndex={0}
-              onClick={(e) => {
-                e.stopPropagation();
+            <button
+              type="button"
+              onClick={() => {
                 if (activePopup === "eraser") {
                   uiSoundManager.play("popup-close", { stopPrevious: true });
                 } else {
@@ -687,19 +687,15 @@ export const WigglyTools = React.forwardRef<
                 setTool("eraser");
                 setActivePopup(activePopup === "eraser" ? "none" : "eraser");
               }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  if (activePopup === "eraser") {
-                    uiSoundManager.play("popup-close", { stopPrevious: true });
-                  } else {
-                    uiSoundManager.play("button-tool", { stopPrevious: true });
-                  }
-                  setTool("eraser");
-                  setActivePopup(activePopup === "eraser" ? "none" : "eraser");
+              onKeyDown={handleButtonKeyDown(() => {
+                if (activePopup === "eraser") {
+                  uiSoundManager.play("popup-close", { stopPrevious: true });
+                } else {
+                  uiSoundManager.play("button-tool", { stopPrevious: true });
                 }
-              }}
+                setTool("eraser");
+                setActivePopup(activePopup === "eraser" ? "none" : "eraser");
+              })}
               className={`absolute bottom-1.5 right-1.5 w-9 h-9 border-[3px] rounded-[3px] flex items-center justify-center transition-all hover:scale-105 active:scale-95 z-[90] focus:outline-none focus-visible:ring-2 focus-visible:ring-black cursor-pointer ${tool === "eraser" ? "border-black bg-white" : "border-[#d2b48c] bg-white"}`}
             >
               <div
@@ -716,7 +712,7 @@ export const WigglyTools = React.forwardRef<
                     : ""
                 } bg-white border-[1.5px] ${tool === "eraser" ? "border-black" : "border-[#d2b48c]"} shadow-inner`}
               />
-            </div>
+            </button>
 
             {/* 小さなポップアップ: 消しゴムグリッド */}
             {activePopup === "eraser" && (
@@ -733,8 +729,7 @@ export const WigglyTools = React.forwardRef<
                     <button
                       type="button"
                       key={v.id}
-                      onClick={(e) => {
-                        e.stopPropagation();
+                      onClick={() => {
                         uiSoundManager.play("eraser-variant-select", {
                           stopPrevious: true,
                         });
@@ -771,7 +766,7 @@ export const WigglyTools = React.forwardRef<
                 })}
               </div>
             )}
-          </button>
+          </div>
         </div>
       </div>
 
