@@ -1,6 +1,7 @@
 import type { Drawing, Stroke } from "../core/types";
 import { exportDrawingAsGif } from "./exportGif";
 import type { DrawingRenderer, GifEncoder } from "./ports";
+import { CYCLE_COUNT, CYCLE_INTERVAL_MS } from "./renderingConstants";
 
 class MockRenderer implements DrawingRenderer {
   clears: { width: number; height: number }[] = [];
@@ -74,7 +75,7 @@ class MockCycleRenderer implements DrawingRenderer {
   }
 
   getCycleCount(): number {
-    return 3;
+    return CYCLE_COUNT;
   }
 
   async getCycleBitmap(params: {
@@ -116,12 +117,11 @@ describe("exportDrawingAsGif", () => {
       renderer,
       gif,
       jitterConfig: { amplitude: 0, frequency: 1 },
-      fps: 10,
-      durationMs: 200,
     });
 
-    expect(gif.beginArgs).toEqual({ width: 20, height: 20, fps: 10 });
-    expect(gif.frames).toHaveLength(2);
+    const fps = Math.round(1000 / CYCLE_INTERVAL_MS);
+    expect(gif.beginArgs).toEqual({ width: 20, height: 20, fps });
+    expect(gif.frames).toHaveLength(CYCLE_COUNT);
     expect(blob).toBeInstanceOf(Blob);
   });
 
@@ -135,12 +135,10 @@ describe("exportDrawingAsGif", () => {
       renderer,
       gif,
       jitterConfig: { amplitude: 0, frequency: 1 },
-      fps: 10,
-      durationMs: 200,
     });
 
-    expect(renderer.revisions).toEqual([42, 42]);
-    expect(gif.frames).toHaveLength(2);
-    expect(renderer.closeSpy).toHaveBeenCalledTimes(2);
+    expect(renderer.revisions).toEqual([42, 42, 42]);
+    expect(gif.frames).toHaveLength(CYCLE_COUNT);
+    expect(renderer.closeSpy).toHaveBeenCalledTimes(CYCLE_COUNT);
   });
 });

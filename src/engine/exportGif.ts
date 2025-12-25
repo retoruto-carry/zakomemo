@@ -2,7 +2,7 @@ import type { JitterConfig } from "../core/jitter";
 import type { Drawing } from "../core/types";
 import { renderDrawingAtTime } from "./frameRenderer";
 import type { DrawingRenderer, GifEncoder } from "./ports";
-import { CYCLE_INTERVAL_MS } from "./renderingConstants";
+import { CYCLE_COUNT, CYCLE_INTERVAL_MS } from "./renderingConstants";
 
 type RendererWithImageData = DrawingRenderer & {
   getImageData?: () => ImageData;
@@ -19,10 +19,6 @@ export type ExportGifOptions = {
   gif: GifEncoder;
   /** jitter設定 */
   jitterConfig: JitterConfig;
-  /** フレームレート */
-  fps: number;
-  /** 出力時間（ミリ秒） */
-  durationMs: number;
 };
 
 /**
@@ -34,10 +30,13 @@ export type ExportGifOptions = {
 export async function exportDrawingAsGif(
   options: ExportGifOptions,
 ): Promise<Blob> {
-  const { drawing, renderer, gif, jitterConfig, fps, durationMs } = options;
+  const { drawing, renderer, gif, jitterConfig } = options;
   const drawingRevision = options.drawingRevision ?? 0;
+  const fps = Math.round(1000 / CYCLE_INTERVAL_MS);
 
   gif.begin(drawing.width, drawing.height, fps);
+
+  // 1サイクル分だけ出力する
 
   // ImageBitmapキャッシュを使用する場合
   if (
@@ -47,13 +46,7 @@ export async function exportDrawingAsGif(
     typeof renderer.getCycleCount === "function"
   ) {
     const cycleCount = renderer.getCycleCount();
-    // durationMsに基づいて必要なフレーム数を計算
-    const frameInterval = 1000 / fps;
-    const totalFrames = Math.ceil(durationMs / frameInterval);
-
-    // cycleCount分のアニメーションをループさせる
-    // アニメーション速度: 10fps（100ms/フレーム）で固定
-    const jitterFrameInterval = CYCLE_INTERVAL_MS;
+    const totalFrames = cycleCount;
 
     const tempCanvas = document.createElement("canvas");
     tempCanvas.width = drawing.width;
@@ -66,11 +59,8 @@ export async function exportDrawingAsGif(
     }
 
     for (let i = 0; i < totalFrames; i += 1) {
-      const elapsedTimeMs = i * frameInterval;
-      // cycleCountの中から適切なフレームを選択
-      const cycleIndex = Math.floor(
-        (elapsedTimeMs / jitterFrameInterval) % cycleCount,
-      );
+      const elapsedTimeMs = i * CYCLE_INTERVAL_MS;
+      const cycleIndex = i % cycleCount;
 
       const bitmap = await renderer.getCycleBitmap({
         drawing,
@@ -97,12 +87,11 @@ export async function exportDrawingAsGif(
       }
     }
   } else {
-    // フォールバック: 通常の描画
-    const frameInterval = 1000 / fps;
-    const totalFrames = Math.ceil(durationMs / frameInterval);
+    // フォールバック: 通常の描画（1サイクル分）
+    const totalFrames = CYCLE_COUNT;
 
     for (let i = 0; i < totalFrames; i += 1) {
-      const elapsedTimeMs = i * frameInterval;
+      const elapsedTimeMs = i * CYCLE_INTERVAL_MS;
       renderDrawingAtTime({
         drawing,
         drawingRevision,

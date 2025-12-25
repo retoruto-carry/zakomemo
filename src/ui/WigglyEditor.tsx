@@ -132,8 +132,6 @@ export function WigglyEditor() {
         renderer,
         gif: gifEncoder,
         jitterConfig,
-        fps: 12,
-        durationMs: 2000,
       });
 
       if (exportUrl) URL.revokeObjectURL(exportUrl);
