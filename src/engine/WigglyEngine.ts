@@ -134,6 +134,9 @@ export class WigglyEngine {
     this.onHistoryChange = listener;
   }
 
+  /**
+   * レンダラーのキャッシュと保留中リクエストを無効化する
+   */
   clearRendererCache(): void {
     this.renderer.invalidateRenderCache();
     // 保留中の非同期レンダリングリクエストを無効化

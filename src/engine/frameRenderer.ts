@@ -6,9 +6,6 @@ import type { DrawingRenderer } from "./ports";
 import { CYCLE_INTERVAL_MS } from "./renderingConstants";
 
 /**
- * ImageBitmapキャッシュ対応レンダラーの型ガード
- */
-/**
  * cycle Bitmap取得の引数
  */
 export type GetCycleBitmapParams = {
@@ -26,7 +23,7 @@ interface CycleBitmapRenderer extends DrawingRenderer {
 }
 
 /**
- * レンダラーがImageBitmapキャッシュをサポートしているかチェック
+ * レンダラーがImageBitmapキャッシュをサポートしているか判定する
  */
 function isCycleBitmapRenderer(
   renderer: DrawingRenderer,
@@ -147,6 +144,10 @@ export function invalidatePendingRequests(renderer: DrawingRenderer): void {
   bumpRequestId(renderer);
 }
 
+/**
+ * 指定時刻のDrawingをレンダリングする。
+ * ImageBitmapキャッシュ対応の場合は非同期で取得し、最新リクエストのみ描画する。
+ */
 export function renderDrawingAtTime(params: RenderDrawingAtTimeParams): void {
   const { drawing, drawingRevision, renderer, jitterConfig, elapsedTimeMs } =
     params;

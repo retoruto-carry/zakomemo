@@ -8,17 +8,30 @@ type RendererWithImageData = DrawingRenderer & {
   getImageData?: () => ImageData;
 };
 
+export type ExportGifOptions = {
+  /** 描画データ */
+  drawing: Drawing;
+  /** 描画レンダラー */
+  renderer: RendererWithImageData;
+  /** GIFエンコーダー */
+  gif: GifEncoder;
+  /** jitter設定 */
+  jitterConfig: JitterConfig;
+  /** フレームレート */
+  fps: number;
+  /** 出力時間（ミリ秒） */
+  durationMs: number;
+};
+
 /**
+ * DrawingをGIFに変換して返す。
+ * ImageBitmapキャッシュ対応レンダラーの場合はキャッシュ経由で描画する。
+ *
  * @throws レンダラーがgetImageDataメソッドを提供していない場合
  */
-export async function exportDrawingAsGif(options: {
-  drawing: Drawing;
-  renderer: RendererWithImageData;
-  gif: GifEncoder;
-  jitterConfig: JitterConfig;
-  fps: number;
-  durationMs: number;
-}): Promise<Blob> {
+export async function exportDrawingAsGif(
+  options: ExportGifOptions,
+): Promise<Blob> {
   const { drawing, renderer, gif, jitterConfig, fps, durationMs } = options;
 
   gif.begin(drawing.width, drawing.height, fps);
