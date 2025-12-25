@@ -157,7 +157,9 @@ export class ImageDataBuffer {
     this.offscreenCanvas = document.createElement("canvas");
     this.offscreenCanvas.width = width * dpr;
     this.offscreenCanvas.height = height * dpr;
-    this.offscreenCtx = this.offscreenCanvas.getContext("2d");
+    this.offscreenCtx = this.offscreenCanvas.getContext("2d", {
+      willReadFrequently: true,
+    });
     if (this.offscreenCtx) {
       this.offscreenCtx.imageSmoothingEnabled = false;
     }
