@@ -18,6 +18,9 @@ export type StrokeWithNewPoints = {
   cachedPointCount: number;
 };
 
+/**
+ * サイクルベースレンダリングのフレーム識別キー
+ */
 export type FrameKey = {
   drawingRevision: number;
   jitterKey: string;

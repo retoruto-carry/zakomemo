@@ -57,7 +57,7 @@
 ### 2.1 アーキテクチャ方針
 既存のレイヤー構造を維持し、各レイヤーの責務を明確に保つ。
 
-```
+```text
 core/    純粋ロジック（座標スナップ関数、Bresenhamアルゴリズム）
 engine/  アプリロジック（座標の整数化、ブラシサイズの整数化）
 infra/   ブラウザ依存実装（アンチエイリアス無効化、ピクセル単位描画）
@@ -112,7 +112,7 @@ ui/      Reactコンポーネント（スライダーのstep属性設定）
 ### 2.3 データフロー
 
 #### 2.3.1 座標の流れ
-```
+```text
 PointerEvent (ブラウザ座標)
   ↓
 toCanvasPos (論理座標に変換、小数値)
@@ -127,7 +127,7 @@ CanvasRenderer.renderStroke (Bresenhamでピクセル単位描画)
 ```
 
 #### 2.3.2 ブラシサイズの流れ
-```
+```text
 UIスライダー (step=1で整数値)
   ↓
 WigglyEngine.setBrushWidth (整数化を保証)
@@ -298,7 +298,6 @@ alpha = tile.alpha[alphaIndex]
 - **対策**: 段階的に実装し、テストを充実させる
 
 ## 6. 参考資料
-- Bresenhamアルゴリズム: https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
-- Canvas 2D API: https://developer.mozilla.org/ja/docs/Web/API/Canvas_API
+- Bresenhamアルゴリズム: [Wikipedia](https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm)
+- Canvas 2D API: [MDN Web Docs](https://developer.mozilla.org/ja/docs/Web/API/Canvas_API)
 - 既存の設計ドキュメント: `docs/spec.md`, `docs/implementation-plan.md`
-
