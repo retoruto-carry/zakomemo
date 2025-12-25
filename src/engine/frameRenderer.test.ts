@@ -161,7 +161,7 @@ describe("renderDrawingAtTime", () => {
             color: "#000",
             width: 4,
             opacity: 1,
-            patternId: "dots",
+            patternId: "dot_sparse",
           },
           points: [
             { x: 0, y: 0, t: 0 },
