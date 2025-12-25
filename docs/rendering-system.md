@@ -31,6 +31,7 @@
 - `elapsedTimeMs` は `WigglyEngine` の開始からの経過時間
 - `cycleIndex = floor((elapsedTimeMs / cycleIntervalMs) % cycleCount)`
 - 1 cycle は 100ms 固定、3 cycle で 300ms の揺れループになる
+- cycleBitmap生成に使う時間は `cycleIndex * cycleIntervalMs` で固定する
 
 ## 用語（短い説明）
 

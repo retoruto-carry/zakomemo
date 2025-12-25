@@ -104,18 +104,12 @@ export class CanvasRenderer implements DrawingRenderer {
   }
 
   /**
-   * 指定のDrawing状態と時間に対応するcycleのImageBitmapを取得する。
+   * 指定のDrawing状態とcycleIndexに対応するImageBitmapを取得する。
    * キャッシュとin-flightを再利用して重複生成を避ける。
    * 返却したImageBitmapは呼び出し側がcloseする（内部キャッシュはcloneを保持）。
    */
   async getCycleBitmap(params: GetCycleBitmapParams): Promise<ImageBitmap> {
-    const {
-      drawing,
-      drawingRevision,
-      cycleIndex,
-      jitterConfig,
-      elapsedTimeMs,
-    } = params;
+    const { drawing, drawingRevision, cycleIndex, jitterConfig } = params;
 
     this.assertCycleIndex({ cycleIndex });
     const sizeChanged = this.buffer.ensureSize({
@@ -127,8 +121,8 @@ export class CanvasRenderer implements DrawingRenderer {
     }
 
     const jitterKey = this.getJitterKey({ jitterConfig });
-    const cycleElapsedTimeMs =
-      elapsedTimeMs + cycleIndex * this.cycleIntervalMs;
+    // 差分更新でも揺れの位相がぶれないよう、cycleIndexで固定した時間を使う。
+    const cycleElapsedTimeMs = cycleIndex * this.cycleIntervalMs;
     const key: FrameKey = { drawingRevision, jitterKey, cycleIndex };
     const cacheKey = this.getCacheKey({
       drawing,
