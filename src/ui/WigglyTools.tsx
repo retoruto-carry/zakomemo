@@ -15,7 +15,7 @@ import {
   PALETTE_PRESETS,
 } from "@/config/presets";
 import type { JitterConfig } from "@/core/jitter";
-import { getPatternDefinition, PATTERNS } from "@/core/patterns";
+import { PATTERNS } from "@/core/patterns";
 import type { BrushPatternId } from "@/core/types";
 import type { EraserVariant } from "@/engine/variants";
 import type { Tool } from "@/engine/WigglyEngine";
@@ -23,6 +23,7 @@ import { uiSoundManager } from "@/infra/sound/uiSounds";
 import { isMobile } from "@/lib/share";
 import { throttle } from "@/lib/throttle";
 import { AnimatedGif, type AnimatedGifHandle } from "./components/AnimatedGif";
+import { PatternPreview } from "./components/PatternPreview";
 import { ShareButton } from "./components/ShareButton";
 import { eraserVariants } from "./variants";
 
@@ -103,57 +104,6 @@ const MAX_PEN_WIDTH = 48;
 const PATTERN_PREVIEW_PIXEL_SIZE = 2;
 /** パターンプレビューのタイル繰り返し回数 */
 const PATTERN_PREVIEW_REPEAT = 2;
-
-type PatternPreviewProps = {
-  patternId: BrushPatternId;
-  pixelSize: number;
-  repeat: number;
-  className?: string;
-};
-
-function PatternPreview({
-  patternId,
-  pixelSize,
-  repeat,
-  className,
-}: PatternPreviewProps): React.ReactElement {
-  const { tile } = getPatternDefinition(patternId);
-  const repeatWidth = tile.width * repeat;
-  const repeatHeight = tile.height * repeat;
-  const cells: React.ReactElement[] = [];
-
-  for (let y = 0; y < repeatHeight; y += 1) {
-    const rowOffset = (y % tile.height) * tile.width;
-    for (let x = 0; x < repeatWidth; x += 1) {
-      const value = tile.alpha[rowOffset + (x % tile.width)];
-      cells.push(
-        <div
-          key={`${patternId}-${x}-${y}`}
-          style={{
-            width: pixelSize,
-            height: pixelSize,
-            backgroundColor: value ? "#000" : "transparent",
-          }}
-        />,
-      );
-    }
-  }
-
-  return (
-    <div
-      className={`grid ${className ?? ""}`}
-      style={{
-        gridTemplateColumns: `repeat(${repeatWidth}, ${pixelSize}px)`,
-        gridTemplateRows: `repeat(${repeatHeight}, ${pixelSize}px)`,
-        width: repeatWidth * pixelSize,
-        height: repeatHeight * pixelSize,
-      }}
-      aria-hidden="true"
-    >
-      {cells}
-    </div>
-  );
-}
 
 interface WigglyToolsProps {
   tool: Tool;
