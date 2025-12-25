@@ -67,12 +67,12 @@ ui/      Reactコンポーネント（スライダーのstep属性設定）
 ### 2.2 各レイヤーの変更内容
 
 #### 2.2.1 core層
-**新規ファイル: `src/core/pixelArt.ts`**
+**新規ファイル: `src/core/rasterization.ts`**
 - `snapToPixel(x: number, y: number): {x: number, y: number}` - 座標を整数にスナップ
 - `bresenhamLine(x0: number, y0: number, x1: number, y1: number): Array<{x: number, y: number}>` - Bresenhamアルゴリズム実装
 - `snapBrushWidth(width: number): number` - ブラシサイズを整数にスナップ
 
-**テストファイル: `src/core/pixelArt.test.ts`**
+**テストファイル: `src/core/rasterization.test.ts`**
 - 座標スナップのテスト
 - Bresenhamアルゴリズムのテスト
 - ブラシサイズの整数化テスト
@@ -91,17 +91,17 @@ ui/      Reactコンポーネント（スライダーのstep属性設定）
 - ブラシサイズの整数化テスト
 
 #### 2.2.3 infra層
-**変更ファイル: `src/app/createWigglyEngine.ts`**
+**変更ファイル: `src/engine/createWigglyEngine.ts`**
 - `setupCanvasContext`: `imageSmoothingEnabled = false`を設定
 
-**変更ファイル: `src/infra/CanvasRenderer.ts`**
+**変更ファイル: `src/infra/canvas/CanvasRenderer.ts`**
 - `renderStroke`: ピクセル単位描画に変更
   - ソリッド/消しゴム: Bresenhamアルゴリズムで各ピクセルを描画
   - パターン: パターンタイルの定義を直接使用して各ピクセルを描画
 - `drawPixel`: 1ピクセルを描画するヘルパー関数
 - `drawPatternPixel`: パターンの1ピクセルを描画するヘルパー関数
 
-**テストファイル: `src/infra/CanvasRenderer.test.ts`**
+**テストファイル: `src/infra/canvas/CanvasRenderer.test.ts`**
 - ピクセル単位描画のテスト
 - パターン描画のテスト
 
@@ -166,11 +166,11 @@ alpha = tile.alpha[alphaIndex]
 ## 3. 実装計画書
 
 ### 3.1 フェーズ1: 基盤実装（core層）
-- [x] `src/core/pixelArt.ts` 作成
+- [x] `src/core/rasterization.ts` 作成
   - [x] `snapToPixel` 関数実装
   - [x] `bresenhamLine` 関数実装
   - [x] `snapBrushWidth` 関数実装
-- [x] `src/core/pixelArt.test.ts` 作成
+- [x] `src/core/rasterization.test.ts` 作成
   - [x] `snapToPixel` のテスト
   - [x] `bresenhamLine` のテスト（水平、垂直、斜め）
   - [x] `snapBrushWidth` のテスト
@@ -197,7 +197,7 @@ alpha = tile.alpha[alphaIndex]
 - [x] コミット: `feat: エンジン層で座標とブラシサイズを整数化`
 
 ### 3.3 フェーズ3: インフラ層の変更（アンチエイリアス無効化）
-- [x] `src/app/createWigglyEngine.ts` 修正
+- [x] `src/engine/createWigglyEngine.ts` 修正
   - [x] `setupCanvasContext` で `imageSmoothingEnabled = false` を設定
 - [x] `pnpm typecheck` で型チェック通過確認
 - [x] `pnpm lint` でリント通過確認
@@ -205,11 +205,11 @@ alpha = tile.alpha[alphaIndex]
 - [x] コミット: `feat: アンチエイリアスを無効化してピクセルパーフェクト描画を実現`
 
 ### 3.4 フェーズ4: インフラ層の変更（ピクセル単位描画 - ソリッド/消しゴム）
-- [x] `src/infra/CanvasRenderer.ts` 修正
+- [x] `src/infra/canvas/CanvasRenderer.ts` 修正
   - [x] `drawPixel` ヘルパー関数実装
   - [x] `renderStroke` をピクセル単位描画に変更（ソリッド/消しゴム）
   - [x] Bresenhamアルゴリズムを使用して点と点の間を描画
-- [x] `src/infra/CanvasRenderer.test.ts` 修正/追加
+- [x] `src/infra/canvas/CanvasRenderer.test.ts` 修正/追加
   - [x] ピクセル単位描画のテスト追加
 - [x] `pnpm test` でテスト通過確認
 - [x] `pnpm typecheck` で型チェック通過確認
@@ -218,12 +218,12 @@ alpha = tile.alpha[alphaIndex]
 - [x] コミット: `feat: ソリッド/消しゴムをピクセル単位描画に変更`
 
 ### 3.5 フェーズ5: インフラ層の変更（ピクセル単位描画 - パターン）
-- [x] `src/infra/CanvasRenderer.ts` 修正
+- [x] `src/infra/canvas/CanvasRenderer.ts` 修正
   - [x] `drawPatternPixel` ヘルパー関数実装
   - [x] `renderStroke` でパターン描画をピクセル単位に変更
   - [x] CanvasPatternに依存しない実装に変更
   - [x] パターンキャッシュの削除（不要になるため）
-- [x] `src/infra/CanvasRenderer.test.ts` 修正/追加
+- [x] `src/infra/canvas/CanvasRenderer.test.ts` 修正/追加
   - [x] パターン描画のテスト追加
 - [x] `pnpm test` でテスト通過確認
 - [x] `pnpm typecheck` で型チェック通過確認

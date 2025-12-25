@@ -96,6 +96,7 @@ export function bresenhamLine(
 /**
  * 半径ごとの円オフセットテーブル（キャッシュ）
  * キー: 半径、値: その半径の円内のオフセット配列
+ * ブラシサイズは実用範囲内を前提にし、キャッシュは上限を設けていない
  */
 const circleOffsetCache = new Map<number, Array<{ dx: number; dy: number }>>();
 

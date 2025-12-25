@@ -1,20 +1,9 @@
-import type { JitterConfig } from "../core/jitter";
-import { computeJitter, computePatternJitter } from "../core/jitter";
-import { snapToPixel } from "../core/rasterization";
-import type { Drawing, Stroke } from "../core/types";
-import type { DrawingRenderer } from "./ports";
-import { CYCLE_INTERVAL_MS } from "./renderingConstants";
-
-/**
- * cycle Bitmap取得の引数
- */
-export type GetCycleBitmapParams = {
-  drawing: Drawing;
-  drawingRevision: number;
-  cycleIndex: number;
-  jitterConfig: JitterConfig;
-  elapsedTimeMs: number;
-};
+import type { JitterConfig } from "@/core/jitter";
+import { computeJitter, computePatternJitter } from "@/core/jitter";
+import { snapToPixel } from "@/core/rasterization";
+import type { Drawing, Stroke } from "@/core/types";
+import type { DrawingRenderer, GetCycleBitmapParams } from "@/engine/ports";
+import { CYCLE_INTERVAL_MS } from "@/engine/renderingConstants";
 
 interface CycleBitmapRenderer extends DrawingRenderer {
   /** 取得したImageBitmapのcloseは呼び出し側が行う */

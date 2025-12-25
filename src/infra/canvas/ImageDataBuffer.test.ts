@@ -1,5 +1,5 @@
 import { describe, expect, test, vi } from "vitest";
-import { ImageDataBuffer } from "./ImageDataBuffer";
+import { ImageDataBuffer } from "@/infra/canvas/ImageDataBuffer";
 
 function createBuffer(backgroundColor: string): ImageDataBuffer {
   const canvas = document.createElement("canvas");

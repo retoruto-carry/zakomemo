@@ -1,7 +1,7 @@
-import type { Drawing, Stroke } from "../core/types";
-import { exportDrawingAsGif } from "./exportGif";
-import type { DrawingRenderer, GifEncoder } from "./ports";
-import { CYCLE_COUNT, CYCLE_INTERVAL_MS } from "./renderingConstants";
+import type { Drawing, Stroke } from "@/core/types";
+import { exportDrawingAsGif } from "@/engine/exportGif";
+import type { DrawingRenderer, GifEncoder } from "@/engine/ports";
+import { CYCLE_COUNT, CYCLE_INTERVAL_MS } from "@/engine/renderingConstants";
 
 class MockRenderer implements DrawingRenderer {
   clears: { width: number; height: number }[] = [];

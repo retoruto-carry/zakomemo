@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import type { JitterConfig } from "../../core/jitter";
-import type { Drawing, Stroke } from "../../core/types";
-import { CYCLE_COUNT } from "../../engine/renderingConstants";
-import { CanvasRenderer } from "./CanvasRenderer";
+import type { JitterConfig } from "@/core/jitter";
+import type { Drawing, Stroke } from "@/core/types";
+import { CYCLE_COUNT } from "@/engine/renderingConstants";
+import { CanvasRenderer } from "@/infra/canvas/CanvasRenderer";
 
 function createTestCanvas(): HTMLCanvasElement {
   const canvas = document.createElement("canvas");

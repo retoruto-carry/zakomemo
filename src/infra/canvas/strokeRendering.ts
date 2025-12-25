@@ -3,16 +3,16 @@
  * ピクセル単位でストロークを描画する機能を提供
  */
 
-import { getPatternDefinition } from "../../core/patterns";
-import type { PatternTile } from "../../core/patternTypes";
+import { getPatternDefinition } from "@/core/patterns";
+import type { PatternTile } from "@/core/patternTypes";
 import {
   bresenhamLine,
   calculateThickLinePixels,
   getCirclePixelOffsets,
-} from "../../core/rasterization";
-import type { BrushVariant, Stroke } from "../../core/types";
-import { parseColorToRgb, resolveCssVariable } from "../colorUtil";
-import type { ImageDataBuffer } from "./ImageDataBuffer";
+} from "@/core/rasterization";
+import type { BrushVariant, Stroke } from "@/core/types";
+import type { ImageDataBuffer } from "@/infra/canvas/ImageDataBuffer";
+import { parseColorToRgb, resolveCssVariable } from "@/infra/colorUtil";
 
 /**
  * ストローク描画のコンテキスト
@@ -301,7 +301,7 @@ function applyPatternToArea(
 
   for (const { x, y } of areaPixels) {
     if (brushWidth === 1) {
-      // width=1の場合: 周囲をチェックしてパターンを適用
+      // width=1の場合: ドットの欠けを抑えるため近傍の濃さを距離で評価する
       let maxAlpha = 0;
       const searchRadius = 3;
       const maxDistanceSq = searchRadius * searchRadius;

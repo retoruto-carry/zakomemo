@@ -1,9 +1,9 @@
-import type { JitterConfig } from "../../core/jitter";
-import type { Drawing, Stroke } from "../../core/types";
-import { applyJitterToStroke } from "../../engine/frameRenderer";
-import type { ImageDataBuffer } from "./ImageDataBuffer";
-import { renderStroke } from "./strokeRendering";
-import type { StrokeWithNewPoints } from "./types";
+import type { JitterConfig } from "@/core/jitter";
+import type { Drawing, Stroke } from "@/core/types";
+import { applyJitterToStroke } from "@/engine/frameRenderer";
+import type { ImageDataBuffer } from "@/infra/canvas/ImageDataBuffer";
+import { renderStroke } from "@/infra/canvas/strokeRendering";
+import type { StrokeWithNewPoints } from "@/infra/canvas/types";
 
 export type BuildFromScratchParams = {
   drawing: Drawing;

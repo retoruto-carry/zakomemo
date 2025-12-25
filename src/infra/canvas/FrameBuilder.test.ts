@@ -1,11 +1,11 @@
 import { describe, expect, test, vi } from "vitest";
-import type { JitterConfig } from "../../core/jitter";
-import type { Drawing, Stroke } from "../../core/types";
-import { FrameBuilder } from "./FrameBuilder";
-import type { ImageDataBuffer } from "./ImageDataBuffer";
-import { renderStroke } from "./strokeRendering";
+import type { JitterConfig } from "@/core/jitter";
+import type { Drawing, Stroke } from "@/core/types";
+import { FrameBuilder } from "@/infra/canvas/FrameBuilder";
+import type { ImageDataBuffer } from "@/infra/canvas/ImageDataBuffer";
+import { renderStroke } from "@/infra/canvas/strokeRendering";
 
-vi.mock("./strokeRendering", () => ({
+vi.mock("@/infra/canvas/strokeRendering", () => ({
   renderStroke: vi.fn(),
 }));
 

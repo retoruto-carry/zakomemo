@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
-import type { Drawing, Stroke } from "../../core/types";
-import { StrokeChangeTracker } from "./StrokeChangeTracker";
+import type { Drawing, Stroke } from "@/core/types";
+import { StrokeChangeTracker } from "@/infra/canvas/StrokeChangeTracker";
 
 function createStroke(
   id: string,

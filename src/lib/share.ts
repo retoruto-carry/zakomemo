@@ -64,6 +64,9 @@ export interface ShareOptions {
   url?: string;
 }
 
+// モバイルでアプリ起動判定を行う猶予時間
+const TWITTER_APP_OPEN_TIMEOUT_MS = 1000;
+
 /**
  * X (Twitter) でシェア
  * - モバイル + Web Share API 対応: 画像付きでネイティブシェア
@@ -111,7 +114,7 @@ export const shareToTwitter = async (options: ShareOptions): Promise<void> => {
       if (document.visibilityState === "visible") {
         window.open(webFallbackUrl, "_blank");
       }
-    }, 1000);
+    }, TWITTER_APP_OPEN_TIMEOUT_MS);
   } else {
     // PC は新しいタブで開く
     window.open(intentUrl, "_blank");

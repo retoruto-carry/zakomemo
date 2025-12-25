@@ -3,7 +3,7 @@ import {
   calculateThickLinePixels,
   snapBrushWidth,
   snapToPixel,
-} from "./rasterization";
+} from "@/core/rasterization";
 
 describe("rasterization", () => {
   describe("snapToPixel", () => {

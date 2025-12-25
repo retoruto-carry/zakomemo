@@ -1,26 +1,26 @@
-import { appendPoint, clearDrawing, startStroke } from "../core/drawingLogic";
+import { appendPoint, clearDrawing, startStroke } from "@/core/drawingLogic";
 import {
   createHistory,
   type History,
   pushHistory,
   redoHistory,
   undoHistory,
-} from "../core/history";
-import type { JitterConfig } from "../core/jitter";
-import { snapBrushWidth, snapToPixel } from "../core/rasterization";
-import type { BrushSettings, Drawing, StrokeKind } from "../core/types";
+} from "@/core/history";
+import type { JitterConfig } from "@/core/jitter";
+import { snapBrushWidth, snapToPixel } from "@/core/rasterization";
+import type { BrushSettings, Drawing, StrokeKind } from "@/core/types";
 import {
   invalidatePendingRequests,
   renderDrawingAtTime,
-} from "./frameRenderer";
+} from "@/engine/frameRenderer";
 import type {
   DrawingRenderer,
   RafScheduler,
   StrokeSound,
   TimeProvider,
-} from "./ports";
-import type { EraserVariant, PenVariant } from "./variants";
-import { defaultPenWidth, resolveWidthVariant } from "./variants";
+} from "@/engine/ports";
+import type { EraserVariant, PenVariant } from "@/engine/variants";
+import { defaultPenWidth, resolveWidthVariant } from "@/engine/variants";
 
 export type Tool = "pen" | "pattern" | "eraser";
 

@@ -1,13 +1,13 @@
-import type { Drawing, Stroke } from "../core/types";
-import * as frameRenderer from "./frameRenderer";
+import type { Drawing, Stroke } from "@/core/types";
+import * as frameRenderer from "@/engine/frameRenderer";
 import type {
   DrawingRenderer,
   RafScheduler,
   StrokeSound,
   StrokeSoundInfo,
   TimeProvider,
-} from "./ports";
-import { WigglyEngine } from "./WigglyEngine";
+} from "@/engine/ports";
+import { WigglyEngine } from "@/engine/WigglyEngine";
 
 class MockRenderer implements DrawingRenderer {
   clears: { width: number; height: number }[] = [];

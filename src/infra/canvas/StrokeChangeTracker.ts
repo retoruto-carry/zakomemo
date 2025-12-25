@@ -1,5 +1,5 @@
-import type { Drawing, Stroke } from "../../core/types";
-import type { StrokeWithNewPoints } from "./types";
+import type { Drawing, Stroke } from "@/core/types";
+import type { StrokeWithNewPoints } from "@/infra/canvas/types";
 
 export type StrokeDiff =
   | {

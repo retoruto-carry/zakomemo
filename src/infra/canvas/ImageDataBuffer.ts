@@ -1,4 +1,4 @@
-import { parseColorToRgb } from "../colorUtil";
+import { parseColorToRgb } from "@/infra/colorUtil";
 
 export type ImageDataBufferOptions = {
   ctx: CanvasRenderingContext2D;
@@ -162,13 +162,18 @@ export class ImageDataBuffer {
       this.data[i + 3] = bg.a * 255;
     }
 
-    this.offscreenCanvas = document.createElement("canvas");
+    if (!this.offscreenCanvas) {
+      // 初期化コストを抑えるため、オフスクリーンは再利用する
+      this.offscreenCanvas = document.createElement("canvas");
+      this.offscreenCtx = this.offscreenCanvas.getContext("2d", {
+        willReadFrequently: true,
+      });
+    }
+
     this.offscreenCanvas.width = width;
     this.offscreenCanvas.height = height;
-    this.offscreenCtx = this.offscreenCanvas.getContext("2d", {
-      willReadFrequently: true,
-    });
     if (this.offscreenCtx) {
+      // サイズ変更でリセットされるため毎回設定する
       this.offscreenCtx.imageSmoothingEnabled = false;
     }
   }

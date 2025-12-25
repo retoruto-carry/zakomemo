@@ -1,9 +1,9 @@
-import type { Drawing, Stroke } from "../core/types";
+import type { Drawing, Stroke } from "@/core/types";
 import {
   invalidatePendingRequests,
   renderDrawingAtTime,
-} from "./frameRenderer";
-import type { DrawingRenderer } from "./ports";
+} from "@/engine/frameRenderer";
+import type { DrawingRenderer } from "@/engine/ports";
 
 class MockRenderer implements DrawingRenderer {
   clears: { width: number; height: number }[] = [];

@@ -1,4 +1,5 @@
-import type { Stroke } from "../core/types";
+import type { JitterConfig } from "@/core/jitter";
+import type { Drawing, Stroke } from "@/core/types";
 
 /**
  * 描画レンダラーのインターフェース
@@ -13,6 +14,17 @@ export interface DrawingRenderer {
   /** 描画キャッシュを無効化する */
   invalidateRenderCache(): void;
 }
+
+/**
+ * cycle Bitmap取得の引数
+ */
+export type GetCycleBitmapParams = {
+  drawing: Drawing;
+  drawingRevision: number;
+  cycleIndex: number;
+  jitterConfig: JitterConfig;
+  elapsedTimeMs: number;
+};
 
 /**
  * 時間提供者のインターフェース

@@ -1,5 +1,4 @@
-import type { JitterConfig } from "../../core/jitter";
-import type { Drawing, Stroke } from "../../core/types";
+import type { Stroke } from "@/core/types";
 
 /**
  * CanvasRendererの初期化オプション
@@ -10,17 +9,6 @@ export interface CanvasRendererOptions {
   /** 背景色（CSS色文字列） */
   backgroundColor: string;
 }
-
-/**
- * cycle Bitmap取得の引数
- */
-export type GetCycleBitmapParams = {
-  drawing: Drawing;
-  drawingRevision: number;
-  cycleIndex: number;
-  jitterConfig: JitterConfig;
-  elapsedTimeMs: number;
-};
 
 /**
  * 新しいポイントがあるストローク

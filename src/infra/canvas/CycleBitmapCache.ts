@@ -1,5 +1,5 @@
-import type { StrokeChangeTracker } from "./StrokeChangeTracker";
-import type { FrameKey } from "./types";
+import type { StrokeChangeTracker } from "@/infra/canvas/StrokeChangeTracker";
+import type { FrameKey } from "@/infra/canvas/types";
 
 type CycleState = {
   key: FrameKey | null;

@@ -1,4 +1,4 @@
-import type { StrokeSound, StrokeSoundInfo } from "../../engine/ports";
+import type { StrokeSound, StrokeSoundInfo } from "@/engine/ports";
 
 /**
  * Web Audio APIを使用した描画音の動的生成

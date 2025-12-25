@@ -1,7 +1,7 @@
 import { describe, expect, test, vi } from "vitest";
-import type { Drawing, Stroke } from "../../core/types";
-import { CycleBitmapCache } from "./CycleBitmapCache";
-import { StrokeChangeTracker } from "./StrokeChangeTracker";
+import type { Drawing, Stroke } from "@/core/types";
+import { CycleBitmapCache } from "@/infra/canvas/CycleBitmapCache";
+import { StrokeChangeTracker } from "@/infra/canvas/StrokeChangeTracker";
 
 function createBitmapMock(): ImageBitmap {
   return {

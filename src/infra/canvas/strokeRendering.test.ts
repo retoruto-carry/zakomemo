@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
-import type { Stroke } from "../../core/types";
-import { ImageDataBuffer } from "./ImageDataBuffer";
-import { renderStroke } from "./strokeRendering";
+import type { Stroke } from "@/core/types";
+import { ImageDataBuffer } from "@/infra/canvas/ImageDataBuffer";
+import { renderStroke } from "@/infra/canvas/strokeRendering";
 
 function createBuffer(backgroundColor: string): ImageDataBuffer {
   const canvas = document.createElement("canvas");

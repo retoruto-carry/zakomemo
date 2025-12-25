@@ -1,8 +1,8 @@
-import type { JitterConfig } from "../core/jitter";
-import type { Drawing } from "../core/types";
-import { renderDrawingAtTime } from "./frameRenderer";
-import type { DrawingRenderer, GifEncoder } from "./ports";
-import { CYCLE_COUNT, CYCLE_INTERVAL_MS } from "./renderingConstants";
+import type { JitterConfig } from "@/core/jitter";
+import type { Drawing } from "@/core/types";
+import { renderDrawingAtTime } from "@/engine/frameRenderer";
+import type { DrawingRenderer, GifEncoder } from "@/engine/ports";
+import { CYCLE_COUNT, CYCLE_INTERVAL_MS } from "@/engine/renderingConstants";
 
 type RendererWithImageData = DrawingRenderer & {
   getImageData?: () => ImageData;
@@ -60,12 +60,11 @@ export async function exportDrawingAsGif(
 
     for (let i = 0; i < totalFrames; i += 1) {
       const elapsedTimeMs = i * CYCLE_INTERVAL_MS;
-      const cycleIndex = i % cycleCount;
 
       const bitmap = await renderer.getCycleBitmap({
         drawing,
         drawingRevision,
-        cycleIndex,
+        cycleIndex: i,
         jitterConfig,
         elapsedTimeMs,
       });

@@ -1,20 +1,13 @@
-import type { JitterConfig } from "../../core/jitter";
-import type { Drawing, Stroke } from "../../core/types";
-import type { DrawingRenderer } from "../../engine/ports";
-import {
-  CYCLE_COUNT,
-  CYCLE_INTERVAL_MS,
-} from "../../engine/renderingConstants";
-import { CycleBitmapCache } from "./CycleBitmapCache";
-import { FrameBuilder } from "./FrameBuilder";
-import { ImageDataBuffer } from "./ImageDataBuffer";
-import { StrokeChangeTracker } from "./StrokeChangeTracker";
-import { renderStroke } from "./strokeRendering";
-import type {
-  CanvasRendererOptions,
-  FrameKey,
-  GetCycleBitmapParams,
-} from "./types";
+import type { JitterConfig } from "@/core/jitter";
+import type { Drawing, Stroke } from "@/core/types";
+import type { DrawingRenderer, GetCycleBitmapParams } from "@/engine/ports";
+import { CYCLE_COUNT, CYCLE_INTERVAL_MS } from "@/engine/renderingConstants";
+import { CycleBitmapCache } from "@/infra/canvas/CycleBitmapCache";
+import { FrameBuilder } from "@/infra/canvas/FrameBuilder";
+import { ImageDataBuffer } from "@/infra/canvas/ImageDataBuffer";
+import { StrokeChangeTracker } from "@/infra/canvas/StrokeChangeTracker";
+import { renderStroke } from "@/infra/canvas/strokeRendering";
+import type { CanvasRendererOptions, FrameKey } from "@/infra/canvas/types";
 
 /** undo/redoの体感を優先しつつメモリを抑えるための保持数 */
 const MAX_DRAWING_CACHE_ENTRIES = 6;
