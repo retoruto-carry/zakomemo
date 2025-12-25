@@ -16,7 +16,7 @@ import type {
   GetCycleBitmapParams,
 } from "./types";
 
-/** Drawing状態のLRU保持数（undo/redoの体感優先） */
+/** undo/redoの体感を優先しつつメモリを抑えるための保持数 */
 const MAX_DRAWING_CACHE_ENTRIES = 6;
 /** LRUに保持するImageBitmap数（cycle枚数込み） */
 const MAX_BITMAP_CACHE_ENTRIES = MAX_DRAWING_CACHE_ENTRIES * CYCLE_COUNT;
@@ -32,7 +32,7 @@ export class CanvasRenderer implements DrawingRenderer {
   private cycleCache: CycleBitmapCache;
   private renderCacheEpoch = 0;
   private cycleIntervalMs = CYCLE_INTERVAL_MS;
-  /** Drawing参照に一意IDを割り当てる */
+  /** Drawing参照に安定IDを付け、undo/redoで同じ状態を再利用できるようにする */
   private drawingIds = new WeakMap<Drawing, number>();
   private nextDrawingId = 1;
 
@@ -302,7 +302,7 @@ export class CanvasRenderer implements DrawingRenderer {
     return nextId;
   }
 
-  /** LRU用のキーを生成する */
+  /** 描画条件が変わったときに誤ヒットしないよう複合キーにする */
   private getCacheKey({
     drawing,
     renderCacheEpoch,
