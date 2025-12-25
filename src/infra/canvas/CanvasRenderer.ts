@@ -149,48 +149,62 @@ export class CanvasRenderer implements DrawingRenderer {
       cycleIndex,
     });
 
-    const cached = this.cycleCache.getBitmap({
-      key,
-      cacheKey,
-      renderCacheEpoch: this.renderCacheEpoch,
-    });
-    if (cached) {
-      try {
-        const cloned = await this.cloneBitmap({ bitmap: cached });
-        this.cycleCache.getTracker({ cycleIndex }).sync({ drawing });
-        return cloned;
-      } catch {
-        this.cycleCache.resetCycle({ cycleIndex });
+    while (true) {
+      const cached = this.cycleCache.getBitmap({
+        key,
+        cacheKey,
+        renderCacheEpoch: this.renderCacheEpoch,
+      });
+      if (cached) {
+        try {
+          const cloned = await this.cloneBitmap({ bitmap: cached });
+          this.cycleCache.getTracker({ cycleIndex }).sync({ drawing });
+          return cloned;
+        } catch {
+          this.cycleCache.resetCycle({ cycleIndex });
+        }
       }
-    }
 
-    const inFlight = this.cycleCache.getInFlight({ key });
-    if (inFlight) {
-      try {
-        return await inFlight.then((bitmap) => this.cloneBitmap({ bitmap }));
-      } catch {
-        this.cycleCache.resetCycle({ cycleIndex });
+      const inFlight = this.cycleCache.getInFlight({ key });
+      if (inFlight) {
+        try {
+          return await inFlight.then((bitmap) => this.cloneBitmap({ bitmap }));
+        } catch {
+          this.cycleCache.resetCycle({ cycleIndex });
+        }
       }
+
+      const cycleInFlight = this.cycleCache.getInFlightForCycle({
+        cycleIndex,
+      });
+      if (cycleInFlight) {
+        try {
+          await cycleInFlight;
+        } catch {
+          // 失敗しても次のループで再試行する
+        }
+        continue;
+      }
+
+      const renderCacheEpoch = this.renderCacheEpoch;
+      const buildPromise = this.buildAndCommitCycleBitmap({
+        key,
+        cacheKey,
+        drawing,
+        jitterConfig,
+        cycleElapsedTimeMs,
+        cycleBuffer,
+        frameBuilder,
+        renderCacheEpoch,
+      }).finally(() => {
+        this.cycleCache.clearInFlight({ cycleIndex });
+      });
+
+      this.cycleCache.setInFlight({ key, promise: buildPromise });
+
+      const bitmap = await buildPromise;
+      return await this.cloneBitmap({ bitmap });
     }
-
-    const renderCacheEpoch = this.renderCacheEpoch;
-    const buildPromise = this.buildAndCommitCycleBitmap({
-      key,
-      cacheKey,
-      drawing,
-      jitterConfig,
-      cycleElapsedTimeMs,
-      cycleBuffer,
-      frameBuilder,
-      renderCacheEpoch,
-    }).finally(() => {
-      this.cycleCache.clearInFlight({ cycleIndex });
-    });
-
-    this.cycleCache.setInFlight({ key, promise: buildPromise });
-
-    const bitmap = await buildPromise;
-    return await this.cloneBitmap({ bitmap });
   }
 
   flushFromBitmap(bitmap: ImageBitmap): void {

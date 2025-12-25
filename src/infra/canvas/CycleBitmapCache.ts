@@ -90,6 +90,14 @@ export class CycleBitmapCache {
     return state.inFlight;
   }
 
+  getInFlightForCycle({
+    cycleIndex,
+  }: {
+    cycleIndex: number;
+  }): Promise<ImageBitmap> | null {
+    return this.getState({ cycleIndex }).inFlight;
+  }
+
   setInFlight({
     key,
     promise,
