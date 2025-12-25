@@ -15,6 +15,7 @@ import {
   PALETTE_PRESETS,
 } from "@/config/presets";
 import type { JitterConfig } from "@/core/jitter";
+import { getPatternDefinition, PATTERNS } from "@/core/patterns";
 import type { BrushPatternId } from "@/core/types";
 import type { EraserVariant } from "@/engine/variants";
 import type { Tool } from "@/engine/WigglyEngine";
@@ -98,38 +99,61 @@ const MIN_PEN_WIDTH = 1;
 /** ペン幅スライダーの最大値 */
 const MAX_PEN_WIDTH = 48;
 
-// パターンプレビュー用スタイル設定（実際の描画と同じ2倍スケール）
-const PATTERN_STYLES: Record<
-  BrushPatternId,
-  { image: string; size: string; position: string }
-> = {
-  dots: {
-    image: "radial-gradient(circle, #000 3px, transparent 3.6px)",
-    size: "10px 10px",
-    position: "0 0",
-  },
-  dotsDense: {
-    image: "radial-gradient(circle, #000 2px, transparent 2.4px)",
-    size: "6px 6px",
-    position: "0 0",
-  },
-  horizontal: {
-    image: "linear-gradient(0deg, transparent 50%, #000 50%)",
-    size: "100% 6px",
-    position: "0 0",
-  },
-  vertical: {
-    image: "linear-gradient(90deg, transparent 50%, #000 50%)",
-    size: "6px 100%",
-    position: "0 0",
-  },
-  checker: {
-    image:
-      "linear-gradient(45deg, #000 25%, transparent 25%), linear-gradient(-45deg, #000 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #000 75%), linear-gradient(-45deg, transparent 75%, #000 75%)",
-    size: "10px 10px, 10px 10px, 10px 10px, 10px 10px",
-    position: "0 0, 0 5px, 5px -5px, -5px 0px",
-  },
+/** パターンプレビューの1ドットサイズ(px) */
+const PATTERN_PREVIEW_PIXEL_SIZE = 2;
+/** パターンプレビューのタイル繰り返し回数 */
+const PATTERN_PREVIEW_REPEAT = 2;
+
+type PatternPreviewProps = {
+  patternId: BrushPatternId;
+  pixelSize: number;
+  repeat: number;
+  className?: string;
 };
+
+function PatternPreview({
+  patternId,
+  pixelSize,
+  repeat,
+  className,
+}: PatternPreviewProps): React.ReactElement {
+  const { tile } = getPatternDefinition(patternId);
+  const repeatWidth = tile.width * repeat;
+  const repeatHeight = tile.height * repeat;
+  const cells: React.ReactElement[] = [];
+
+  for (let y = 0; y < repeatHeight; y += 1) {
+    const rowOffset = (y % tile.height) * tile.width;
+    for (let x = 0; x < repeatWidth; x += 1) {
+      const value = tile.alpha[rowOffset + (x % tile.width)];
+      cells.push(
+        <div
+          key={`${patternId}-${x}-${y}`}
+          style={{
+            width: pixelSize,
+            height: pixelSize,
+            backgroundColor: value ? "#000" : "transparent",
+          }}
+        />,
+      );
+    }
+  }
+
+  return (
+    <div
+      className={`grid ${className ?? ""}`}
+      style={{
+        gridTemplateColumns: `repeat(${repeatWidth}, ${pixelSize}px)`,
+        gridTemplateRows: `repeat(${repeatHeight}, ${pixelSize}px)`,
+        width: repeatWidth * pixelSize,
+        height: repeatHeight * pixelSize,
+      }}
+      aria-hidden="true"
+    >
+      {cells}
+    </div>
+  );
+}
 
 interface WigglyToolsProps {
   tool: Tool;
@@ -535,20 +559,11 @@ export const WigglyTools = React.forwardRef<
               })}
               className={`absolute bottom-1.5 right-1.5 w-9 h-9 border-[3px] rounded-[3px] flex items-center justify-center transition-all hover:scale-105 active:scale-95 z-[90] focus:outline-none focus-visible:ring-2 focus-visible:ring-black cursor-pointer ${tool === "pattern" ? "border-black bg-white" : "border-[#d2b48c] bg-white"}`}
             >
-              <div
-                className="w-6 h-6 shadow-inner"
-                style={{
-                  backgroundImage:
-                    PATTERN_STYLES[patternId]?.image ??
-                    PATTERN_STYLES.dots.image,
-                  backgroundSize:
-                    PATTERN_STYLES[patternId]?.size ?? PATTERN_STYLES.dots.size,
-                  backgroundPosition:
-                    PATTERN_STYLES[patternId]?.position ??
-                    PATTERN_STYLES.dots.position,
-                  opacity: tool === "pattern" ? 0.9 : 0.4,
-                  imageRendering: "pixelated",
-                }}
+              <PatternPreview
+                patternId={patternId}
+                pixelSize={PATTERN_PREVIEW_PIXEL_SIZE}
+                repeat={PATTERN_PREVIEW_REPEAT}
+                className={`shadow-inner ${tool === "pattern" ? "opacity-100" : "opacity-50"}`}
               />
             </button>
 
@@ -562,67 +577,31 @@ export const WigglyTools = React.forwardRef<
                   width: "140px",
                 }}
               >
-                {(
-                  [
-                    {
-                      id: "dots",
-                      bg: "radial-gradient(circle, #000 3px, transparent 4px)",
-                      bgSize: "12px 12px",
-                    },
-                    {
-                      id: "dotsDense",
-                      bg: "radial-gradient(circle, #000 2px, transparent 3px)",
-                      bgSize: "6px 6px",
-                    },
-                    {
-                      id: "vertical",
-                      bg: "linear-gradient(90deg, transparent 50%, #000 50%)",
-                      bgSize: "8px 100%",
-                    },
-                    {
-                      id: "horizontal",
-                      bg: "linear-gradient(0deg, transparent 50%, #000 50%)",
-                      bgSize: "100% 8px",
-                    },
-                    {
-                      id: "checker",
-                      bg: "linear-gradient(45deg, #000 25%, transparent 25%), linear-gradient(-45deg, #000 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #000 75%), linear-gradient(-45deg, transparent 75%, #000 75%)",
-                      bgSize: "12px 12px",
-                      bgPos: "0 0, 0 6px, 6px -6px, -6px 0px",
-                    },
-                  ] as {
-                    id: string;
-                    bg: string;
-                    bgSize: string;
-                    bgPos?: string;
-                  }[]
-                ).map((p) => {
+                {PATTERNS.map((pattern) => {
                   return (
                     <button
                       type="button"
-                      key={p.id}
+                      key={pattern.id}
                       onClick={() => {
                         uiSoundManager.play("pattern-select", {
                           stopPrevious: true,
                         });
                         setTool("pattern");
-                        setPatternId(p.id as BrushPatternId);
+                        setPatternId(pattern.id);
                         setActivePopup("none");
                       }}
-                      className={`relative border-[2px] w-9 h-9 overflow-hidden bg-white active:scale-95 transition-all rounded-[2px] cursor-pointer ${
-                        patternId === p.id
+                      className={`relative border-[2px] w-9 h-9 overflow-hidden bg-white active:scale-95 transition-all rounded-[2px] cursor-pointer flex items-center justify-center ${
+                        patternId === pattern.id
                           ? "border-black bg-[#ffff00]/30"
                           : "border-[#e7d1b1]"
                       }`}
+                      aria-label={`パターン: ${pattern.id}`}
                     >
-                      <div
-                        className="absolute inset-0"
-                        style={{
-                          backgroundImage: p.bg,
-                          backgroundSize: p.bgSize,
-                          backgroundPosition: p.bgPos ?? "0 0",
-                          imageRendering: "pixelated",
-                        }}
+                      <PatternPreview
+                        patternId={pattern.id}
+                        pixelSize={PATTERN_PREVIEW_PIXEL_SIZE}
+                        repeat={PATTERN_PREVIEW_REPEAT}
+                        className="shadow-inner"
                       />
                     </button>
                   );
