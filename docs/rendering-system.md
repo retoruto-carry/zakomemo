@@ -111,11 +111,11 @@
 
 ## フローチャート（テキスト）
 
-```
+```text
 renderTick
   ├─ cycleIndex を計算
   ├─ frameKey = drawingRevision + jitterKey + cycleIndex
-  ├─ cycleBitmapCache に frameKey がある？
+  ├─ cycleBitmapCache に cacheKey がある？
   │   ├─ YES: そのまま描画
   │   └─ NO:
   │       ├─ in-flight がある？
