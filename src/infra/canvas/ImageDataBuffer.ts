@@ -162,10 +162,9 @@ export class ImageDataBuffer {
       this.data[i + 3] = bg.a * 255;
     }
 
-    const dpr = window.devicePixelRatio || 1;
     this.offscreenCanvas = document.createElement("canvas");
-    this.offscreenCanvas.width = width * dpr;
-    this.offscreenCanvas.height = height * dpr;
+    this.offscreenCanvas.width = width;
+    this.offscreenCanvas.height = height;
     this.offscreenCtx = this.offscreenCanvas.getContext("2d", {
       willReadFrequently: true,
     });

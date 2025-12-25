@@ -1,5 +1,8 @@
 import type { Drawing, Stroke } from "../core/types";
-import { renderDrawingAtTime } from "./frameRenderer";
+import {
+  invalidatePendingRequests,
+  renderDrawingAtTime,
+} from "./frameRenderer";
 import type { DrawingRenderer } from "./ports";
 
 class MockRenderer implements DrawingRenderer {
@@ -29,6 +32,38 @@ class MockRenderer implements DrawingRenderer {
   clearPatternCache(): void {
     // noop for mock
   }
+}
+
+type CycleRendererStub = DrawingRenderer & {
+  getCycleBitmap: () => Promise<ImageBitmap>;
+  getCycleCount: () => number;
+  flushFromBitmap: (bitmap: ImageBitmap) => void;
+  resolveBitmap: (bitmap: ImageBitmap) => void;
+};
+
+function createCycleRenderer(): CycleRendererStub {
+  let resolver: ((bitmap: ImageBitmap) => void) | null = null;
+  const getCycleBitmap = () =>
+    new Promise<ImageBitmap>((resolve) => {
+      resolver = resolve;
+    });
+
+  const renderer: CycleRendererStub = {
+    clear: () => {},
+    renderStroke: () => {},
+    clearPatternCache: () => {},
+    getCycleCount: () => 1,
+    getCycleBitmap,
+    flushFromBitmap: () => {},
+    resolveBitmap: (bitmap: ImageBitmap) => {
+      if (!resolver) {
+        throw new Error("resolver is not set");
+      }
+      resolver(bitmap);
+    },
+  };
+
+  return renderer;
 }
 
 describe("renderDrawingAtTime", () => {
@@ -147,5 +182,62 @@ describe("renderDrawingAtTime", () => {
       expect(Number.isInteger(p.x)).toBe(true);
       expect(Number.isInteger(p.y)).toBe(true);
     });
+  });
+
+  test("invalidatePendingRequestsで古い描画リクエストを破棄する", async () => {
+    const drawing: Drawing = { width: 10, height: 10, strokes: [] };
+    const renderer = createCycleRenderer();
+    renderer.flushFromBitmap = vi.fn();
+    const bitmap = { width: 1, height: 1, close: vi.fn() } as ImageBitmap;
+
+    renderDrawingAtTime({
+      drawing,
+      drawingRevision: 1,
+      renderer,
+      jitterConfig: { amplitude: 0, frequency: 1 },
+      elapsedTimeMs: 0,
+    });
+
+    invalidatePendingRequests(renderer);
+    renderer.resolveBitmap(bitmap);
+    await Promise.resolve();
+
+    expect(renderer.flushFromBitmap).not.toHaveBeenCalled();
+    expect(bitmap.close).toHaveBeenCalled();
+  });
+
+  test("レンダラー単位でリクエストIDが分離される", async () => {
+    const drawing: Drawing = { width: 10, height: 10, strokes: [] };
+    const rendererA = createCycleRenderer();
+    const rendererB = createCycleRenderer();
+    rendererA.flushFromBitmap = vi.fn();
+    rendererB.flushFromBitmap = vi.fn();
+    const bitmapA = { width: 1, height: 1, close: vi.fn() } as ImageBitmap;
+    const bitmapB = { width: 1, height: 1, close: vi.fn() } as ImageBitmap;
+
+    renderDrawingAtTime({
+      drawing,
+      drawingRevision: 1,
+      renderer: rendererA,
+      jitterConfig: { amplitude: 0, frequency: 1 },
+      elapsedTimeMs: 0,
+    });
+    renderDrawingAtTime({
+      drawing,
+      drawingRevision: 1,
+      renderer: rendererB,
+      jitterConfig: { amplitude: 0, frequency: 1 },
+      elapsedTimeMs: 0,
+    });
+
+    invalidatePendingRequests(rendererA);
+    rendererB.resolveBitmap(bitmapB);
+    rendererA.resolveBitmap(bitmapA);
+    await Promise.resolve();
+
+    expect(rendererA.flushFromBitmap).not.toHaveBeenCalled();
+    expect(rendererB.flushFromBitmap).toHaveBeenCalledWith(bitmapB);
+    expect(bitmapA.close).toHaveBeenCalled();
+    expect(bitmapB.close).toHaveBeenCalled();
   });
 });

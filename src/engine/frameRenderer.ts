@@ -116,15 +116,35 @@ export type RenderDrawingAtTimeParams = {
  *
  * @param params 描画パラメータ
  */
-// 最新のフレームリクエストを追跡（競合状態を防ぐため）
-let latestRequestId = 0;
+// 最新のフレームリクエストをレンダラーごとに追跡（競合状態を防ぐため）
+const rendererRequestIds = new WeakMap<DrawingRenderer, number>();
+
+function getLatestRequestId(renderer: DrawingRenderer): number {
+  return rendererRequestIds.get(renderer) ?? 0;
+}
+
+function bumpRequestId(renderer: DrawingRenderer): number {
+  const nextId = getLatestRequestId(renderer) + 1;
+  rendererRequestIds.set(renderer, nextId);
+  return nextId;
+}
+
+function isLatestRequest({
+  renderer,
+  requestId,
+}: {
+  renderer: DrawingRenderer;
+  requestId: number;
+}): boolean {
+  return getLatestRequestId(renderer) === requestId;
+}
 
 /**
  * 保留中の非同期レンダリングリクエストを無効化
  * キャッシュが無効化された際に、古いリクエストが閉じられたImageBitmapを使用しないようにする
  */
-export function invalidatePendingRequests(): void {
-  latestRequestId += 1;
+export function invalidatePendingRequests(renderer: DrawingRenderer): void {
+  bumpRequestId(renderer);
 }
 
 export function renderDrawingAtTime(params: RenderDrawingAtTimeParams): void {
@@ -133,16 +153,15 @@ export function renderDrawingAtTime(params: RenderDrawingAtTimeParams): void {
   // ImageBitmapキャッシュを使用する場合は、getCycleBitmapを使用
   if (isCycleBitmapRenderer(renderer)) {
     const cycleCount = renderer.getCycleCount();
-    // 3cycleを周期的に切り替える
+    // cycleCount分を周期的に切り替える
     // アニメーション速度: 10fps（100ms/フレーム）で固定
-    // これにより、3cycleで約300ms（0.3秒）で1サイクル
+    // cycleCount分で1サイクルになる
     const currentCycleIndex = Math.floor(
       (elapsedTimeMs / CYCLE_INTERVAL_MS) % cycleCount,
     );
 
-    // リクエストIDをインクリメント（最新のリクエストを追跡）
-    latestRequestId += 1;
-    const requestId = latestRequestId;
+    // リクエストIDを更新（最新のリクエストを追跡）
+    const requestId = bumpRequestId(renderer);
 
     // 非同期でImageBitmapを取得して描画
     renderer
@@ -155,7 +174,7 @@ export function renderDrawingAtTime(params: RenderDrawingAtTimeParams): void {
       })
       .then((bitmap: ImageBitmap) => {
         // このリクエストが最新でない場合は無視（競合状態を防ぐ）
-        if (requestId !== latestRequestId) {
+        if (!isLatestRequest({ renderer, requestId })) {
           bitmap.close(); // 使用しないImageBitmapは破棄
           return;
         }
@@ -164,7 +183,6 @@ export function renderDrawingAtTime(params: RenderDrawingAtTimeParams): void {
         } catch (err) {
           // ImageBitmapが無効な場合（例: 既にclose()されている）
           console.error("Failed to flush bitmap (detached):", err);
-          bitmap.close(); // 無効なImageBitmapを破棄
           // キャッシュを無効化して再生成を試みる
           if (
             "clearPatternCache" in renderer &&
@@ -183,7 +201,7 @@ export function renderDrawingAtTime(params: RenderDrawingAtTimeParams): void {
             })
             .then((newBitmap: ImageBitmap) => {
               // このリクエストが最新でない場合は無視
-              if (requestId !== latestRequestId) {
+              if (!isLatestRequest({ renderer, requestId })) {
                 newBitmap.close();
                 return;
               }
@@ -191,7 +209,6 @@ export function renderDrawingAtTime(params: RenderDrawingAtTimeParams): void {
                 renderer.flushFromBitmap(newBitmap);
               } catch (retryErr) {
                 console.error("Failed to flush bitmap after retry:", retryErr);
-                newBitmap.close();
                 // 最終的なフォールバック
                 renderDrawingAtTimeFallback({
                   drawing,
@@ -200,10 +217,12 @@ export function renderDrawingAtTime(params: RenderDrawingAtTimeParams): void {
                   jitterConfig,
                   elapsedTimeMs,
                 });
+              } finally {
+                newBitmap.close();
               }
             })
             .catch((retryErr: unknown) => {
-              if (requestId !== latestRequestId) {
+              if (!isLatestRequest({ renderer, requestId })) {
                 return;
               }
               console.error(
@@ -219,11 +238,13 @@ export function renderDrawingAtTime(params: RenderDrawingAtTimeParams): void {
                 elapsedTimeMs,
               });
             });
+        } finally {
+          bitmap.close();
         }
       })
       .catch((err: unknown) => {
         // このリクエストが最新でない場合は無視
-        if (requestId !== latestRequestId) {
+        if (!isLatestRequest({ renderer, requestId })) {
           return;
         }
         console.error("Failed to get cycle bitmap:", err);

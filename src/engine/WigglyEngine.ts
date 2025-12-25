@@ -106,13 +106,13 @@ export class WigglyEngine {
    * レンダラーがsetBackgroundColorメソッドを持っている場合のみ有効
    */
   setBackgroundColor(backgroundColor: string): void {
-    // CanvasRenderer has setBackgroundColor method
+    // setBackgroundColor対応レンダラーのみ適用
     if (
       "setBackgroundColor" in this.renderer &&
       typeof this.renderer.setBackgroundColor === "function"
     ) {
       this.renderer.setBackgroundColor(backgroundColor);
-      // Force immediate re-render with new background color
+      // 背景色変更を即座に反映するために次の描画を強制
       this.lastRenderAt = 0;
     }
   }
@@ -126,10 +126,7 @@ export class WigglyEngine {
     this.jitterConfig = jitterConfig;
     // jitterConfigが変わるとキャッシュが無効になるため、キャッシュをクリア
     this.clearRendererCache();
-    // 保留中の非同期レンダリングリクエストを無効化
-    // これにより、閉じられたImageBitmapを使用しようとする古いリクエストを防ぐ
-    invalidatePendingRequests();
-    // Force immediate re-render with new jitter config
+    // jitter変更を即座に反映するために次の描画を強制
     this.lastRenderAt = 0;
   }
 
@@ -141,7 +138,7 @@ export class WigglyEngine {
     this.renderer.clearPatternCache();
     // 保留中の非同期レンダリングリクエストを無効化
     // これにより、閉じられたImageBitmapを使用しようとする古いリクエストを防ぐ
-    invalidatePendingRequests();
+    invalidatePendingRequests(this.renderer);
   }
 
   canUndo(): boolean {
@@ -361,5 +358,6 @@ export class WigglyEngine {
 
   private bumpDrawingRevision(): void {
     this.drawingRevision += 1;
+    invalidatePendingRequests(this.renderer);
   }
 }
