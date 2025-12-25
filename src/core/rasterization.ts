@@ -137,7 +137,7 @@ function getCircleOffsets(radius: number): Array<{ dx: number; dy: number }> {
 /**
  * 太い線の領域を計算（スタンプ方式 + テーブル化）
  * パフォーマンス最適化: 各中心点に対してテーブル化された円オフセットを使用
- * 重複排除はUint32Arrayで高速化（Map/Setより速い）
+ * 重複排除はビットマスクで行う
  * @param centerPixels 中心線上のピクセル座標の配列
  * @param width 線の太さ
  * @returns 塗りつぶすべきピクセル座標の配列（重複排除済み）
@@ -162,8 +162,33 @@ export function calculateThickLinePixels(
   // テーブル化された円オフセットを取得（事前計算済み、キャッシュ済み）
   const circleOffsets = getCircleOffsets(radius);
 
-  // Map<number, Set<number>>で重複排除（x -> Set<y>）
-  const pixels = new Map<number, Set<number>>();
+  const first = centerPixels[0];
+  let minX = first.x;
+  let maxX = first.x;
+  let minY = first.y;
+  let maxY = first.y;
+
+  for (const center of centerPixels) {
+    if (center.x < minX) minX = center.x;
+    if (center.x > maxX) maxX = center.x;
+    if (center.y < minY) minY = center.y;
+    if (center.y > maxY) maxY = center.y;
+  }
+
+  const maskMinX = minX - radius;
+  const maskMaxX = maxX + radius;
+  const maskMinY = minY - radius;
+  const maskMaxY = maxY + radius;
+  const maskWidth = maskMaxX - maskMinX + 1;
+  const maskHeight = maskMaxY - maskMinY + 1;
+
+  if (maskWidth <= 0 || maskHeight <= 0) {
+    return [];
+  }
+
+  // 重複排除用のビットマスク
+  const mask = new Uint8Array(maskWidth * maskHeight);
+  const result: Array<{ x: number; y: number }> = [];
 
   // 各中心点に対して円を描く（スタンプ方式）
   for (const center of centerPixels) {
@@ -174,21 +199,11 @@ export function calculateThickLinePixels(
     for (const { dx, dy } of circleOffsets) {
       const x = cx + dx;
       const y = cy + dy;
-
-      // 重複排除（Map/Setで高速）
-      let ySet = pixels.get(x);
-      if (!ySet) {
-        ySet = new Set<number>();
-        pixels.set(x, ySet);
+      const index = (y - maskMinY) * maskWidth + (x - maskMinX);
+      if (mask[index] === 1) {
+        continue;
       }
-      ySet.add(y);
-    }
-  }
-
-  // Mapから配列に変換
-  const result: Array<{ x: number; y: number }> = [];
-  for (const [x, ySet] of pixels) {
-    for (const y of ySet) {
+      mask[index] = 1;
       result.push({ x, y });
     }
   }
