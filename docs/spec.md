@@ -70,15 +70,16 @@
 ## エンジン層（engine）
 
 - Ports:
-  - DrawingRenderer(clear/renderStroke)
+  - DrawingRenderer(clear/renderStroke/clearPatternCache)
   - TimeProvider(now)
   - RafScheduler(request/cancel)
   - GifEncoder(begin/addFrame/finish)
   - StrokeSound(onStrokeStart/Update/End)
-- frameRenderer: `renderDrawingAtTime(drawing, renderer, jitterConfig, elapsedTimeMs)` で任意時刻の描画を共通化。`elapsedTimeMs`はエンジン開始からの経過時間（ミリ秒）。
+- frameRenderer: `renderDrawingAtTime({ drawing, drawingRevision, renderer, jitterConfig, elapsedTimeMs })` で任意時刻の描画を共通化。`elapsedTimeMs`はエンジン開始からの経過時間（ミリ秒）。
 - WigglyEngine:
   - History<Drawing> を保持し、tool/color/width の現在値を管理。
   - pointerDown/move/up で core を更新し、stroke 完了時のみ履歴に push。
+  - Drawing の更新ごとに `drawingRevision` を増加させる。
   - RAF ループで `renderDrawingAtTime` を呼ぶ。
   - Undo/Redo/clear を公開。
   - StrokeSound に速度/長さ情報を通知。
@@ -86,7 +87,7 @@
 
 ## インフラ層（infra）
 
-- CanvasRenderer: Canvas2D で Stroke を描画。erase は destination-out、solid は色、pattern は offscreen タイル →createPattern でワールド固定の模様を適用。DPR 対応。
+- CanvasRenderer: ImageDataBuffer にピクセル単位で描画し、ImageBitmap を生成して描画する。パターンは `PatternTile` で計算し、jitter による揺れのみ適用。DPR 対応。
 - その他: RealTimeProvider（performance.now）、BrowserRafScheduler（requestAnimationFrame）、WebAudioStrokeSound（Web Audio API による動的音源生成）、UISoundManager（Howler.js による UI 音源管理）、GIF エンコーダー実装（ライブラリラップ）。
 
 ## UI 層
@@ -113,4 +114,4 @@
 
 ## 開発ポリシー
 
-- TypeScript strict、ESLint/Prettier。純粋関数を core に集約。Magic number は設定経由で管理。高 DPI 対応。Undo 前提で全消し確認は省略可。
+- TypeScript strict、Biome。純粋関数を core に集約。Magic number は設定経由で管理。高 DPI 対応。Undo 前提で全消し確認は省略可。
