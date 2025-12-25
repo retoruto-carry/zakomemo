@@ -23,7 +23,7 @@
 5. `cycleBitmapCache` で `cacheKey` を引く
    - あるなら即描画
    - ないなら生成（差分 or 全再生成）
-5. 生成完了時に `renderCacheEpoch` をチェック
+6. 生成完了時に `renderCacheEpoch` をチェック
    - 世代が変わっていたら破棄
 
 ## 時間とインデックス
