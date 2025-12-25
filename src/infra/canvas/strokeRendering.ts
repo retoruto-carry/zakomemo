@@ -12,15 +12,12 @@ import {
 } from "../../core/rasterization";
 import type { BrushVariant, Stroke } from "../../core/types";
 import { parseColorToRgb, resolveCssVariable } from "../colorUtil";
-import type { ImageDataContext } from "./imageDataManager";
-import { setPixel } from "./imageDataManager";
+import type { ImageDataBuffer } from "./ImageDataBuffer";
 
 /**
  * ストローク描画のコンテキスト
  */
-export interface StrokeRenderingContext extends ImageDataContext {
-  backgroundColorRgba: { r: number; g: number; b: number; a: number };
-}
+export type StrokeRenderingContext = ImageDataBuffer;
 
 /**
  * ピクセル単位でストロークを描画
@@ -34,7 +31,7 @@ export function renderStroke(
   jitteredPoints: { x: number; y: number }[],
   _elapsedTimeMs: number,
 ): void {
-  if (jitteredPoints.length === 0 || !context.data) return;
+  if (jitteredPoints.length === 0 || !context.hasImageData()) return;
 
   // パターンの場合はピクセル単位描画
   if (stroke.brush.kind === "pattern") {
@@ -65,7 +62,7 @@ function renderSolidStroke(
 
   if (stroke.kind === "erase") {
     // 消しゴム: 背景色で塗りつぶす
-    const bg = context.backgroundColorRgba;
+    const bg = context.getBackgroundColorRgba();
     r = bg.r;
     g = bg.g;
     b = bg.b;
@@ -129,7 +126,7 @@ function renderSolidStroke(
 
     // 各ピクセルをImageDataに書き込む
     for (const pixel of thickPixels) {
-      setPixel(context, pixel.x, pixel.y, r, g, b, a);
+      context.setPixel({ x: pixel.x, y: pixel.y, r, g, b, a });
     }
   } else {
     // width=1の場合は従来通り（最適化済み）
@@ -158,7 +155,7 @@ function renderSolidStroke(
     // 各ピクセルをImageDataに書き込む
     pixels.forEach((ys, x) => {
       ys.forEach((y) => {
-        setPixel(context, x, y, r, g, b, a);
+        context.setPixel({ x, y, r, g, b, a });
       });
     });
   }
@@ -183,26 +180,26 @@ function drawPixelToImageData(
     // 消しゴム（横線）: 横方向に拡大
     const halfLen = Math.round(width);
     for (let dx = -halfLen; dx <= halfLen; dx++) {
-      setPixel(context, x + dx, y, r, g, b, a);
+      context.setPixel({ x: x + dx, y, r, g, b, a });
     }
   } else if (strokeKind === "erase" && variant === "eraserSquare") {
     // 消しゴム（四角）: 四角形で描画
     const halfWidth = Math.floor(width / 2);
     for (let dy = -halfWidth; dy < halfWidth; dy++) {
       for (let dx = -halfWidth; dx < halfWidth; dx++) {
-        setPixel(context, x + dx, y + dy, r, g, b, a);
+        context.setPixel({ x: x + dx, y: y + dy, r, g, b, a });
       }
     }
   } else {
     // 通常のペン/消しゴム（円）: 円で描画
     if (width === 1) {
-      setPixel(context, x, y, r, g, b, a);
+      context.setPixel({ x, y, r, g, b, a });
     } else {
       const radius = Math.floor(width / 2);
       // テーブル化されたオフセットを使用（毎回計算しない）
       const offsets = getCirclePixelOffsets(radius);
       for (const { dx, dy } of offsets) {
-        setPixel(context, x + dx, y + dy, r, g, b, a);
+        context.setPixel({ x: x + dx, y: y + dy, r, g, b, a });
       }
     }
   }
@@ -291,7 +288,7 @@ function applyPatternToArea(
   b: number,
   brushWidth: number,
 ): void {
-  if (!context.data) return;
+  if (!context.hasImageData()) return;
 
   if (tile.width <= 0 || tile.height <= 0 || tile.alpha.length === 0) {
     return;
@@ -339,7 +336,7 @@ function applyPatternToArea(
         }
       }
       if (maxAlpha > 0) {
-        setPixel(context, x, y, r, g, b, maxAlpha * 255);
+        context.setPixel({ x, y, r, g, b, a: maxAlpha * 255 });
       }
     } else {
       // width > 1の場合: 各ピクセルについてパターンを計算
@@ -349,7 +346,7 @@ function applyPatternToArea(
       if (alphaIndex >= 0 && alphaIndex < tile.alpha.length) {
         const alpha = tile.alpha[alphaIndex];
         if (alpha > 0) {
-          setPixel(context, x, y, r, g, b, alpha * 255);
+          context.setPixel({ x, y, r, g, b, a: alpha * 255 });
         }
       }
     }

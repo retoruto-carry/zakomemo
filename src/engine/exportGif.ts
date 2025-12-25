@@ -2,6 +2,7 @@ import type { JitterConfig } from "../core/jitter";
 import type { Drawing } from "../core/types";
 import { renderDrawingAtTime } from "./frameRenderer";
 import type { DrawingRenderer, GifEncoder } from "./ports";
+import { CYCLE_INTERVAL_MS } from "./renderingConstants";
 
 type RendererWithImageData = DrawingRenderer & {
   getImageData?: () => ImageData;
@@ -24,33 +25,33 @@ export async function exportDrawingAsGif(options: {
 
   // ImageBitmapキャッシュを使用する場合
   if (
-    "getFrameBitmap" in renderer &&
-    typeof renderer.getFrameBitmap === "function" &&
-    "getFrameCount" in renderer &&
-    typeof renderer.getFrameCount === "function"
+    "getCycleBitmap" in renderer &&
+    typeof renderer.getCycleBitmap === "function" &&
+    "getCycleCount" in renderer &&
+    typeof renderer.getCycleCount === "function"
   ) {
-    const frameCount = renderer.getFrameCount();
+    const cycleCount = renderer.getCycleCount();
     // durationMsに基づいて必要なフレーム数を計算
     const frameInterval = 1000 / fps;
     const totalFrames = Math.ceil(durationMs / frameInterval);
 
     // 3フレームのアニメーションをループさせる
     // アニメーション速度: 10fps（100ms/フレーム）で固定
-    const jitterFrameInterval = 100; // 100ms = 10fps
+    const jitterFrameInterval = CYCLE_INTERVAL_MS;
 
     for (let i = 0; i < totalFrames; i += 1) {
       const elapsedTimeMs = i * frameInterval;
       // 3フレームの中から適切なフレームを選択
-      const frameIndex = Math.floor(
-        (elapsedTimeMs / jitterFrameInterval) % frameCount,
+      const cycleIndex = Math.floor(
+        (elapsedTimeMs / jitterFrameInterval) % cycleCount,
       );
-      const frameElapsedTimeMs = frameIndex * jitterFrameInterval;
 
-      const bitmap = await renderer.getFrameBitmap({
+      const bitmap = await renderer.getCycleBitmap({
         drawing,
-        frameIndex,
+        drawingRevision: 0,
+        cycleIndex,
         jitterConfig,
-        elapsedTimeMs: frameElapsedTimeMs,
+        elapsedTimeMs,
       });
 
       // ImageBitmapからImageDataを取得
@@ -79,6 +80,7 @@ export async function exportDrawingAsGif(options: {
       const elapsedTimeMs = i * frameInterval;
       renderDrawingAtTime({
         drawing,
+        drawingRevision: 0,
         renderer,
         jitterConfig,
         elapsedTimeMs,

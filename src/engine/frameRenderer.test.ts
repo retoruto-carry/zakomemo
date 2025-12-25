@@ -57,6 +57,7 @@ describe("renderDrawingAtTime", () => {
     const renderer = new MockRenderer();
     renderDrawingAtTime({
       drawing,
+      drawingRevision: 0,
       renderer,
       jitterConfig: { amplitude: 1, frequency: 0.01 },
       elapsedTimeMs: 100,
@@ -94,6 +95,7 @@ describe("renderDrawingAtTime", () => {
     const renderer = new MockRenderer();
     renderDrawingAtTime({
       drawing,
+      drawingRevision: 0,
       renderer,
       jitterConfig: { amplitude: 1, frequency: 0.01 },
       elapsedTimeMs: 100,
@@ -133,6 +135,7 @@ describe("renderDrawingAtTime", () => {
     const renderer = new MockRenderer();
     renderDrawingAtTime({
       drawing,
+      drawingRevision: 0,
       renderer,
       jitterConfig: { amplitude: 1, frequency: 0.01 },
       elapsedTimeMs: 100,

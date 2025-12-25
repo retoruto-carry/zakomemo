@@ -1,150 +1,110 @@
-# 描画システムとキャッシュの仕組み
+# 描画システム設計（リファクタ後）
 
-## 概要
+## これだけ覚えれば OK
 
-Wiggly Ugomemo の描画システムは、ピクセルアート前提の ImageData ベースのレンダリングと、パフォーマンス最適化のための多層キャッシュシステムで構成されています。
+- 描画は `renderTick` ごとに更新される（約 45fps）
+- 3 枚の `cycleBitmap` を 100ms 間隔で切り替える
+- 差分描画は「ストロークが追加された」場合のみ使う
+- undo/redo/clear/背景色変更/jitter 変更は全再生成
 
-## アーキテクチャ
+## ざっくり流れ
 
-### レンダリング方式
+1. 描画操作で `Drawing` が変わるたびに `drawingRevision++`
+2. `renderTick` で `cycleIndex` を計算（0..2）
+3. `frameKey = drawingRevision + jitterKey + cycleIndex`
+4. `cycleBitmapCache` で `frameKey` を引く
+   - あるなら即描画
+   - ないなら生成（差分 or 全再生成）
+5. 生成完了時に `renderCacheEpoch` をチェック
+   - 世代が変わっていたら破棄
 
-- **ImageData ベース**: すべての描画操作は`ImageData`に直接書き込まれ、フレームごとに 1 回だけ`putImageData`でキャンバスに反映
-- **ピクセルパーフェクト**: 座標とブラシサイズは整数ピクセルにスナップ、アンチエイリアス無効
-- **3 フレーム固定**: アニメーションは 3 フレーム（10fps、100ms 間隔）で固定
+## 用語（短い説明）
 
-### キャッシュシステム
+- `renderTick`: RAF を間引いた描画更新の 1 回
+- `cycleIndex`: 3 枚パラパラ用のインデックス（0..2）
+- `cycleIntervalMs`: 100ms 固定の切替間隔
+- `drawingRevision`: Drawing の内容が変わるたびに増える版番号
+- `renderCacheEpoch`: 背景色やサイズ変更などで増えるキャッシュ世代
+- `frameKey`: `drawingRevision + jitterKey + cycleIndex`
+- `cycleBitmap`: cycle ごとの `ImageBitmap`
+- `cycleBitmapCache`: cycleBitmap と in-flight Promise を保持
 
-#### 1. フレームキャッシュ (`frameBitmaps`)
+## 差分描画の条件
 
-- **内容**: 3 フレーム分の`ImageBitmap`配列
-- **用途**: アニメーションループで使用される現在のフレーム
-- **更新タイミング**:
-  - 新しいストローク追加時（差分描画）
-  - 既存ストロークにポイント追加時（ポイント単位の差分描画）
-  - キャッシュ無効化時（背景色変更、jitterConfig 変更、全消し）
+- OK:
+  - 既存ストロークの末尾にポイントが追加された
+  - 新しいストロークが追加された
+- NG（全再生成）:
+  - ストローク削除・順序変更
+  - undo / redo / clear
+  - 背景色・サイズ・jitter の変更
 
-#### 2. 履歴キャッシュ (`historyCache`)
+## キャッシュの考え方
 
-- **内容**: `Map<drawingHash, HistoryCacheEntry>`
-- **用途**: undo/redo 時の高速化
-- **最大サイズ**: 5 個（最新 5 個の履歴状態を保持）
-  - undo/redo を繰り返すと、新しいエントリが追加され、古いエントリが自動的に削除される
-  - これにより、メモリ使用量は一定の範囲内に保たれる
-- **更新タイミング**: すべてのフレームが生成された時（`renderFrameFromScratch`完了時）
+- キャッシュは「最新 `drawingRevision` の 3 枚だけ持つ」
+- `cycleIndex` ごとに描画済みの状態を持つ
+- in-flight の Promise は再利用して重複生成を防ぐ
 
-#### 3. キャッシュメタデータ
+## cycle ごとの状態
 
-- `cachedStrokeIds`: キャッシュ済みのストローク ID のセット
-- `cachedStrokePointCounts`: ストローク ID ごとのポイント数（ポイント単位の差分描画用）
-- `cachedDrawingHash`: 現在の Drawing のハッシュ
-- `cachedJitterConfig`: 現在の jitterConfig
+各 `cycleIndex` は以下を持つ:
 
-## 描画フロー
+- `bitmap`: 最新の `ImageBitmap`
+- `tracker`: `StrokeChangeTracker`（この cycle の描画済み状態）
+- `drawingRevision`: この cycle が追従している revision
+- `jitterKey`: この cycle に適用された jitter 設定
+- `renderCacheEpoch`: この cycle の生成時点の世代
 
-### リアルタイム描画時
+## コンポーネント責務
 
-1. **ストローク開始**
-   - 新しいストロークを作成
-   - ストローク描画中は、バックグラウンド生成をスキップ（パフォーマンス保護）
+- `ImageDataBuffer`
+  - ImageData と offscreenCanvas の管理
+  - 背景塗りつぶし、`setPixel`、`putImageData`
+- `StrokeChangeTracker`
+  - ストローク ID とポイント数を保持
+  - 追加のみなら差分、削除/順序変更なら全再生成
+- `FrameBuilder`
+  - `buildFromScratch` / `buildWithDiff`
+  - 描画ロジックは `strokeRendering.ts` を使用
+- `CycleBitmapCache`
+  - `frameKey -> ImageBitmap` と in-flight を保持
+  - 最新 revision のみ保持（実質 3 枚）
+- `CanvasRenderer`
+  - 判断と I/O のみ（オーケストレーション）
+  - 実描画は上記に委譲
 
-2. **ストローク描画中**
-   - ポイントを追加
-   - アニメーションループが続行（約45fps）
+## 代表的なシナリオ
 
-3. **フレーム取得**
-   - 履歴キャッシュをチェック（undo/redo用）
-   - 通常のキャッシュをチェック
-   - 新しいストロークがある場合:
-     - 前のフレームに新しいストロークだけを描画（差分描画）
-   - 既存ストロークにポイント追加がある場合:
-     - 前のフレームに新しいポイントだけを描画（ポイント単位の差分描画）
-   - 要求されたフレームを同期的に生成（即座に返す）
-   - 他のフレームを非同期で生成（バックグラウンド、ブロックしない）
+- 普通に描いている最中:
+  - `drawingRevision++` → `buildWithDiff` で差分更新
+  - 次の `cycleIndex` でも差分で追従
+- undo / redo:
+  - `renderCacheEpoch++` → 全再生成
+- 背景色変更:
+  - `renderCacheEpoch++` → 全再生成
 
-4. **ストローク完了**
-   - 履歴に追加
-   - バックグラウンド生成が再開される
+## フローチャート（テキスト）
 
-### 差分描画の仕組み
+```
+renderTick
+  ├─ cycleIndex を計算
+  ├─ frameKey = drawingRevision + jitterKey + cycleIndex
+  ├─ cycleBitmapCache に frameKey がある？
+  │   ├─ YES: そのまま描画
+  │   └─ NO:
+  │       ├─ in-flight がある？
+  │       │   ├─ YES: Promise を再利用
+  │       │   └─ NO:
+  │       │       ├─ StrokeChangeTracker が差分 OK？
+  │       │       │   ├─ YES & baseBitmap あり → buildWithDiff
+  │       │       │   └─ NO or baseBitmap なし → buildFromScratch
+  │       │       └─ 完了後 renderCacheEpoch を確認
+  │       │           ├─ 一致: cache に保存して描画
+  │       │           └─ 不一致: 破棄
+```
 
-#### ストローク単位の差分描画
+## 補足
 
-新しいストロークが追加された場合:
-- 前のフレームの画像データを取得
-- 新しいストロークだけを描画
-- 新しいフレーム画像を作成
-
-これにより、全ストロークを再描画する必要がなく、約50倍高速化されます。
-
-#### ポイント単位の差分描画
-
-既存のストロークにポイントが追加された場合:
-- 前のフレームの画像データを取得
-- 新しいポイントだけを描画（前のポイントとの接続のため、1つ前のポイントも含める）
-- 新しいフレーム画像を作成
-
-これにより、ストローク全体を再描画する必要がなく、さらに効率的です。
-
-### キャッシュ無効化
-
-以下の場合、キャッシュが無効化され、全再生成が行われます:
-
-- **背景色変更**: 背景色が変更された場合
-- **jitter設定変更**: 揺れの振幅や周波数が変更された場合
-- **全消し**: キャンバスがクリアされた場合
-- **undo/redo**: 履歴キャッシュにヒットしない場合
-
-### undo/redo 時の動作
-
-undo/redo を実行すると:
-
-1. 通常のキャッシュはクリアされる（履歴キャッシュは保持）
-2. 履歴キャッシュをチェック
-3. **ヒットした場合**: 即座にフレーム画像を返す（再生成不要、実質0ms）
-4. **ヒットしない場合**: 全ストロークから再生成（O(S × P × W²)）
-
-undo/redo を繰り返すと、履歴キャッシュに新しいエントリが追加されますが、最大5個までしか保持されないため、メモリ使用量は一定の範囲内に保たれます。
-
-## パフォーマンス最適化
-
-### 時間計算量
-
-- **差分描画**: O(N × P × W²) + O(A)
-  - N = 新しいストローク/ポイント数
-  - P = ポイント数/ストローク
-  - W = ブラシ幅
-  - A = キャンバス面積（ImageBitmap から ImageData を取得するコスト）
-- **全再生成**: O(S × P × W²)
-  - S = ストローク数
-- **キャッシュヒット**: O(1)
-
-### メモリ使用量
-
-- **ImageData**: 約 1MB（384×256×4 バイト）
-- **ImageBitmap キャッシュ**: 約 3MB（3 フレーム分）
-- **履歴キャッシュ**: 最大約 15MB（最大 5 エントリ ×3 フレーム）
-  - undo/redo を繰り返すと、新しいエントリが追加され、古いエントリが削除される
-  - `MAX_HISTORY_CACHE_SIZE = 5` で制限されているため、メモリ使用量は一定の範囲内に保たれる
-- **合計**: 最大約 19MB（モバイルでも許容範囲）
-
-## パフォーマンス特性
-
-### 最適化されているケース
-
-1. **新しいストローク追加時**: 要求されたフレームのみ同期的に生成（約3倍高速化）
-2. **undo/redo時（履歴キャッシュヒット）**: 即座に取得（実質0ms）
-3. **アニメーションループ（キャッシュヒット）**: 既存のフレーム画像を返す（実質0ms）
-
-### パフォーマンスがかかるケース
-
-1. **undo/redo時（履歴キャッシュミス）**: 全ストロークから再生成（O(S × P × W²)）
-2. **新しいストローク追加時（前のフレーム画像がない場合）**: 全ストロークから再生成
-   - 通常は差分描画が使われるが、前のフレーム画像がない場合は全ストロークを描画する必要がある
-   - 初回のストローク追加時は、ストロークが1個だけなので軽量
-3. **全消し時**: 空のキャンバスから再生成（軽量）
-
-### バックグラウンド生成の制御
-
-- ストローク描画中は、バックグラウンド生成をスキップ（パフォーマンス保護）
-- キャンセル可能な非同期処理で実装
-
+- `drawingRevision` は巻き戻さない（undo/redo でも増える）
+- `renderCacheEpoch` はキャッシュ世代の管理専用
+- `cycleIntervalMs = 100` の前提で jitter の位相が決まる

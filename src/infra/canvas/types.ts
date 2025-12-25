@@ -12,34 +12,14 @@ export interface CanvasRendererOptions {
 }
 
 /**
- * フレームBitmap取得の引数
+ * cycle Bitmap取得の引数
  */
-export type GetFrameBitmapParams = {
+export type GetCycleBitmapParams = {
   drawing: Drawing;
-  frameIndex: number;
+  drawingRevision: number;
+  cycleIndex: number;
   jitterConfig: JitterConfig;
   elapsedTimeMs: number;
-};
-
-/**
- * 全ストロークからフレーム生成の引数
- */
-export type RenderFrameFromScratchParams = {
-  drawing: Drawing;
-  frameIndex: number;
-  frameElapsedTimeMs: number;
-  jitterConfig: JitterConfig;
-};
-
-/**
- * 差分描画の引数
- */
-export type RenderFrameWithDiffParams = {
-  drawing: Drawing;
-  frameIndex: number;
-  frameElapsedTimeMs: number;
-  jitterConfig: JitterConfig;
-  newStrokes: Stroke[];
 };
 
 /**
@@ -50,12 +30,8 @@ export type StrokeWithNewPoints = {
   cachedPointCount: number;
 };
 
-/**
- * キャッシュ状態
- */
-export type CacheState = {
-  strokeIds: Set<string>;
-  strokePointCounts: Map<string, number>;
-  drawingHash: string | null;
-  jitterConfig: JitterConfig | null;
+export type FrameKey = {
+  drawingRevision: number;
+  jitterKey: string;
+  cycleIndex: number;
 };

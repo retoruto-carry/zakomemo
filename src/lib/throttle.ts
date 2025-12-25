@@ -31,6 +31,3 @@ export function throttle<T extends (...args: unknown[]) => void>(
     }
   };
 }
-
-
-

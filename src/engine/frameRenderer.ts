@@ -3,42 +3,39 @@ import { computeJitter, computePatternJitter } from "../core/jitter";
 import { snapToPixel } from "../core/rasterization";
 import type { Drawing, Stroke } from "../core/types";
 import type { DrawingRenderer } from "./ports";
-
-/**
- * フレーム数（固定）
- */
-export const FRAME_COUNT = 3;
+import { CYCLE_INTERVAL_MS } from "./renderingConstants";
 
 /**
  * ImageBitmapキャッシュ対応レンダラーの型ガード
  */
 /**
- * フレームBitmap取得の引数
+ * cycle Bitmap取得の引数
  */
-export type GetFrameBitmapParams = {
+export type GetCycleBitmapParams = {
   drawing: Drawing;
-  frameIndex: number;
+  drawingRevision: number;
+  cycleIndex: number;
   jitterConfig: JitterConfig;
   elapsedTimeMs: number;
 };
 
-interface ImageBitmapCacheRenderer extends DrawingRenderer {
-  getFrameBitmap(params: GetFrameBitmapParams): Promise<ImageBitmap>;
-  getFrameCount(): number;
+interface CycleBitmapRenderer extends DrawingRenderer {
+  getCycleBitmap(params: GetCycleBitmapParams): Promise<ImageBitmap>;
+  getCycleCount(): number;
   flushFromBitmap(bitmap: ImageBitmap): void;
 }
 
 /**
  * レンダラーがImageBitmapキャッシュをサポートしているかチェック
  */
-function isImageBitmapCacheRenderer(
+function isCycleBitmapRenderer(
   renderer: DrawingRenderer,
-): renderer is ImageBitmapCacheRenderer {
+): renderer is CycleBitmapRenderer {
   return (
-    "getFrameBitmap" in renderer &&
-    typeof renderer.getFrameBitmap === "function" &&
-    "getFrameCount" in renderer &&
-    typeof renderer.getFrameCount === "function" &&
+    "getCycleBitmap" in renderer &&
+    typeof renderer.getCycleBitmap === "function" &&
+    "getCycleCount" in renderer &&
+    typeof renderer.getCycleCount === "function" &&
     "flushFromBitmap" in renderer &&
     typeof renderer.flushFromBitmap === "function"
   );
@@ -98,6 +95,8 @@ export function applyJitterToStroke(
 export type RenderDrawingAtTimeParams = {
   /** 描画データ */
   drawing: Drawing;
+  /** Drawingの版番号 */
+  drawingRevision: number;
   /** 描画レンダラー */
   renderer: DrawingRenderer;
   /** jitter設定 */
@@ -109,7 +108,7 @@ export type RenderDrawingAtTimeParams = {
 /**
  * パターンブラシと通常ブラシで異なるジッター計算を使用して描画をレンダリング
  *
- * 3フレーム固定、ImageBitmapキャッシュを使用。
+ * 3cycle固定、ImageBitmapキャッシュを使用。
  * レンダラーがImageBitmapキャッシュをサポートしている場合は、
  * キャッシュから取得または生成したImageBitmapを使用して描画する。
  * サポートしていない場合、またはエラーが発生した場合は、
@@ -129,16 +128,16 @@ export function invalidatePendingRequests(): void {
 }
 
 export function renderDrawingAtTime(params: RenderDrawingAtTimeParams): void {
-  const { drawing, renderer, jitterConfig, elapsedTimeMs } = params;
-  // ImageBitmapキャッシュを使用する場合は、getFrameBitmapを使用
-  if (isImageBitmapCacheRenderer(renderer)) {
-    const frameCount = renderer.getFrameCount();
-    // 3フレームを周期的に切り替える
+  const { drawing, drawingRevision, renderer, jitterConfig, elapsedTimeMs } =
+    params;
+  // ImageBitmapキャッシュを使用する場合は、getCycleBitmapを使用
+  if (isCycleBitmapRenderer(renderer)) {
+    const cycleCount = renderer.getCycleCount();
+    // 3cycleを周期的に切り替える
     // アニメーション速度: 10fps（100ms/フレーム）で固定
-    // これにより、3フレームで約300ms（0.3秒）で1サイクル
-    const frameInterval = 100; // 100ms = 10fps
-    const currentFrameIndex = Math.floor(
-      (elapsedTimeMs / frameInterval) % frameCount,
+    // これにより、3cycleで約300ms（0.3秒）で1サイクル
+    const currentCycleIndex = Math.floor(
+      (elapsedTimeMs / CYCLE_INTERVAL_MS) % cycleCount,
     );
 
     // リクエストIDをインクリメント（最新のリクエストを追跡）
@@ -147,9 +146,10 @@ export function renderDrawingAtTime(params: RenderDrawingAtTimeParams): void {
 
     // 非同期でImageBitmapを取得して描画
     renderer
-      .getFrameBitmap({
+      .getCycleBitmap({
         drawing,
-        frameIndex: currentFrameIndex,
+        drawingRevision,
+        cycleIndex: currentCycleIndex,
         jitterConfig,
         elapsedTimeMs,
       })
@@ -172,11 +172,12 @@ export function renderDrawingAtTime(params: RenderDrawingAtTimeParams): void {
           ) {
             renderer.clearPatternCache();
           }
-          // 再生成を試みる（キャッシュが無効化されているため、次回getFrameBitmapで再生成される）
+          // 再生成を試みる（キャッシュが無効化されているため、次回getCycleBitmapで再生成される）
           renderer
-            .getFrameBitmap({
+            .getCycleBitmap({
               drawing,
-              frameIndex: currentFrameIndex,
+              drawingRevision,
+              cycleIndex: currentCycleIndex,
               jitterConfig,
               elapsedTimeMs,
             })
@@ -194,6 +195,7 @@ export function renderDrawingAtTime(params: RenderDrawingAtTimeParams): void {
                 // 最終的なフォールバック
                 renderDrawingAtTimeFallback({
                   drawing,
+                  drawingRevision,
                   renderer,
                   jitterConfig,
                   elapsedTimeMs,
@@ -205,12 +207,13 @@ export function renderDrawingAtTime(params: RenderDrawingAtTimeParams): void {
                 return;
               }
               console.error(
-                "Failed to get frame bitmap after retry:",
+                "Failed to get cycle bitmap after retry:",
                 retryErr,
               );
               // 最終的なフォールバック
               renderDrawingAtTimeFallback({
                 drawing,
+                drawingRevision,
                 renderer,
                 jitterConfig,
                 elapsedTimeMs,
@@ -223,10 +226,11 @@ export function renderDrawingAtTime(params: RenderDrawingAtTimeParams): void {
         if (requestId !== latestRequestId) {
           return;
         }
-        console.error("Failed to get frame bitmap:", err);
+        console.error("Failed to get cycle bitmap:", err);
         // フォールバック: 通常の描画
         renderDrawingAtTimeFallback({
           drawing,
+          drawingRevision,
           renderer,
           jitterConfig,
           elapsedTimeMs,
@@ -238,6 +242,7 @@ export function renderDrawingAtTime(params: RenderDrawingAtTimeParams): void {
   // フォールバック: 通常の描画（ImageBitmapキャッシュがない場合）
   renderDrawingAtTimeFallback({
     drawing,
+    drawingRevision,
     renderer,
     jitterConfig,
     elapsedTimeMs,
@@ -249,12 +254,12 @@ export function renderDrawingAtTime(params: RenderDrawingAtTimeParams): void {
  *
  * この関数は以下のケースで呼ばれる:
  * 1. ImageBitmapキャッシュをサポートしていないレンダラーの場合
- * 2. `getFrameBitmap`がエラーを返した場合
+ * 2. `getCycleBitmap`がエラーを返した場合
  *
  * 注意: この関数はImageBitmapキャッシュを更新しない。
  * `renderer.clear()`によりキャッシュは無効化されるが、
  * 新しいキャッシュは作成されない（通常の描画パスのため）。
- * 次回`getFrameBitmap`が呼ばれた際は、全ストロークから再生成される。
+ * 次回`getCycleBitmap`が呼ばれた際は、全ストロークから再生成される。
  *
  * @param params 描画パラメータ
  */

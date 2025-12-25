@@ -44,6 +44,7 @@ export class WigglyEngine {
   private raf: RafScheduler;
   private sound?: StrokeSound;
   private jitterConfig: JitterConfig;
+  private drawingRevision = 0;
 
   private currentTool: Tool = "pen";
   private pendingColor = "#000000";
@@ -181,6 +182,7 @@ export class WigglyEngine {
     );
 
     this.history = { ...this.history, present: updated };
+    this.bumpDrawingRevision();
     this.currentStrokeId = strokeId;
     this.strokeStartTime = now;
     this.strokeLength = 0;
@@ -250,6 +252,7 @@ export class WigglyEngine {
       ...this.history,
       present: { ...updated, strokes: strokesWithWidth },
     };
+    this.bumpDrawingRevision();
 
     this.sound?.onStrokeUpdate({
       tool: this.currentTool,
@@ -293,6 +296,7 @@ export class WigglyEngine {
     this.history = undoHistory(this.history);
     // undo/redo時はキャッシュをクリア（全ストロークから再生成が必要）
     this.clearRendererCache();
+    this.bumpDrawingRevision();
     this.onHistoryChange?.();
   }
 
@@ -300,6 +304,7 @@ export class WigglyEngine {
     this.history = redoHistory(this.history);
     // undo/redo時はキャッシュをクリア（全ストロークから再生成が必要）
     this.clearRendererCache();
+    this.bumpDrawingRevision();
     this.onHistoryChange?.();
   }
 
@@ -310,6 +315,7 @@ export class WigglyEngine {
   clear(): void {
     const cleared = clearDrawing(this.history.present);
     this.history = pushHistory(this.history, cleared);
+    this.bumpDrawingRevision();
     this.onHistoryChange?.();
   }
 
@@ -329,6 +335,7 @@ export class WigglyEngine {
     if (now - this.lastRenderAt >= this.minFrameIntervalMs) {
       renderDrawingAtTime({
         drawing: this.history.present,
+        drawingRevision: this.drawingRevision,
         renderer: this.renderer,
         jitterConfig: this.jitterConfig,
         elapsedTimeMs: elapsed,
@@ -350,5 +357,9 @@ export class WigglyEngine {
       return crypto.randomUUID();
     }
     return `stroke-${Math.random().toString(36).slice(2)}`;
+  }
+
+  private bumpDrawingRevision(): void {
+    this.drawingRevision += 1;
   }
 }
