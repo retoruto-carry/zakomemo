@@ -1,11 +1,14 @@
 export type BrushKind = "solid" | "pattern";
 
 export type BrushPatternId =
-  | "dots"
-  | "dotsDense"
-  | "horizontal"
-  | "vertical"
-  | "checker";
+  | "dot_sparse"
+  | "dot_dense"
+  | "stripe_horizontal"
+  | "stripe_vertical"
+  | "check"
+  | "mesh"
+  | "mesh_bold"
+  | "crosshatch";
 
 export type BrushVariant =
   | "normal"

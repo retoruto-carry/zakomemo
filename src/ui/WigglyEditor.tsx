@@ -45,7 +45,7 @@ export function WigglyEditor() {
   const penVariant: PenVariant = "normal";
   const [eraserVariant, setEraserVariant] =
     useState<EraserVariant>("eraserCircle");
-  const [patternId, setPatternId] = useState<BrushPatternId>("dots");
+  const [patternId, setPatternId] = useState<BrushPatternId>("dot_sparse");
 
   const [isExporting, setIsExporting] = useState(false);
   const [exportUrl, setExportUrl] = useState<string | null>(null);

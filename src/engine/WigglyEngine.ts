@@ -51,7 +51,7 @@ export class WigglyEngine {
   private pendingWidth = defaultPenWidth.normal;
   private penVariant: PenVariant = "normal";
   private eraserVariant: EraserVariant = "eraserCircle";
-  private pendingPattern: BrushSettings["patternId"] = "dots";
+  private pendingPattern: BrushSettings["patternId"] = "dot_sparse";
 
   private currentStrokeId: string | null = null;
   private strokeStartTime = 0;

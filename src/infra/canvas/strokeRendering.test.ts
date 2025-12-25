@@ -51,7 +51,7 @@ function createPatternStroke(color: string): Stroke {
       color,
       width: 2,
       opacity: 1,
-      patternId: "dots",
+      patternId: "dot_sparse",
     },
     points: [{ x: 1, y: 1, t: 0 }],
   };
