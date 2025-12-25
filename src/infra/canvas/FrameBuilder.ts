@@ -89,7 +89,7 @@ export class FrameBuilder {
         elapsedTimeMs: cycleElapsedTimeMs,
         jitterConfig,
       });
-      renderStroke(this.buffer, stroke, jittered, cycleElapsedTimeMs);
+      renderStroke(this.buffer, tempStroke, jittered, cycleElapsedTimeMs);
     }
 
     return await this.buffer.createBitmap();
