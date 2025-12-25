@@ -16,6 +16,10 @@ import type {
   GetCycleBitmapParams,
 } from "./types";
 
+/**
+ * Canvas renderer backed by ImageBitmap cycle cache.
+ * Orchestrates cache lookups and delegates drawing to helper classes.
+ */
 export class CanvasRenderer implements DrawingRenderer {
   private ctx: CanvasRenderingContext2D;
   private buffer: ImageDataBuffer;
@@ -90,6 +94,10 @@ export class CanvasRenderer implements DrawingRenderer {
     return CYCLE_COUNT;
   }
 
+  /**
+   * Get a cycle ImageBitmap for the given drawing state and time.
+   * Reuses cache and in-flight requests to avoid duplicate work.
+   */
   async getCycleBitmap(params: GetCycleBitmapParams): Promise<ImageBitmap> {
     const {
       drawing,

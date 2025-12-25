@@ -10,6 +10,10 @@ type CycleState = {
   tracker: StrokeChangeTracker;
 };
 
+/**
+ * Keeps per-cycle ImageBitmap cache, in-flight promises, and diff trackers.
+ * Cache entries are keyed by drawing revision, jitter, and cycle index.
+ */
 export class CycleBitmapCache {
   private states: CycleState[];
 
@@ -110,6 +114,7 @@ export class CycleBitmapCache {
     return this.getState({ cycleIndex }).tracker;
   }
 
+  /** Drop all cached state for every cycle. */
   resetAll(): void {
     for (const state of this.states) {
       this.resetState({ state });

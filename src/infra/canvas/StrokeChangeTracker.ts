@@ -12,10 +12,17 @@ export type StrokeDiff =
       reason: "uninitialized" | "removed" | "reordered";
     };
 
+/**
+ * Tracks stroke order and point counts to detect safe incremental updates.
+ */
 export class StrokeChangeTracker {
   private strokeOrder: string[] | null = null;
   private strokePointCounts: Map<string, number> = new Map();
 
+  /**
+   * Compare current drawing against tracked state.
+   * Returns diff info or a scratch reason if incremental update is unsafe.
+   */
   diff({ drawing }: { drawing: Drawing }): StrokeDiff {
     if (!this.strokeOrder) {
       return { mode: "scratch", reason: "uninitialized" };
@@ -52,6 +59,7 @@ export class StrokeChangeTracker {
     };
   }
 
+  /** Sync tracker state to the current drawing after a successful render. */
   sync({ drawing }: { drawing: Drawing }): void {
     this.strokeOrder = drawing.strokes.map((stroke) => stroke.id);
     this.strokePointCounts.clear();
@@ -60,6 +68,7 @@ export class StrokeChangeTracker {
     }
   }
 
+  /** Clear tracked state. */
   reset(): void {
     this.strokeOrder = null;
     this.strokePointCounts.clear();

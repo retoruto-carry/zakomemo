@@ -14,6 +14,10 @@ export type SetPixelParams = {
   a: number;
 };
 
+/**
+ * ImageData and offscreen canvas wrapper for pixel-level drawing.
+ * Handles background fill and bitmap creation from the buffer.
+ */
 export class ImageDataBuffer {
   private ctx: CanvasRenderingContext2D;
   private backgroundColorRgba: { r: number; g: number; b: number; a: number };
@@ -29,6 +33,7 @@ export class ImageDataBuffer {
     this.backgroundColorRgba = parseColorToRgb(backgroundColor);
   }
 
+  /** Update background color and refill the buffer if already initialized. */
   setBackgroundColor({ backgroundColor }: { backgroundColor: string }): void {
     this.backgroundColorRgba = parseColorToRgb(backgroundColor);
     if (this.imageData) {
@@ -48,6 +53,7 @@ export class ImageDataBuffer {
     return this.imageData !== null && this.data !== null;
   }
 
+  /** Ensure buffer size; returns true when buffer was reinitialized. */
   ensureSize({ width, height }: { width: number; height: number }): boolean {
     if (
       this.imageData &&
@@ -66,6 +72,7 @@ export class ImageDataBuffer {
     this.initializeImageData({ width, height });
   }
 
+  /** Write a single pixel into the current ImageData buffer. */
   setPixel({ x, y, r, g, b, a }: SetPixelParams): void {
     if (
       !this.data ||
@@ -120,6 +127,7 @@ export class ImageDataBuffer {
     return this.offscreenCanvas;
   }
 
+  /** Sync current ImageData into the offscreen canvas. */
   putToOffscreen(): void {
     if (!this.imageData || !this.offscreenCanvas || !this.offscreenCtx) {
       throw new Error("Offscreen canvas is not initialized.");
@@ -127,6 +135,7 @@ export class ImageDataBuffer {
     this.offscreenCtx.putImageData(this.imageData, 0, 0);
   }
 
+  /** Create an ImageBitmap from the offscreen canvas. */
   async createBitmap(): Promise<ImageBitmap> {
     if (!this.offscreenCanvas) {
       throw new Error("Offscreen canvas is not initialized.");
