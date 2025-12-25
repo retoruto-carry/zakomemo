@@ -23,8 +23,8 @@ export class GifEncGifEncoder implements GifEncoder {
 
   begin(width: number, height: number, fps: number): void {
     this.delayMs = Math.round(1000 / fps);
-    // gifenc writes header automatically on first frame in auto mode
-    // but we can prime encoder if needed; storing dimensions for clarity
+    // このgifencはautoモードで最初のフレーム時にヘッダを書き込む
+    // 必要なら先に初期化できるが、ここでは寸法のみ保持する
     void width;
     void height;
   }

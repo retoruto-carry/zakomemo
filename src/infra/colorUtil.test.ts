@@ -9,9 +9,9 @@ describe("colorUtil", () => {
     });
 
     it("should return the original color if window is undefined (SSR)", () => {
-      // Vitest in this project seems to run in a Node-like env by default or doesn't have DOM here
+      // VitestはNodeに近い環境で動くため、ここではDOMが無い前提
       const originalWindow = global.window;
-      // biome-ignore lint/suspicious/noExplicitAny: Test-only global manipulation
+      // biome-ignore lint/suspicious/noExplicitAny: テスト専用のグローバル操作のため
       (global as any).window = undefined;
       expect(resolveCssVariable("var(--test)")).toBe("var(--test)");
       global.window = originalWindow;

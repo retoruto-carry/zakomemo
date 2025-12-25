@@ -30,7 +30,7 @@ class MockRenderer implements DrawingRenderer {
   }
 
   invalidateRenderCache(): void {
-    // noop for mock
+    // モック用の空実装
   }
 }
 

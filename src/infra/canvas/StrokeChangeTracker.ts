@@ -13,15 +13,15 @@ export type StrokeDiff =
     };
 
 /**
- * Tracks stroke order and point counts to detect safe incremental updates.
+ * ストローク順とポイント数を追跡し、差分更新が安全か判定する。
  */
 export class StrokeChangeTracker {
   private strokeOrder: string[] | null = null;
   private strokePointCounts: Map<string, number> = new Map();
 
   /**
-   * Compare current drawing against tracked state.
-   * Returns diff info or a scratch reason if incremental update is unsafe.
+   * 現在のDrawingと追跡状態を比較する。
+   * 差分情報か、差分が危険な場合の理由を返す。
    */
   diff({ drawing }: { drawing: Drawing }): StrokeDiff {
     if (!this.strokeOrder) {
@@ -59,7 +59,7 @@ export class StrokeChangeTracker {
     };
   }
 
-  /** Sync tracker state to the current drawing after a successful render. */
+  /** 描画成功後に現在のDrawingへ追跡状態を同期する */
   sync({ drawing }: { drawing: Drawing }): void {
     this.strokeOrder = drawing.strokes.map((stroke) => stroke.id);
     this.strokePointCounts.clear();
@@ -68,7 +68,7 @@ export class StrokeChangeTracker {
     }
   }
 
-  /** Clear tracked state. */
+  /** 追跡状態をクリアする */
   reset(): void {
     this.strokeOrder = null;
     this.strokePointCounts.clear();

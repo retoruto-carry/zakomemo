@@ -291,7 +291,7 @@ export class WigglyEngine {
 
   undo(): void {
     this.history = undoHistory(this.history);
-    // undo/redo時はキャッシュをクリア（全ストロークから再生成が必要）
+    // やり直し/進む時はキャッシュをクリア（全ストロークから再生成が必要）
     this.clearRendererCache();
     this.bumpDrawingRevision();
     this.onHistoryChange?.();
@@ -299,7 +299,7 @@ export class WigglyEngine {
 
   redo(): void {
     this.history = redoHistory(this.history);
-    // undo/redo時はキャッシュをクリア（全ストロークから再生成が必要）
+    // やり直し/進む時はキャッシュをクリア（全ストロークから再生成が必要）
     this.clearRendererCache();
     this.bumpDrawingRevision();
     this.onHistoryChange?.();

@@ -30,7 +30,7 @@ class MockRenderer implements DrawingRenderer {
   }
 
   invalidateRenderCache(): void {
-    // noop for mock
+    // モック用の空実装
   }
 
   renderStroke(
@@ -229,14 +229,14 @@ describe("WigglyEngine", () => {
     test("pointerDown → pointerMove → pointerUp → undo → redo の完全なフロー", () => {
       const { engine, time } = createEngine();
 
-      // 1. pointerDown
+      // 1. 描画開始
       time.set(0);
       engine.pointerDown(10, 10);
       let drawing = engine.getDrawing();
       expect(drawing.strokes).toHaveLength(1);
       expect(drawing.strokes[0].points).toHaveLength(1);
 
-      // 2. pointerMove（複数回）
+      // 2. ポイント追加（複数回）
       time.set(10);
       engine.pointerMove(20, 20);
       time.set(20);
@@ -244,18 +244,18 @@ describe("WigglyEngine", () => {
       drawing = engine.getDrawing();
       expect(drawing.strokes[0].points.length).toBeGreaterThan(1);
 
-      // 3. pointerUp
+      // 3. 描画終了
       time.set(30);
       engine.pointerUp();
       drawing = engine.getDrawing();
       expect(drawing.strokes).toHaveLength(1);
 
-      // 4. undo
+      // 4. やり直し
       engine.undo();
       drawing = engine.getDrawing();
       expect(drawing.strokes).toHaveLength(0);
 
-      // 5. redo
+      // 5. 進む
       engine.redo();
       drawing = engine.getDrawing();
       expect(drawing.strokes).toHaveLength(1);
@@ -281,12 +281,12 @@ describe("WigglyEngine", () => {
       let drawing = engine.getDrawing();
       expect(drawing.strokes).toHaveLength(2);
 
-      // 3. undo（2番目のストロークが削除される）
+      // 3. やり直し（2番目のストロークが削除される）
       engine.undo();
       drawing = engine.getDrawing();
       expect(drawing.strokes).toHaveLength(1);
 
-      // 4. redo（2番目のストロークが復元される）
+      // 4. 進む（2番目のストロークが復元される）
       engine.redo();
       drawing = engine.getDrawing();
       expect(drawing.strokes).toHaveLength(2);
@@ -296,7 +296,7 @@ describe("WigglyEngine", () => {
       drawing = engine.getDrawing();
       expect(drawing.strokes).toHaveLength(0);
 
-      // 6. undo（clearが取り消される）
+      // 6. やり直し（全消しが取り消される）
       engine.undo();
       drawing = engine.getDrawing();
       expect(drawing.strokes).toHaveLength(2);
@@ -318,12 +318,12 @@ describe("WigglyEngine", () => {
       let drawing = engine.getDrawing();
       expect(drawing.strokes).toHaveLength(1);
 
-      // 3. undo（描画が取り消される）
+      // 3. やり直し（描画が取り消される）
       engine.undo();
       drawing = engine.getDrawing();
       expect(drawing.strokes).toHaveLength(0);
 
-      // 4. redo（描画が復元される）
+      // 4. 進む（描画が復元される）
       engine.redo();
       drawing = engine.getDrawing();
       expect(drawing.strokes).toHaveLength(1);
@@ -378,7 +378,7 @@ describe("WigglyEngine", () => {
         engine.pointerUp();
       }
 
-      // 5回undo
+      // やり直しを5回
       for (let i = 0; i < 5; i++) {
         engine.undo();
       }
@@ -386,7 +386,7 @@ describe("WigglyEngine", () => {
       let drawing = engine.getDrawing();
       expect(drawing.strokes).toHaveLength(0);
 
-      // 5回redo
+      // 進むを5回
       for (let i = 0; i < 5; i++) {
         engine.redo();
       }

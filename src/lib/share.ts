@@ -67,7 +67,7 @@ export interface ShareOptions {
 /**
  * X (Twitter) でシェア
  * - モバイル + Web Share API 対応: 画像付きでネイティブシェア
- * - それ以外: Intent URL でシェア（モバイルはアプリ、PCはWeb）
+ * - それ以外: インテントURLでシェア（モバイルはアプリ、PCはWeb）
  */
 export const shareToTwitter = async (options: ShareOptions): Promise<void> => {
   const { text, imageUrl, imageName = "wiggly-ugomemo.gif" } = options;
@@ -86,16 +86,16 @@ export const shareToTwitter = async (options: ShareOptions): Promise<void> => {
       if (error instanceof Error && error.name === "AbortError") {
         return;
       }
-      // その他のエラーは Intent にフォールバック
+      // その他のエラーはインテントにフォールバック
       console.warn("Web Share API failed, falling back to intent:", error);
     }
   }
 
-  // Intent でシェア
+  // インテントでシェア
   const intentUrl = createTwitterIntentUrl(text, options.url);
 
   if (isMobile()) {
-    // モバイルでは twitter:// を試し、失敗したら web URL にフォールバック
+    // モバイルでは twitter:// を試し、失敗したらWebのURLにフォールバック
     const fallbackParams = new URLSearchParams({ text });
     if (options.url) {
       fallbackParams.set("url", options.url);
@@ -105,7 +105,7 @@ export const shareToTwitter = async (options: ShareOptions): Promise<void> => {
     // twitter:// スキームを試す
     window.location.href = intentUrl;
 
-    // 1秒後にまだページにいたら web URL にフォールバック
+    // 1秒後にまだページにいたらWebのURLにフォールバック
     setTimeout(() => {
       // ページがまだアクティブなら Twitter アプリが開かなかったと判断
       if (document.visibilityState === "visible") {

@@ -54,11 +54,11 @@ export function LoadingScreen({ isExiting, onExited }: LoadingScreenProps) {
         isExiting ? styles.exit : ""
       }`}
     >
-      {/* Background Layers */}
+      {/* 背景レイヤー */}
       <div ref={layer2Ref} className={`${styles.layer} ${styles.layer2}`} />
       <div ref={layer1Ref} className={`${styles.layer} ${styles.layer1}`} />
 
-      {/* Content */}
+      {/* コンテンツ */}
       <div
         className={`relative z-30 flex flex-col items-center gap-4 ${styles.content}`}
       >

@@ -24,7 +24,7 @@ interface LayoutProps {
 export function DesktopLayout({ canvas, tools, dsButtons }: LayoutProps) {
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-[#1a1a1a] p-4 overflow-hidden font-sans text-slate-900">
-      {/* Table Surface */}
+      {/* テーブル面 */}
       <div
         className="absolute inset-0 bg-[#2c2c2c] opacity-40 pointer-events-none"
         style={{
@@ -33,11 +33,11 @@ export function DesktopLayout({ canvas, tools, dsButtons }: LayoutProps) {
         }}
       />
 
-      {/* Nintendo DSi - Realistic Body */}
+      {/* Nintendo DSi風の本体 */}
       <div className="relative flex flex-col items-center gap-0 rounded-[3rem] bg-(--ugo-body-bg) shadow-[0_50px_100px_rgba(0,0,0,0.8),inset_0_-4px_10px_rgba(0,0,0,0.05),0_0_0_1px_rgba(0,0,0,0.1)] w-[650px] shrink-0 transform transition-transform duration-500 overflow-hidden border-b-[6px] border-(--ugo-body-border)">
-        {/* Top Shell */}
+        {/* 上部シェル */}
         <div className="w-full bg-(--ugo-body-bg) p-4 pt-6 pb-6 flex flex-col items-center relative">
-          {/* Speaker Holes (Left) */}
+          {/* スピーカー穴（左） */}
           <div className="absolute left-[8%] top-[40%] flex flex-col items-center justify-center gap-1.5 opacity-40">
             <div className="flex gap-1.5">
               <div className="w-1.5 h-1.5 rounded-full bg-black/40 shadow-inner" />
@@ -54,15 +54,15 @@ export function DesktopLayout({ canvas, tools, dsButtons }: LayoutProps) {
             </div>
           </div>
 
-          {/* Top Screen System */}
+          {/* 上画面 */}
           <div className="relative w-full max-w-[420px] aspect-3/2 bg-(--ugo-bezel-bg) rounded-sm p-2 shadow-[inset_0_1px_8px_rgba(0,0,0,0.8)] border-[2px] border-(--ugo-bezel-border)">
-            {/* Glossy Screen */}
+            {/* 光沢スクリーン */}
             <div className="relative w-full h-full bg-white shadow-[0_0_40px_rgba(255,255,255,0.05)] overflow-hidden rounded-[2px]">
               {canvas}
             </div>
           </div>
 
-          {/* Speaker Holes (Right) */}
+          {/* スピーカー穴（右） */}
           <div className="absolute right-[8%] top-[40%] flex flex-col items-center justify-center gap-1.5 opacity-40">
             <div className="flex gap-1.5">
               <div className="w-1.5 h-1.5 rounded-full bg-black/40 shadow-inner" />
@@ -80,9 +80,9 @@ export function DesktopLayout({ canvas, tools, dsButtons }: LayoutProps) {
           </div>
         </div>
 
-        {/* Hinge Mechanism */}
+        {/* ヒンジ部分 */}
         <div className="w-full h-10 bg-linear-to-b from-(--ugo-hinge-from) via-(--ugo-hinge-via) to-(--ugo-hinge-to) relative flex items-center justify-center border-y border-(--ugo-hinge-border) z-20">
-          {/* Status LEDs (Left side of the hinge cylinder) - decorative only */}
+          {/* ステータスLED（ヒンジ左側）- 装飾のみ */}
           <div className="absolute left-[12%] top-1/2 -translate-y-1/2 flex items-center gap-2 px-3 py-1 bg-black/5 rounded-full border border-white/20">
             <div
               aria-hidden="true"
@@ -101,23 +101,23 @@ export function DesktopLayout({ canvas, tools, dsButtons }: LayoutProps) {
             />
           </div>
 
-          {/* Internal Camera */}
+          {/* 内蔵カメラ */}
           <div className="w-6 h-6 rounded-full bg-[#0a0a0a] border-[2px] border-(--ugo-hinge-border) shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)] flex items-center justify-center relative">
             <div className="w-2 h-2 rounded-full bg-linear-to-tr from-[#001] to-[#113]" />
-            {/* Mic hole - moved right next to camera */}
+            {/* マイク穴（カメラ右隣に配置） */}
             <div className="absolute left-[calc(100%+6px)] top-1/2 -translate-y-1/2 w-1 h-1 rounded-full bg-[#888] shadow-inner" />
           </div>
         </div>
 
-        {/* Bottom Shell */}
+        {/* 下部シェル */}
         <div className="w-full bg-(--ugo-body-bg) p-4 pt-4 pb-6 flex items-center justify-center gap-2 relative border-t border-white/50">
-          {/* Left: D-pad & Power */}
+          {/* 左: 十字キーと電源 */}
           <div className="flex flex-col items-end gap-6 -mt-2">
             <div className="relative w-[88px] h-[88px] flex items-center justify-center">
-              {/* D-pad Socket (Perfectly matching body color, no shadow) */}
+              {/* 十字キー台座（本体色に合わせ、影なし） */}
               <div className="absolute w-[110%] h-[110%] rounded-full bg-(--ugo-body-bg)" />
 
-              {/* D-pad Cross (Unified shape using clip-path for correct shadow) */}
+              {/* 十字キーの十字（clip-pathで一体形状にして影を調整） */}
               <div
                 className="relative w-[85%] h-[85%]"
                 style={{
@@ -133,16 +133,16 @@ export function DesktopLayout({ canvas, tools, dsButtons }: LayoutProps) {
                   }}
                 />
 
-                {/* Visual D-pad Details */}
+                {/* 十字キーの装飾 */}
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  {/* Directional marks */}
+                  {/* 方向マーク */}
                   <div className="absolute top-2 w-0 h-0 border-l-4 border-r-4 border-b-6 border-l-transparent border-r-transparent border-b-[#999] opacity-60" />
                   <div className="absolute bottom-2 w-0 h-0 border-l-4 border-r-4 border-t-6 border-l-transparent border-r-transparent border-t-[#999] opacity-60" />
                   <div className="absolute left-2 w-0 h-0 border-t-4 border-b-4 border-r-6 border-t-transparent border-b-transparent border-r-[#999] opacity-60" />
                   <div className="absolute right-2 w-0 h-0 border-t-4 border-b-4 border-l-6 border-t-transparent border-b-transparent border-l-[#999] opacity-60" />
                 </div>
 
-                {/* Clickable regions for D-pad */}
+                {/* 十字キーのクリック領域 */}
                 <button
                   type="button"
                   onClick={dsButtons?.onUp}
@@ -170,7 +170,7 @@ export function DesktopLayout({ canvas, tools, dsButtons }: LayoutProps) {
               </div>
             </div>
 
-            {/* Power Button - Decorative */}
+            {/* 電源ボタン（装飾） */}
             <div className="flex items-center gap-1.5 -mt-1 pr-1">
               <span className="text-[7px] font-black text-[#aaa] tracking-[0.1em]">
                 POWER
@@ -186,20 +186,20 @@ export function DesktopLayout({ canvas, tools, dsButtons }: LayoutProps) {
             </div>
           </div>
 
-          {/* Center: Bottom Screen System */}
+          {/* 中央: 下画面 */}
           <div className="shrink-0 relative w-full max-w-[420px] bg-(--ugo-bezel-bg) rounded-sm p-2 shadow-[inset_0_1px_8px_rgba(0,0,0,0.8)] border-[2px] border-(--ugo-bezel-border)">
             <div className="relative w-full h-full bg-[#fdfdfd] shadow-[inset_0_2px_10px_rgba(0,0,0,0.1)] overflow-hidden rounded-[2px]">
               {tools}
             </div>
           </div>
 
-          {/* Right: A/B/X/Y & Start/Select */}
+          {/* 右: A/B/X/Y と Start/Select */}
           <div className="flex flex-col items-start gap-6 -mt-2">
             <div className="relative w-[88px] h-[88px] flex items-center justify-center">
-              {/* Buttons Socket (Perfectly matching body color, no shadow) */}
+              {/* ボタン台座（本体色に合わせ、影なし） */}
               <div className="absolute w-[110%] h-[110%] rounded-full bg-(--ugo-body-bg)" />
 
-              {/* Diamond Layout Buttons */}
+              {/* ダイヤ配置のボタン */}
               <div className="relative w-full h-full grid grid-cols-3 grid-rows-3 p-1">
                 <button
                   type="button"
@@ -236,7 +236,7 @@ export function DesktopLayout({ canvas, tools, dsButtons }: LayoutProps) {
               </div>
             </div>
 
-            {/* START/SELECT */}
+            {/* START/SELECT（スタート/セレクト） */}
             <div className="flex flex-col gap-2 pl-1 -mt-1">
               <div className="flex items-center gap-1.5">
                 <button

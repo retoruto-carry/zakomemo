@@ -21,8 +21,8 @@ export type BuildWithDiffParams = {
 };
 
 /**
- * Builds ImageBitmap frames from a Drawing using a shared ImageData buffer.
- * Supports full rebuilds and incremental diffs based on stroke changes.
+ * DrawingからImageBitmapを生成する。
+ * 共有のImageDataバッファを使い、全再生成と差分描画に対応する。
  */
 export class FrameBuilder {
   private buffer: ImageDataBuffer;
@@ -31,7 +31,7 @@ export class FrameBuilder {
     this.buffer = buffer;
   }
 
-  /** Build a full frame from scratch for the given cycle time. */
+  /** 指定のcycle時間でフレームを全再生成する */
   async buildFromScratch({
     drawing,
     cycleElapsedTimeMs,
@@ -51,7 +51,7 @@ export class FrameBuilder {
     return await this.buffer.createBitmap();
   }
 
-  /** Build a frame by applying only new strokes or new points on a base bitmap. */
+  /** baseBitmapに新規ストローク/新規ポイントのみを反映して生成する */
   async buildWithDiff({
     drawing,
     cycleElapsedTimeMs,

@@ -40,6 +40,6 @@ export function parseColorToRgb(color: string): {
     return { r, g, b, a: 1 };
   }
 
-  // Fallback to black if parsing fails
+  // パースに失敗した場合は黒を返す
   return { r: 0, g: 0, b: 0, a: 1 };
 }

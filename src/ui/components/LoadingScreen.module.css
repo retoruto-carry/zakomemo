@@ -1,4 +1,4 @@
-/* Staggered vertical wipe animation */
+/* ずらしながら縦にワイプするアニメーション */
 .layer {
   position: absolute;
   inset: 0;
@@ -7,12 +7,12 @@
 }
 
 .layer1 {
-  background-color: #ff6000; /* Primary Orange */
+  background-color: #ff6000; /* メインのオレンジ */
   z-index: 20;
 }
 
 .layer2 {
-  background-color: #ffaa60; /* Secondary Orange */
+  background-color: #ffaa60; /* サブのオレンジ */
   z-index: 10;
 }
 

@@ -17,8 +17,8 @@ import type {
 } from "./types";
 
 /**
- * Canvas renderer backed by ImageBitmap cycle cache.
- * Orchestrates cache lookups and delegates drawing to helper classes.
+ * ImageBitmapのcycleキャッシュを使うCanvasレンダラー。
+ * キャッシュ参照の制御を行い、実描画は各ヘルパーに委譲する。
  */
 export class CanvasRenderer implements DrawingRenderer {
   private ctx: CanvasRenderingContext2D;
@@ -95,8 +95,8 @@ export class CanvasRenderer implements DrawingRenderer {
   }
 
   /**
-   * Get a cycle ImageBitmap for the given drawing state and time.
-   * Reuses cache and in-flight requests to avoid duplicate work.
+   * 指定のDrawing状態と時間に対応するcycleのImageBitmapを取得する。
+   * キャッシュとin-flightを再利用して重複生成を避ける。
    */
   async getCycleBitmap(params: GetCycleBitmapParams): Promise<ImageBitmap> {
     const {

@@ -11,8 +11,8 @@ type CycleState = {
 };
 
 /**
- * Keeps per-cycle ImageBitmap cache, in-flight promises, and diff trackers.
- * Cache entries are keyed by drawing revision, jitter, and cycle index.
+ * cycle単位のImageBitmapキャッシュ、in-flight Promise、差分トラッカーを保持する。
+ * キャッシュキーは drawingRevision / jitter / cycleIndex。
  */
 export class CycleBitmapCache {
   private states: CycleState[];
@@ -114,7 +114,7 @@ export class CycleBitmapCache {
     return this.getState({ cycleIndex }).tracker;
   }
 
-  /** Drop all cached state for every cycle. */
+  /** すべてのcycleのキャッシュ状態を破棄する */
   resetAll(): void {
     for (const state of this.states) {
       this.resetState({ state });

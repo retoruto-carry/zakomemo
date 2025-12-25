@@ -204,7 +204,7 @@ export const WigglyTools = React.forwardRef<
   }: WigglyToolsProps,
   ref,
 ) {
-  // Track which popup is open
+  // 開いているポップアップを追跡
   const [activePopup, setActivePopup] = useState<
     "none" | "pattern" | "eraser" | "settings"
   >("none");
@@ -237,11 +237,11 @@ export const WigglyTools = React.forwardRef<
     onUndo();
   };
 
-  // Toggle logic
+  // トグル処理
   const handleToolClick = (t: Tool) => {
-    // If clicking the already selected tool...
+    // すでに選択中のツールをクリックした場合
     if (tool === t) {
-      // Toggle popup for pattern/eraser, close for others
+      // パターン/消しゴムはポップアップを切り替え、それ以外は閉じる
       if (t === "pattern") {
         if (activePopup === "pattern") {
           uiSoundManager.play("popup-close", { stopPrevious: true });
@@ -265,7 +265,7 @@ export const WigglyTools = React.forwardRef<
         setActivePopup("none");
       }
     } else {
-      // Switching to a new tool - close any open popup, don't open new one
+      // 別ツールに切り替える場合は開いているポップアップを閉じ、新規は開かない
       if (activePopup !== "none") {
         uiSoundManager.play("popup-close", { stopPrevious: true });
       } else {
@@ -278,7 +278,7 @@ export const WigglyTools = React.forwardRef<
 
   return (
     <div className="flex flex-col w-full bg-[#fdfbf7] select-none text-(--color-ugo-dark) font-sans p-2 gap-2 relative overflow-hidden">
-      {/* Faithful Scanline & Pixel Texture Overlay - Lower Z to stay behind popups */}
+      {/* 忠実な走査線・ピクセルテクスチャのオーバーレイ（ポップアップの背面にするためZを低く） */}
       <div
         className="absolute inset-0 pointer-events-none z-0 opacity-15"
         style={{
@@ -290,7 +290,7 @@ export const WigglyTools = React.forwardRef<
         }}
       />
 
-      {/* Background Grid (Faithful Brand Color Orange) */}
+      {/* 背景グリッド（ブランドカラーのオレンジ） */}
       <div
         className="absolute inset-0 pointer-events-none opacity-[0.12]"
         style={{
@@ -302,12 +302,12 @@ export const WigglyTools = React.forwardRef<
         }}
       />
 
-      {/* 1. TOP ROW: Action Buttons (Faithful Orange Beveled Style) - Positioned at corners */}
+      {/* 1. 上段: アクションボタン（オレンジの立体風）- 角配置 */}
       <div className="h-12 shrink-0 relative z-10">
-        {/* Spacer for layout */}
+        {/* レイアウト用スペーサー */}
       </div>
 
-      {/* Left: Clear All (消す) - Top Left Corner */}
+      {/* 左: 全消し（消す）- 左上 */}
       <button
         type="button"
         onClick={() => {
@@ -336,7 +336,7 @@ export const WigglyTools = React.forwardRef<
         </span>
       </button>
 
-      {/* Center-Left: Settings */}
+      {/* 中央左: 設定 */}
       <button
         type="button"
         onClick={() => {
@@ -362,9 +362,9 @@ export const WigglyTools = React.forwardRef<
         </span>
       </button>
 
-      {/* Right-aligned group: Undo & Redo - Top Right Corner */}
+      {/* 右寄せグループ: やり直し/進む - 右上 */}
       <div className="absolute top-0 right-0 flex h-12 items-stretch z-10">
-        {/* Undo (やり直し) */}
+        {/* やり直し */}
         <button
           type="button"
           onClick={canUndo ? handleUndo : undefined}
@@ -394,7 +394,7 @@ export const WigglyTools = React.forwardRef<
           </span>
         </button>
 
-        {/* Redo (進む) */}
+        {/* 進む */}
         <button
           type="button"
           onClick={() => {
@@ -422,10 +422,10 @@ export const WigglyTools = React.forwardRef<
         </button>
       </div>
 
-      {/* 2. MIDDLE ROW: Main Tools (Faithful Dot Style) */}
+      {/* 2. 中段: メインツール（ドット風） */}
       <div className="h-24 shrink-0 flex flex-col justify-center relative z-30 py-0.5">
         <div className="grid grid-cols-3 gap-2.5 items-center">
-          {/* Pen */}
+          {/* ペン */}
           <button
             type="button"
             onClick={() => handleToolClick("pen")}
@@ -458,7 +458,7 @@ export const WigglyTools = React.forwardRef<
               className="w-20 h-20 object-contain drop-shadow-sm"
               aria-hidden="true"
             />
-            {/* Corner Indicator (Circle) */}
+            {/* 角インジケータ（丸） */}
             <div
               className={`absolute bottom-1.5 right-1.5 w-9 h-9 border-[3px] rounded-[3px] flex items-center justify-center z-[90] ${tool === "pen" ? "border-black bg-white" : "border-[#d2b48c] bg-white"}`}
             >
@@ -468,7 +468,7 @@ export const WigglyTools = React.forwardRef<
             </div>
           </button>
 
-          {/* Paint / Pattern */}
+          {/* ペイント / パターン */}
           <button
             type="button"
             onClick={() => {
@@ -509,7 +509,7 @@ export const WigglyTools = React.forwardRef<
               className="w-20 h-20 object-contain drop-shadow-sm"
               aria-hidden="true"
             />
-            {/* Corner Indicator */}
+            {/* 角インジケータ */}
             {/* biome-ignore lint/a11y/useSemanticElements: button要素のネストを避けるためdivを使用 */}
             <div
               role="button"
@@ -558,7 +558,7 @@ export const WigglyTools = React.forwardRef<
               />
             </div>
 
-            {/* COMPACT POPUP: Pattern Grid (Faithful Dot Style) */}
+            {/* 小さなポップアップ: パターングリッド（ドット風） */}
             {activePopup === "pattern" && (
               <div
                 className="absolute bg-white border-[3px] border-black p-0.5 grid grid-cols-3 gap-0.5 shadow-[8px_8px_0_rgba(0,0,0,0.2)] z-[150] h-fit rounded-[4px]"
@@ -638,7 +638,7 @@ export const WigglyTools = React.forwardRef<
             )}
           </button>
 
-          {/* Eraser */}
+          {/* 消しゴム */}
           <button
             type="button"
             onClick={() => {
@@ -679,7 +679,7 @@ export const WigglyTools = React.forwardRef<
               className="w-20 h-20 object-contain drop-shadow-sm"
               aria-hidden="true"
             />
-            {/* Corner Indicator */}
+            {/* 角インジケータ */}
             {/* biome-ignore lint/a11y/useSemanticElements: button要素のネストを避けるためdivを使用 */}
             <div
               role="button"
@@ -725,7 +725,7 @@ export const WigglyTools = React.forwardRef<
               />
             </div>
 
-            {/* COMPACT POPUP: Eraser Grid */}
+            {/* 小さなポップアップ: 消しゴムグリッド */}
             {activePopup === "eraser" && (
               <div
                 className="absolute bg-white border-[3px] border-black p-0.5 grid grid-cols-3 gap-0.5 shadow-[8px_8px_0_rgba(0,0,0,0.2)] z-[150] h-fit rounded-[4px]"
@@ -782,7 +782,7 @@ export const WigglyTools = React.forwardRef<
         </div>
       </div>
 
-      {/* 2.5. SLIDER ROW */}
+      {/* 2.5. スライダー行 */}
       <div className="h-8 shrink-0 flex items-center gap-2 relative z-10">
         <span className="text-sm font-black text-[#a67c52] leading-none whitespace-nowrap">
           太さ
@@ -807,9 +807,9 @@ export const WigglyTools = React.forwardRef<
         </div>
       </div>
 
-      {/* 3. BOTTOM ROW: Colors */}
+      {/* 3. 下段: 色 */}
       <div className="h-12 shrink-0 flex items-center justify-start gap-2 relative z-10">
-        {/* Colors */}
+        {/* 色 */}
         <div className="w-fit h-full bg-[#fffdeb] border-[3px] border-[#d2b48c] p-1 flex items-center justify-center gap-1 shadow-[3px_3px_0_rgba(210,180,140,0.2)] rounded-[4px]">
           {palette.map((_c, idx) => {
             const varName = `var(--palette-${idx})`;
@@ -840,7 +840,7 @@ export const WigglyTools = React.forwardRef<
         </div>
       </div>
 
-      {/* Save Button (Faithful Orange Style) - Bottom Right Corner */}
+      {/* 保存ボタン（オレンジの立体風）- 右下 */}
       <div className="absolute bottom-0 right-0 h-12 z-10">
         {exportUrl ? (
           <a
@@ -876,10 +876,10 @@ export const WigglyTools = React.forwardRef<
         )}
       </div>
 
-      {/* EXPORT OVERLAY */}
+      {/* エクスポートオーバーレイ */}
       {(isExporting || exportUrl) && (
         <div className="absolute inset-0 z-[300] bg-[#ff6b00] flex flex-col items-center p-3 text-white overflow-hidden">
-          {/* Close button (Only visible after export or if error) */}
+          {/* 閉じるボタン（エクスポート完了後またはエラー時のみ表示） */}
           {!isExporting && (
             <button
               type="button"
@@ -896,7 +896,7 @@ export const WigglyTools = React.forwardRef<
           <div className="relative z-10 flex flex-col items-center w-full h-full justify-center max-w-sm gap-3">
             {isExporting ? (
               <div className="flex flex-col items-center gap-6">
-                {/* Spinner */}
+                {/* スピナー */}
                 <div className="relative w-10 h-10">
                   <div className="absolute inset-0 border-3 border-white/20 rounded-full" />
                   <div className="absolute inset-0 border-3 border-white border-t-transparent rounded-full animate-spin" />
@@ -973,10 +973,10 @@ export const WigglyTools = React.forwardRef<
         </div>
       )}
 
-      {/* FULL SCREEN SETTINGS MODAL */}
+      {/* 全画面設定モーダル */}
       {activePopup === "settings" && (
         <div className="absolute inset-0 z-[200] bg-[#fdfbf7] flex flex-col overflow-hidden">
-          {/* Background Grid (Consistent with main screen) */}
+          {/* 背景グリッド（メイン画面と統一） */}
           <div
             className="absolute inset-0 pointer-events-none opacity-[0.12] z-0"
             style={{
@@ -988,7 +988,7 @@ export const WigglyTools = React.forwardRef<
             }}
           />
 
-          {/* Top Bar: Tabs & Close */}
+          {/* 上部バー: タブと閉じる */}
           <div className="h-14 shrink-0 bg-[#ff6b00] border-b-[4px] border-[#b34700] flex items-center px-2 gap-2 relative z-10">
             <div className="flex-1 flex h-full items-end gap-1 pt-1.5">
               <button
@@ -1063,11 +1063,11 @@ export const WigglyTools = React.forwardRef<
             </button>
           </div>
 
-          {/* Content Area with Custom Scrollbar */}
+          {/* コンテンツ領域（カスタムスクロールバー） */}
           <div className="flex-1 overflow-y-auto ugo-scrollbar p-3 relative z-10">
             {settingsTab === "palette" ? (
               <div className="flex flex-col gap-2.5">
-                {/* Palette Presets */}
+                {/* パレットプリセット */}
                 <div className="flex flex-col gap-2.5">
                   {PALETTE_PRESETS.map((p) => (
                     <button
@@ -1104,7 +1104,7 @@ export const WigglyTools = React.forwardRef<
                   ))}
                 </div>
 
-                {/* Custom Palette Option */}
+                {/* カスタムパレット */}
                 <div className="mt-1.5 p-3 bg-white border-[3px] border-[#e7d1b1] rounded-[6px] shadow-[2px_2px_0_rgba(210,180,140,0.1)]">
                   <span className="font-black text-base mb-3 block text-center text-[#a67c52]">
                     カスタムパレット
@@ -1177,7 +1177,7 @@ export const WigglyTools = React.forwardRef<
                   ))}
                 </div>
 
-                {/* Custom Background Color Option */}
+                {/* カスタム背景色 */}
                 <div className="p-2.5 bg-white border-[3px] border-[#e7d1b1] rounded-[6px] flex items-center gap-3 shadow-[2px_2px_0_rgba(210,180,140,0.1)]">
                   <div className="flex-1">
                     <span className="font-black text-xs block text-[#a67c52] leading-tight">
@@ -1264,7 +1264,7 @@ export const WigglyTools = React.forwardRef<
                   ))}
                 </div>
 
-                {/* Custom Body Color Option - More compact */}
+                {/* カスタム本体色（コンパクト版） */}
                 <div className="p-2.5 bg-white border-[3px] border-[#e7d1b1] rounded-[6px] flex items-center gap-3 shadow-[2px_2px_0_rgba(210,180,140,0.1)]">
                   <div className="flex-1">
                     <span className="font-black text-xs block text-[#a67c52] leading-tight">

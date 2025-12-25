@@ -15,8 +15,8 @@ export type SetPixelParams = {
 };
 
 /**
- * ImageData and offscreen canvas wrapper for pixel-level drawing.
- * Handles background fill and bitmap creation from the buffer.
+ * ピクセル描画用のImageDataとオフスクリーンキャンバスのラッパー。
+ * 背景の塗りつぶしとバッファからのImageBitmap生成を扱う。
  */
 export class ImageDataBuffer {
   private ctx: CanvasRenderingContext2D;
@@ -33,7 +33,7 @@ export class ImageDataBuffer {
     this.backgroundColorRgba = parseColorToRgb(backgroundColor);
   }
 
-  /** Update background color and refill the buffer if already initialized. */
+  /** 背景色を更新し、初期化済みならバッファを再塗りつぶしする */
   setBackgroundColor({ backgroundColor }: { backgroundColor: string }): void {
     this.backgroundColorRgba = parseColorToRgb(backgroundColor);
     if (this.imageData) {
@@ -53,7 +53,7 @@ export class ImageDataBuffer {
     return this.imageData !== null && this.data !== null;
   }
 
-  /** Ensure buffer size; returns true when buffer was reinitialized. */
+  /** バッファサイズを保証し、再初期化した場合はtrueを返す */
   ensureSize({ width, height }: { width: number; height: number }): boolean {
     if (
       this.imageData &&
@@ -72,7 +72,7 @@ export class ImageDataBuffer {
     this.initializeImageData({ width, height });
   }
 
-  /** Write a single pixel into the current ImageData buffer. */
+  /** 現在のImageDataバッファに1ピクセル書き込む */
   setPixel({ x, y, r, g, b, a }: SetPixelParams): void {
     if (
       !this.data ||
@@ -127,7 +127,7 @@ export class ImageDataBuffer {
     return this.offscreenCanvas;
   }
 
-  /** Sync current ImageData into the offscreen canvas. */
+  /** 現在のImageDataをオフスクリーンキャンバスに反映する */
   putToOffscreen(): void {
     if (!this.imageData || !this.offscreenCanvas || !this.offscreenCtx) {
       throw new Error("Offscreen canvas is not initialized.");
@@ -135,7 +135,7 @@ export class ImageDataBuffer {
     this.offscreenCtx.putImageData(this.imageData, 0, 0);
   }
 
-  /** Create an ImageBitmap from the offscreen canvas. */
+  /** オフスクリーンキャンバスからImageBitmapを生成する */
   async createBitmap(): Promise<ImageBitmap> {
     if (!this.offscreenCanvas) {
       throw new Error("Offscreen canvas is not initialized.");
