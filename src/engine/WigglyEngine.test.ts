@@ -120,7 +120,7 @@ function createEngine() {
 }
 
 describe("WigglyEngine", () => {
-  test("pointer lifecycle creates stroke and records history", () => {
+  test("ポインタ操作でストロークを作成し履歴に記録する", () => {
     const { engine, time, sound } = createEngine();
 
     time.set(0);
@@ -139,7 +139,7 @@ describe("WigglyEngine", () => {
     expect(updateEvent?.info.speed).toBeGreaterThan(0);
   });
 
-  test("undo and redo navigate history", () => {
+  test("undo/redoで履歴を移動できる", () => {
     const { engine, time } = createEngine();
     engine.pointerDown(0, 0);
     time.set(5);
@@ -153,7 +153,7 @@ describe("WigglyEngine", () => {
     expect(engine.getDrawing().strokes).toHaveLength(1);
   });
 
-  test("clear pushes a new history entry that can be undone", () => {
+  test("clearは履歴に追加されundoできる", () => {
     const { engine, time } = createEngine();
     engine.pointerDown(1, 1);
     time.set(5);
@@ -167,7 +167,7 @@ describe("WigglyEngine", () => {
     expect(engine.getDrawing().strokes).toHaveLength(1);
   });
 
-  test("render loop triggers renderer with jittered points", () => {
+  test("レンダリングループでジッター適用済みポイントが描画される", () => {
     const { engine, time, raf, renderer } = createEngine();
     engine.pointerDown(0, 0);
     time.set(5);
@@ -212,7 +212,7 @@ describe("WigglyEngine", () => {
     invalidateSpy.mockRestore();
   });
 
-  test("destroy cancels RAF loop", () => {
+  test("destroyでRAFループをキャンセルする", () => {
     const { engine, raf } = createEngine();
     const cancelSpy = vi.spyOn(raf, "cancel");
     engine.destroy();

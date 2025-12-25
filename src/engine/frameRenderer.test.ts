@@ -67,7 +67,7 @@ function createCycleRenderer(): CycleRendererStub {
 }
 
 describe("renderDrawingAtTime", () => {
-  test("clears canvas and renders each stroke with jitter", () => {
+  test("キャンバスをクリアし各ストロークをジッター付きで描画する", () => {
     const drawing: Drawing = {
       width: 200,
       height: 100,

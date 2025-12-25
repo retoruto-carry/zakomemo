@@ -58,7 +58,7 @@ function createPatternStroke(color: string): Stroke {
 }
 
 describe("renderStroke", () => {
-  test("solid stroke writes color to the buffer", () => {
+  test("ソリッドストロークがバッファに色を書き込む", () => {
     const buffer = createBuffer("#ffffff");
     buffer.clear({ width: 4, height: 4 });
 
@@ -73,7 +73,7 @@ describe("renderStroke", () => {
     });
   });
 
-  test("erase stroke restores the background color", () => {
+  test("消しゴムストロークが背景色に戻す", () => {
     const buffer = createBuffer("#ffffff");
     buffer.clear({ width: 4, height: 4 });
 
@@ -91,7 +91,7 @@ describe("renderStroke", () => {
     });
   });
 
-  test("pattern stroke writes the pattern color", () => {
+  test("パターンストロークがパターン色を書き込む", () => {
     const buffer = createBuffer("#ffffff");
     buffer.clear({ width: 8, height: 8 });
 

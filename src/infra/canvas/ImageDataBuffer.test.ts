@@ -27,7 +27,7 @@ function getPixel(
 }
 
 describe("ImageDataBuffer", () => {
-  test("ensureSize initializes once and skips when size matches", () => {
+  test("ensureSizeは初期化後に同サイズならスキップする", () => {
     const buffer = createBuffer("#112233");
 
     const first = buffer.ensureSize({ width: 2, height: 2 });
@@ -37,7 +37,7 @@ describe("ImageDataBuffer", () => {
     expect(second).toBe(false);
   });
 
-  test("clear fills the buffer with background color", () => {
+  test("clearは背景色でバッファを塗りつぶす", () => {
     const buffer = createBuffer("#112233");
 
     buffer.clear({ width: 1, height: 1 });
@@ -50,7 +50,7 @@ describe("ImageDataBuffer", () => {
     });
   });
 
-  test("setPixel writes within bounds and ignores out-of-bounds", () => {
+  test("setPixelは範囲内のみ書き込み範囲外を無視する", () => {
     const buffer = createBuffer("#ffffff");
     buffer.clear({ width: 2, height: 2 });
 
@@ -71,7 +71,7 @@ describe("ImageDataBuffer", () => {
     });
   });
 
-  test("createBitmap delegates to createImageBitmap", async () => {
+  test("createBitmapはcreateImageBitmapに委譲する", async () => {
     const buffer = createBuffer("#ffffff");
     buffer.clear({ width: 2, height: 2 });
 

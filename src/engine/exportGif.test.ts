@@ -107,7 +107,7 @@ const drawing: Drawing = {
 };
 
 describe("exportDrawingAsGif", () => {
-  test("renders frames and collects them via GifEncoder", async () => {
+  test("フレームを描画しGifEncoderに渡す", async () => {
     const renderer = new MockRenderer(drawing.width, drawing.height);
     const gif = new MockGifEncoder();
 
