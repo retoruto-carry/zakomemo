@@ -12,13 +12,13 @@
 - カラーパレット: 6 色（可変）。設定画面からプリセット（スタンダード、ゲームボーイ等）の選択、またはカスタム色の指定が可能。
 - 本体色（テーマ）: DS 本体（筐体）の色を変更可能。設定画面からプリセット（マットホワイト、メタリックレッド等、全 20 種）を選択可能。カスタムカラーも指定可能。
 - 太さ: 1〜48px のスライダーで調整（初期値 16px）。
-- 消しゴム: destination-out で透明に描画。太さはペン設定と連動。プレビューは白抜きで表示。形状は円/四角/横線の 3 種。
+- 消しゴム: 背景色で描画（ImageDataに直接書き込み）。太さはペン設定と連動。プレビューは白抜きで表示。形状は円/四角/横線の 3 種。jitterは適用しない。
 - Undo/Redo: 「やり直し」「進む」ボタンおよび 2 本指タップで操作可能。履歴がある場合のみ有効（disabled 状態で表示）。
 - 全消し: 「消す」ボタンで履歴に push した上でクリア。
 - 設定: 下画面を覆うフルスクリーンモーダル。「背景色」「パレット」「本体色」「ぶるぶる」のタブ切り替え。カスタムスクロールバー実装。
   - 背景色: プリセット色またはカスタムカラーを選択可能。
   - ぶるぶる: 揺れの振幅と周波数をスライダーで調整可能。
-- GIF 出力: 12fps・約 2 秒（24 フレーム）をループ GIF として出力。保存後、X（Twitter）へのシェア機能あり。
+- GIF 出力: jitterアニメーションは3フレーム固定で10fps（100ms間隔）を1ループ分だけ出力。GIFは無限ループ。保存後、X（Twitter）へのシェア機能あり。
   - モバイル: Web Share API 対応時は画像付きシェア、非対応時は Intent URL でテキストシェア。
   - PC: Intent URL で新規タブを開く。
 
@@ -70,15 +70,16 @@
 ## エンジン層（engine）
 
 - Ports:
-  - DrawingRenderer(clear/renderStroke)
+  - DrawingRenderer(clear/renderStroke/invalidateRenderCache)
   - TimeProvider(now)
   - RafScheduler(request/cancel)
   - GifEncoder(begin/addFrame/finish)
   - StrokeSound(onStrokeStart/Update/End)
-- frameRenderer: `renderDrawingAtTime(drawing, renderer, jitterConfig, elapsedTimeMs)` で任意時刻の描画を共通化。`elapsedTimeMs`はエンジン開始からの経過時間（ミリ秒）。
+- frameRenderer: `renderDrawingAtTime({ drawing, drawingRevision, renderer, jitterConfig, elapsedTimeMs })` で任意時刻の描画を共通化。`elapsedTimeMs`はエンジン開始からの経過時間（ミリ秒）。
 - WigglyEngine:
   - History<Drawing> を保持し、tool/color/width の現在値を管理。
   - pointerDown/move/up で core を更新し、stroke 完了時のみ履歴に push。
+  - Drawing の更新ごとに `drawingRevision` を増加させる。
   - RAF ループで `renderDrawingAtTime` を呼ぶ。
   - Undo/Redo/clear を公開。
   - StrokeSound に速度/長さ情報を通知。
@@ -86,7 +87,7 @@
 
 ## インフラ層（infra）
 
-- CanvasRenderer: Canvas2D で Stroke を描画。erase は destination-out、solid は色、pattern は offscreen タイル →createPattern でワールド固定の模様を適用。DPR 対応。
+- CanvasRenderer: ImageDataBuffer にピクセル単位で描画し、ImageBitmap を生成して描画する。パターンは `PatternTile` で計算し、jitter による揺れのみ適用。DPR 対応。
 - その他: RealTimeProvider（performance.now）、BrowserRafScheduler（requestAnimationFrame）、WebAudioStrokeSound（Web Audio API による動的音源生成）、UISoundManager（Howler.js による UI 音源管理）、GIF エンコーダー実装（ライブラリラップ）。
 
 ## UI 層
@@ -113,4 +114,4 @@
 
 ## 開発ポリシー
 
-- TypeScript strict、ESLint/Prettier。純粋関数を core に集約。Magic number は設定経由で管理。高 DPI 対応。Undo 前提で全消し確認は省略可。
+- TypeScript strict、Biome。純粋関数を core に集約。Magic number は設定経由で管理。高 DPI 対応。Undo 前提で全消し確認は省略可。

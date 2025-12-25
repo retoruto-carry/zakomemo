@@ -11,7 +11,7 @@ export type JitterOffset = {
 };
 
 function hashNoise(a: number, b: number, c: number): number {
-  // Simple deterministic hash -> 0..1
+  // 簡易な決定性ハッシュで0..1に正規化
   const n = Math.sin(a * 12.9898 + b * 78.233 + c * 37.719) * 43758.5453;
   return n - Math.floor(n);
 }
@@ -21,7 +21,7 @@ export function computeJitter(
   elapsedTimeMs: number,
   config: JitterConfig,
 ): JitterOffset {
-  // Quantize時間ベースの揺れでジャギー感を出す
+  // 時間を量子化した揺れでジャギー感を出す
   const bucket = Math.floor((point.t + elapsedTimeMs) * config.frequency);
   const amplitude = config.amplitude;
 

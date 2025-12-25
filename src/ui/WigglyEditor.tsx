@@ -1,32 +1,31 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { JitterConfig } from "@/core/jitter";
-import type { BrushPatternId, Drawing } from "@/core/types";
-import { exportDrawingAsGif } from "@/engine/exportGif";
-import type { EraserVariant, PenVariant } from "@/engine/variants";
-import type { Tool, WigglyEngine } from "@/engine/WigglyEngine";
-import { CanvasRenderer } from "@/infra/CanvasRenderer";
-import { GifEncGifEncoder } from "@/infra/GifEncGifEncoder";
-import { initializeUISounds, uiSoundManager } from "@/infra/uiSounds";
-import { DesktopLayout } from "./layouts/DesktopLayout";
-import { MobileLayout } from "./layouts/MobileLayout";
 import {
   BACKGROUND_COLOR_PRESETS,
   BODY_PRESETS,
-  DEFAULT_DRAWING,
   PALETTE_PRESETS,
-} from "./presets";
+} from "@/config/presets";
+import type { JitterConfig } from "@/core/jitter";
+import type { BrushPatternId } from "@/core/types";
+import { exportDrawingAsGif } from "@/engine/exportGif";
+import type { EraserVariant, PenVariant } from "@/engine/variants";
+import type { Tool, WigglyEngine } from "@/engine/WigglyEngine";
+import { CanvasRenderer } from "@/infra/canvas/CanvasRenderer";
+import { GifEncGifEncoder } from "@/infra/GifEncGifEncoder";
+import { initializeUISounds, uiSoundManager } from "@/infra/sound/uiSounds";
+import { DesktopLayout } from "./layouts/DesktopLayout";
+import { MobileLayout } from "./layouts/MobileLayout";
 import { WigglyCanvas } from "./WigglyCanvas";
 import { WigglyTools, type WigglyToolsHandle } from "./WigglyTools";
 
-// Default palette: black, red, green, blue, yellow, purple
+// デフォルトパレット: 黒、赤、緑、青、黄、紫
 const defaultPalette = PALETTE_PRESETS[0].colors;
 
-// Standard DS White body
+// 標準DSホワイト本体
 const defaultBodyColor = BODY_PRESETS[0].body;
 
-/** Default pen width (should match engine/variants.ts defaultPenWidth.normal) */
+/** デフォルトのペン幅（engine/variants.tsのdefaultPenWidth.normalと揃える） */
 const DEFAULT_PEN_WIDTH = 16;
 
 export function WigglyEditor() {
@@ -38,7 +37,7 @@ export function WigglyEditor() {
     initializeUISounds();
   }, []);
 
-  // State
+  // 状態
   const [tool, setTool] = useState<Tool>("pen");
   const [color, setColor] = useState("var(--palette-0)");
   const [brushWidth, setBrushWidth] = useState(DEFAULT_PEN_WIDTH);
@@ -55,7 +54,7 @@ export function WigglyEditor() {
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
 
-  // Palette & Body state
+  // パレット/本体色の状態
   const [palette, setPalette] = useState(defaultPalette);
   const [selectedPaletteName, setSelectedPaletteName] = useState<string | null>(
     PALETTE_PRESETS[0].name,
@@ -67,7 +66,7 @@ export function WigglyEditor() {
     frequency: 0.008,
   });
 
-  // Layout State
+  // レイアウト状態
   const [isDesktop, setIsDesktop] = useState(false);
 
   useEffect(() => {
@@ -77,7 +76,7 @@ export function WigglyEditor() {
     return () => window.removeEventListener("resize", check);
   }, []);
 
-  // Global Keyboard Shortcuts (Ctrl/Cmd + Z/Y for undo/redo only)
+  // グローバルショートカット（Ctrl/Cmd+Z/Yはやり直し/進むのみ）
   useEffect(() => {
     const handleKey = (ev: KeyboardEvent) => {
       const engine = engineRef.current;
@@ -103,11 +102,12 @@ export function WigglyEditor() {
     const engine = engineRef.current;
     const drawing = engine?.getDrawing();
     if (!engine || !drawing) return;
+    const drawingRevision = engine.getDrawingRevision();
 
     setIsExporting(true);
     setExportError(null);
 
-    // Yield to the event loop to allow the loading UI to render
+    // ローディングUIを描画するためイベントループに処理を譲る
     await new Promise((resolve) => setTimeout(resolve, 50));
 
     try {
@@ -128,11 +128,10 @@ export function WigglyEditor() {
       gifEncoder.setBackgroundColor(backgroundColor);
       const blob = await exportDrawingAsGif({
         drawing,
+        drawingRevision,
         renderer,
         gif: gifEncoder,
         jitterConfig,
-        fps: 12,
-        durationMs: 2000,
       });
 
       if (exportUrl) URL.revokeObjectURL(exportUrl);
@@ -151,20 +150,20 @@ export function WigglyEditor() {
       setCanUndo(engine.canUndo());
       setCanRedo(engine.canRedo());
     });
-    // Initial check
+    // 初期チェック
     setCanUndo(engine.canUndo());
     setCanRedo(engine.canRedo());
   }, []);
 
-  // Sync palette/body changes to engine's pattern cache
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Intentionally trigger on palette/bodyColor changes
+  // パレット/本体色の変更をエンジンのパターンキャッシュに同期
+  // biome-ignore lint/correctness/useExhaustiveDependencies: palette/bodyColor変更時のみ動かすため
   useEffect(() => {
     engineRef.current?.clearRendererCache();
   }, [palette, bodyColor]);
 
   const Layout = isDesktop ? DesktopLayout : MobileLayout;
 
-  // DS Button Handlers
+  // DSボタン操作
   const handleDSButtonA = useCallback(() => {
     uiSoundManager.play("ds-button-a", { stopPrevious: true });
     engineRef.current?.redo();
@@ -295,7 +294,7 @@ export function WigglyEditor() {
   return (
     <>
       <style
-        // biome-ignore lint/security/noDangerouslySetInnerHtml: Static CSS, no user input
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: 固定CSSでユーザー入力を含まないため
         dangerouslySetInnerHTML={{
           __html: `
         :root {
@@ -313,7 +312,7 @@ export function WigglyEditor() {
           --ugo-hinge-border: ${bodyColor.hingeBorder};
         }
 
-        /* Custom Scrollbar - Ugomemo Style */
+        /* カスタムスクロールバー（うごメモ風） */
         .ugo-scrollbar::-webkit-scrollbar {
           width: 16px;
         }

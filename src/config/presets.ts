@@ -1,11 +1,11 @@
 import type { Drawing } from "@/core/types";
 
 /**
- * デフォルトの描画サイズ
+ * デフォルトの描画サイズ（論理サイズ）
  */
 export const DEFAULT_DRAWING: Drawing = {
-  width: 960,
-  height: 640,
+  width: 384,
+  height: 256,
   strokes: [],
 };
 
@@ -455,7 +455,7 @@ export function generateBodyColorFromBase(hex: string): BodyColor {
   // 入力を正規化（3文字hex対応、バリデーション）
   const normalizedHex = normalizeHex(hex);
 
-  /** Clamp a value to the 0-255 range */
+  /** 0〜255の範囲に収める */
   const clamp = (val: number) => Math.max(0, Math.min(255, val));
 
   const isDark = (color: string) => {

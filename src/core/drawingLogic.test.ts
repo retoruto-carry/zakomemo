@@ -15,7 +15,7 @@ const brush: BrushSettings = {
 };
 
 describe("drawingLogic", () => {
-  test("startStroke adds a new stroke with initial point", () => {
+  test("startStrokeは初期ポイント付きのストロークを追加する", () => {
     const result = startStroke(baseDrawing, "s1", "draw", brush, {
       x: 10,
       y: 20,
@@ -28,7 +28,7 @@ describe("drawingLogic", () => {
     expect(stroke.points).toEqual([{ x: 10, y: 20, t: 0 }]);
   });
 
-  test("appendPoint adds a point to the specified stroke", () => {
+  test("appendPointは指定ストロークにポイントを追加する", () => {
     const started = startStroke(baseDrawing, "s1", "draw", brush, {
       x: 1,
       y: 1,
@@ -42,7 +42,7 @@ describe("drawingLogic", () => {
     ]);
   });
 
-  test("clearDrawing removes all strokes", () => {
+  test("clearDrawingは全ストロークを削除する", () => {
     const started = startStroke(baseDrawing, "s1", "draw", brush, {
       x: 1,
       y: 1,

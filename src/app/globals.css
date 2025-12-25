@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  /* Ugomemo Palette */
+  /* うごメモのパレット */
   --color-ugomemo-orange: #ff6000;
   --color-ugomemo-bg: #f8f8f0;
   --color-ugomemo-dark: #1a1a1a;
@@ -19,7 +19,7 @@
   --font-sans:
     var(--font-rounded), "Inter", "Helvetica Neue", Arial, sans-serif;
 
-  /* Custom Colors */
+  /* カスタムカラー */
   --color-ugo-orange: var(--color-ugomemo-orange);
   --color-ugo-bg: var(--color-ugomemo-bg);
   --color-ugo-dark: var(--color-ugomemo-dark);
@@ -32,7 +32,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    /* Dark mode adjustments if needed, keeping it retro-ish but usable */
+    /* 必要ならダークモード用に調整（レトロ感は残しつつ使用感を確保） */
     --background: #2a2a2a;
     --foreground: #f0f0f0;
   }
@@ -42,7 +42,7 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
-  overscroll-behavior: none; /* Prevent bounce on mobile */
-  user-select: none; /* App-like feel */
+  overscroll-behavior: none; /* モバイルのバウンスを抑制 */
+  user-select: none; /* アプリっぽい操作感 */
   -webkit-user-select: none;
 }

@@ -2,13 +2,13 @@ import { getPatternDefinition, PATTERNS } from "./patterns";
 import type { BrushPatternId } from "./types";
 
 describe("patterns", () => {
-  test("getPatternDefinition returns a known pattern", () => {
+  test("getPatternDefinitionは既知パターンを返す", () => {
     const dots = getPatternDefinition("dots");
     expect(dots.id).toBe("dots");
     expect(dots.tile.alpha.length).toBe(dots.tile.width * dots.tile.height);
   });
 
-  test("patterns include multiple variants", () => {
+  test("patternsに複数のバリアントが含まれる", () => {
     const ids: BrushPatternId[] = [
       "dotsDense",
       "horizontal",
@@ -21,13 +21,13 @@ describe("patterns", () => {
     });
   });
 
-  test("getPatternDefinition throws on unknown id", () => {
+  test("未知のidではgetPatternDefinitionが例外を投げる", () => {
     expect(() =>
       getPatternDefinition("unknown" as BrushPatternId),
     ).toThrowError();
   });
 
-  test("PATTERNS includes at least one definition", () => {
+  test("PATTERNSに最低1件の定義が含まれる", () => {
     expect(PATTERNS.length).toBeGreaterThanOrEqual(1);
   });
 });

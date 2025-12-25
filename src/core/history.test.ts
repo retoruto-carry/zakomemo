@@ -8,14 +8,14 @@ import {
 const initial = { value: 0 };
 
 describe("history", () => {
-  test("createHistory initializes with empty past/future", () => {
+  test("createHistoryはpast/futureを空で初期化する", () => {
     const history = createHistory(initial);
     expect(history.past).toEqual([]);
     expect(history.present).toEqual(initial);
     expect(history.future).toEqual([]);
   });
 
-  test("pushHistory moves present to past and clears future", () => {
+  test("pushHistoryはpresentをpastに移しfutureをクリアする", () => {
     const history = createHistory(initial);
     const next = { value: 1 };
     const pushed = pushHistory(history, next);
@@ -25,7 +25,7 @@ describe("history", () => {
     expect(pushed.future).toEqual([]);
   });
 
-  test("undoHistory moves present to future and restores previous past item", () => {
+  test("undoHistoryはpresentをfutureに移し直前のpastを復元する", () => {
     const history = pushHistory(createHistory(initial), { value: 1 });
     const undone = undoHistory(history);
 
@@ -33,7 +33,7 @@ describe("history", () => {
     expect(undone.future[0]).toEqual({ value: 1 });
   });
 
-  test("redoHistory moves future head to present", () => {
+  test("redoHistoryはfutureの先頭をpresentに戻す", () => {
     const history = pushHistory(createHistory(initial), { value: 1 });
     const undone = undoHistory(history);
     const redone = redoHistory(undone);
@@ -42,7 +42,7 @@ describe("history", () => {
     expect(redone.past).toContainEqual(initial);
   });
 
-  test("undo/redo with empty stacks are no-ops", () => {
+  test("空のスタックではundo/redoは何もしない", () => {
     const history = createHistory(initial);
     expect(undoHistory(history)).toEqual(history);
     expect(redoHistory(history)).toEqual(history);

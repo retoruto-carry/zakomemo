@@ -9,20 +9,22 @@ import { parseColorToRgb } from "./colorUtil";
 export class GifEncGifEncoder implements GifEncoder {
   private encoder = GIFEncoder();
   private delayMs = 0;
-  private backgroundColor: { r: number; g: number; b: number } = {
+  private backgroundColor: { r: number; g: number; b: number; a: number } = {
     r: 255,
     g: 255,
     b: 255,
+    a: 1,
   };
 
   setBackgroundColor(backgroundColor: string): void {
-    this.backgroundColor = parseColorToRgb(backgroundColor);
+    const rgb = parseColorToRgb(backgroundColor);
+    this.backgroundColor = { r: rgb.r, g: rgb.g, b: rgb.b, a: rgb.a };
   }
 
   begin(width: number, height: number, fps: number): void {
     this.delayMs = Math.round(1000 / fps);
-    // gifenc writes header automatically on first frame in auto mode
-    // but we can prime encoder if needed; storing dimensions for clarity
+    // このgifencはautoモードで最初のフレーム時にヘッダを書き込む
+    // 必要なら先に初期化できるが、ここでは寸法のみ保持する
     void width;
     void height;
   }

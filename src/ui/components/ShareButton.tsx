@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { uiSoundManager } from "@/infra/uiSounds";
+import { uiSoundManager } from "@/infra/sound/uiSounds";
 import { shareToTwitter } from "@/lib/share";
 
-// X (Twitter) アイコン
+// X（Twitter）アイコン
 const XIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -21,7 +21,7 @@ const XIcon = () => (
 interface ShareButtonProps {
   /** シェアするテキスト */
   text: string;
-  /** シェアする画像の URL (data URL or blob URL) */
+  /** シェアする画像のURL（data URL または blob URL） */
   imageUrl?: string;
   /** クラス名 */
   className?: string;

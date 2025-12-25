@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { createWigglyEngine } from "@/app/createWigglyEngine";
+import { DEFAULT_DRAWING } from "@/config/presets";
 import type { JitterConfig } from "@/core/jitter";
 import type { BrushPatternId } from "@/core/types";
+import { createWigglyEngine } from "@/engine/createWigglyEngine";
 import type { EraserVariant, PenVariant } from "@/engine/variants";
 import type { Tool, WigglyEngine } from "@/engine/WigglyEngine";
-import { DEFAULT_DRAWING } from "./presets";
 
 const ERASER_GUIDE = {
   minSize: 12,
@@ -57,13 +57,13 @@ export function WigglyCanvas({
     null,
   );
 
-  // Keep a ref to the current tool to access it inside event handlers without re-binding
+  // イベントハンドラ内で再バインドせずに現在のツールを参照する
   const toolRef = useRef(tool);
   useEffect(() => {
     toolRef.current = tool;
   }, [tool]);
 
-  // Sync Props to Engine
+  // 入力プロパティをエンジンに同期
   useEffect(() => {
     engineRef.current?.setTool(tool);
   }, [tool]);
@@ -83,18 +83,18 @@ export function WigglyCanvas({
     engineRef.current?.setEraserVariant(eraserVariant);
   }, [eraserVariant]);
 
-  // Sync background color to engine renderer
+  // 背景色をレンダラーに同期
   useEffect(() => {
     engineRef.current?.setBackgroundColor(backgroundColor);
   }, [backgroundColor]);
 
-  // Sync jitter config to engine
+  // ジッター設定をエンジンに同期
   useEffect(() => {
     engineRef.current?.setJitterConfig(jitterConfig);
   }, [jitterConfig]);
 
-  // Initialize Engine and Event Listeners
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Intentionally run once on mount
+  // エンジンとイベントリスナーを初期化
+  // biome-ignore lint/correctness/useExhaustiveDependencies: マウント時に1回だけ実行するため
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -187,7 +187,7 @@ export function WigglyCanvas({
       const info = activePointersRef.current.get(ev.pointerId);
       const { visual, internal } = toCanvasPos(ev);
 
-      // Update eraser cursor for hover (mouse/pen) or drag (touch/all)
+      // ホバー（マウス/ペン）やドラッグ（タッチ/全体）時に消しゴムカーソルを更新
       if (toolRef.current === "eraser") {
         if (
           ev.pointerType === "mouse" ||
@@ -268,9 +268,9 @@ export function WigglyCanvas({
       cleanupPointer(ev, true);
     };
 
-    // Use window for move/up to catch drags leaving the canvas (though capture handles most)
+    // pointercaptureを使うため、move/upはcanvasで処理する
     const handlePointerLeave = () => {
-      // Hide eraser if pen leaves canvas (only when not dragging)
+      // ドラッグ中でない場合、ペンがキャンバス外に出たら消しゴムを隠す
       if (toolRef.current === "eraser" && !primaryPointerIdRef.current) {
         setEraserPos(null);
       }
@@ -294,7 +294,7 @@ export function WigglyCanvas({
       canvas.removeEventListener("pointercancel", handlePointerCancel);
       canvas.removeEventListener("pointerleave", handlePointerLeave);
     };
-  }, []); // Run once on mount
+  }, []); // マウント時に1回だけ実行
 
   const containerRef = useRef<HTMLDivElement | null>(null);
 

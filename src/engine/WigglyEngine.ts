@@ -1,22 +1,26 @@
-import { appendPoint, clearDrawing, startStroke } from "../core/drawingLogic";
+import { appendPoint, clearDrawing, startStroke } from "@/core/drawingLogic";
 import {
   createHistory,
   type History,
   pushHistory,
   redoHistory,
   undoHistory,
-} from "../core/history";
-import type { JitterConfig } from "../core/jitter";
-import type { BrushSettings, Drawing, StrokeKind } from "../core/types";
-import { renderDrawingAtTime } from "./frameRenderer";
+} from "@/core/history";
+import type { JitterConfig } from "@/core/jitter";
+import { snapBrushWidth, snapToPixel } from "@/core/rasterization";
+import type { BrushSettings, Drawing, StrokeKind } from "@/core/types";
+import {
+  invalidatePendingRequests,
+  renderDrawingAtTime,
+} from "@/engine/frameRenderer";
 import type {
   DrawingRenderer,
   RafScheduler,
   StrokeSound,
   TimeProvider,
-} from "./ports";
-import type { EraserVariant, PenVariant } from "./variants";
-import { defaultPenWidth, resolveWidthVariant } from "./variants";
+} from "@/engine/ports";
+import type { EraserVariant, PenVariant } from "@/engine/variants";
+import { defaultPenWidth, resolveWidthVariant } from "@/engine/variants";
 
 export type Tool = "pen" | "pattern" | "eraser";
 
@@ -40,6 +44,7 @@ export class WigglyEngine {
   private raf: RafScheduler;
   private sound?: StrokeSound;
   private jitterConfig: JitterConfig;
+  private drawingRevision = 0;
 
   private currentTool: Tool = "pen";
   private pendingColor = "#000000";
@@ -82,7 +87,7 @@ export class WigglyEngine {
   }
 
   setBrushWidth(width: number): void {
-    this.pendingWidth = width;
+    this.pendingWidth = snapBrushWidth(width);
   }
 
   setPenVariant(variant: PenVariant): void {
@@ -101,23 +106,29 @@ export class WigglyEngine {
    * レンダラーがsetBackgroundColorメソッドを持っている場合のみ有効
    */
   setBackgroundColor(backgroundColor: string): void {
-    // CanvasRenderer has setBackgroundColor method
+    // setBackgroundColor対応レンダラーのみ適用
     if (
       "setBackgroundColor" in this.renderer &&
       typeof this.renderer.setBackgroundColor === "function"
     ) {
       this.renderer.setBackgroundColor(backgroundColor);
-      // Force immediate re-render with new background color
+      // 背景色変更前のリクエストを無効化して古いImageBitmapを捨てる
+      invalidatePendingRequests(this.renderer);
+      // 背景色変更を即座に反映するために次の描画を強制
       this.lastRenderAt = 0;
     }
   }
 
   /**
-   * 即座に再レンダリングを実行
+   * jitter設定を変更し、即座に再レンダリングを実行
+   * jitterConfigが変わると、同じDrawingでも異なるjitterが適用されるため、
+   * キャッシュを無効化する必要がある
    */
   setJitterConfig(jitterConfig: JitterConfig): void {
     this.jitterConfig = jitterConfig;
-    // Force immediate re-render with new jitter config
+    // jitterConfigが変わるとキャッシュが無効になるため、キャッシュをクリア
+    this.clearRendererCache();
+    // jitter変更を即座に反映するために次の描画を強制
     this.lastRenderAt = 0;
   }
 
@@ -125,8 +136,14 @@ export class WigglyEngine {
     this.onHistoryChange = listener;
   }
 
+  /**
+   * レンダラーのキャッシュと保留中リクエストを無効化する
+   */
   clearRendererCache(): void {
-    this.renderer.clearPatternCache();
+    this.renderer.invalidateRenderCache();
+    // 保留中の非同期レンダリングリクエストを無効化
+    // これにより、閉じられたImageBitmapを使用しようとする古いリクエストを防ぐ
+    invalidatePendingRequests(this.renderer);
   }
 
   canUndo(): boolean {
@@ -138,6 +155,8 @@ export class WigglyEngine {
   }
 
   pointerDown(x: number, y: number): void {
+    // 座標を整数ピクセルにスナップ
+    const snapped = snapToPixel(x, y);
     const now = this.time.now();
     const strokeId = this.createStrokeId();
     const drawing = this.history.present;
@@ -161,13 +180,22 @@ export class WigglyEngine {
         patternId: brushKind === "pattern" ? this.pendingPattern : undefined,
         variant,
       },
-      { x, y, t: now - this.startedAt },
+      { x: snapped.x, y: snapped.y, t: now - this.startedAt },
     );
 
     this.history = { ...this.history, present: updated };
+    this.bumpDrawingRevision();
     this.currentStrokeId = strokeId;
     this.strokeStartTime = now;
     this.strokeLength = 0;
+
+    // レンダラーがsetIsDrawingActiveメソッドを持っている場合、描画開始を通知
+    if (
+      "setIsDrawingActive" in this.renderer &&
+      typeof this.renderer.setIsDrawingActive === "function"
+    ) {
+      this.renderer.setIsDrawingActive(true);
+    }
 
     this.sound?.onStrokeStart({
       tool: this.currentTool,
@@ -180,6 +208,8 @@ export class WigglyEngine {
   pointerMove(x: number, y: number): void {
     if (!this.currentStrokeId) return;
 
+    // 座標を整数ピクセルにスナップ
+    const snapped = snapToPixel(x, y);
     const now = this.time.now();
     const drawing = this.history.present;
     const strokes = drawing.strokes;
@@ -189,8 +219,8 @@ export class WigglyEngine {
     const lastPoint = lastStroke.points[lastStroke.points.length - 1];
     if (!lastPoint) return;
 
-    const dx = x - lastPoint.x;
-    const dy = y - lastPoint.y;
+    const dx = snapped.x - lastPoint.x;
+    const dy = snapped.y - lastPoint.y;
     const dist = Math.hypot(dx, dy);
     if (dist < 1.5) return;
 
@@ -209,8 +239,8 @@ export class WigglyEngine {
     const speed = dt > 0 ? this.strokeLength / dt : 0;
 
     const updated = appendPoint(drawing, this.currentStrokeId, {
-      x,
-      y,
+      x: snapped.x,
+      y: snapped.y,
       t: now - this.startedAt,
     });
 
@@ -224,6 +254,7 @@ export class WigglyEngine {
       ...this.history,
       present: { ...updated, strokes: strokesWithWidth },
     };
+    this.bumpDrawingRevision();
 
     this.sound?.onStrokeUpdate({
       tool: this.currentTool,
@@ -251,16 +282,31 @@ export class WigglyEngine {
     );
     this.strokeStartDrawing = null;
     this.currentStrokeId = null;
+
+    // レンダラーがsetIsDrawingActiveメソッドを持っている場合、描画終了を通知
+    if (
+      "setIsDrawingActive" in this.renderer &&
+      typeof this.renderer.setIsDrawingActive === "function"
+    ) {
+      this.renderer.setIsDrawingActive(false);
+    }
+
     this.onHistoryChange?.();
   }
 
   undo(): void {
     this.history = undoHistory(this.history);
+    // やり直し/進む時はキャッシュをクリア（全ストロークから再生成が必要）
+    this.clearRendererCache();
+    this.bumpDrawingRevision();
     this.onHistoryChange?.();
   }
 
   redo(): void {
     this.history = redoHistory(this.history);
+    // やり直し/進む時はキャッシュをクリア（全ストロークから再生成が必要）
+    this.clearRendererCache();
+    this.bumpDrawingRevision();
     this.onHistoryChange?.();
   }
 
@@ -268,9 +314,17 @@ export class WigglyEngine {
     return this.history.present;
   }
 
+  /**
+   * Drawingの版番号を返す
+   */
+  getDrawingRevision(): number {
+    return this.drawingRevision;
+  }
+
   clear(): void {
     const cleared = clearDrawing(this.history.present);
     this.history = pushHistory(this.history, cleared);
+    this.bumpDrawingRevision();
     this.onHistoryChange?.();
   }
 
@@ -288,12 +342,13 @@ export class WigglyEngine {
     const elapsed = now - this.startedAt;
 
     if (now - this.lastRenderAt >= this.minFrameIntervalMs) {
-      renderDrawingAtTime(
-        this.history.present,
-        this.renderer,
-        this.jitterConfig,
-        elapsed,
-      );
+      renderDrawingAtTime({
+        drawing: this.history.present,
+        drawingRevision: this.drawingRevision,
+        renderer: this.renderer,
+        jitterConfig: this.jitterConfig,
+        elapsedTimeMs: elapsed,
+      });
       this.lastRenderAt = now;
     }
 
@@ -311,5 +366,10 @@ export class WigglyEngine {
       return crypto.randomUUID();
     }
     return `stroke-${Math.random().toString(36).slice(2)}`;
+  }
+
+  private bumpDrawingRevision(): void {
+    this.drawingRevision += 1;
+    invalidatePendingRequests(this.renderer);
   }
 }
