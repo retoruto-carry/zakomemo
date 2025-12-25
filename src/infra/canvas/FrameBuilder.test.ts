@@ -65,5 +65,6 @@ describe("FrameBuilder", () => {
     const [{ stroke: usedStroke, jitteredPoints }] =
       mockedRenderStroke.mock.calls[0];
     expect(usedStroke.points.length).toBe(jitteredPoints.length);
+    expect(usedStroke.points.length).toBe(2);
   });
 });

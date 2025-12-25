@@ -20,8 +20,9 @@ const MAX_BITMAP_CACHE_ENTRIES = MAX_DRAWING_CACHE_ENTRIES * CYCLE_COUNT;
  */
 export class CanvasRenderer implements DrawingRenderer {
   private ctx: CanvasRenderingContext2D;
-  private buffer: ImageDataBuffer;
-  private frameBuilder: FrameBuilder;
+  private displayBuffer: ImageDataBuffer;
+  private cycleBuffers: ImageDataBuffer[];
+  private frameBuilders: FrameBuilder[];
   private cycleCache: CycleBitmapCache;
   private renderCacheEpoch = 0;
   private cycleIntervalMs = CYCLE_INTERVAL_MS;
@@ -31,11 +32,21 @@ export class CanvasRenderer implements DrawingRenderer {
 
   constructor(options: CanvasRendererOptions) {
     this.ctx = options.ctx;
-    this.buffer = new ImageDataBuffer({
+    this.displayBuffer = new ImageDataBuffer({
       ctx: options.ctx,
       backgroundColor: options.backgroundColor,
     });
-    this.frameBuilder = new FrameBuilder({ buffer: this.buffer });
+    this.cycleBuffers = Array.from(
+      { length: CYCLE_COUNT },
+      () =>
+        new ImageDataBuffer({
+          ctx: options.ctx,
+          backgroundColor: options.backgroundColor,
+        }),
+    );
+    this.frameBuilders = this.cycleBuffers.map(
+      (buffer) => new FrameBuilder({ buffer }),
+    );
     this.cycleCache = new CycleBitmapCache({
       cycleCount: CYCLE_COUNT,
       createTracker: () => new StrokeChangeTracker(),
@@ -44,12 +55,15 @@ export class CanvasRenderer implements DrawingRenderer {
   }
 
   setBackgroundColor(backgroundColor: string): void {
-    this.buffer.setBackgroundColor({ backgroundColor });
+    this.displayBuffer.setBackgroundColor({ backgroundColor });
+    for (const buffer of this.cycleBuffers) {
+      buffer.setBackgroundColor({ backgroundColor });
+    }
     this.invalidateCache();
   }
 
   clear(width: number, height: number): void {
-    this.buffer.clear({ width, height });
+    this.displayBuffer.clear({ width, height });
     this.invalidateCache();
   }
 
@@ -63,7 +77,7 @@ export class CanvasRenderer implements DrawingRenderer {
     _elapsedTimeMs: number,
   ): void {
     renderStroke({
-      context: this.buffer,
+      context: this.displayBuffer,
       stroke,
       jitteredPoints,
       elapsedTimeMs: _elapsedTimeMs,
@@ -71,16 +85,16 @@ export class CanvasRenderer implements DrawingRenderer {
   }
 
   flush(): void {
-    if (!this.buffer.hasImageData()) return;
-    const { width, height } = this.buffer.getSize();
+    if (!this.displayBuffer.hasImageData()) return;
+    const { width, height } = this.displayBuffer.getSize();
     const dpr = window.devicePixelRatio || 1;
-    this.buffer.putToOffscreen();
+    this.displayBuffer.putToOffscreen();
 
     this.ctx.save();
     this.ctx.setTransform(1, 0, 0, 1, 0, 0);
     this.ctx.imageSmoothingEnabled = false;
     this.ctx.drawImage(
-      this.buffer.getOffscreenCanvas(),
+      this.displayBuffer.getOffscreenCanvas(),
       0,
       0,
       width,
@@ -94,7 +108,7 @@ export class CanvasRenderer implements DrawingRenderer {
   }
 
   getImageData(): ImageData {
-    return this.buffer.getImageData();
+    return this.displayBuffer.getImageData();
   }
 
   getCycleCount(): number {
@@ -110,7 +124,7 @@ export class CanvasRenderer implements DrawingRenderer {
     const { drawing, drawingRevision, cycleIndex, jitterConfig } = params;
 
     this.assertCycleIndex({ cycleIndex });
-    const sizeChanged = this.buffer.ensureSize({
+    const sizeChanged = this.displayBuffer.ensureSize({
       width: drawing.width,
       height: drawing.height,
     });
@@ -121,6 +135,8 @@ export class CanvasRenderer implements DrawingRenderer {
     const jitterKey = this.getJitterKey({ jitterConfig });
     // 差分更新でも揺れの位相がぶれないよう、cycleIndexで固定した時間を使う。
     const cycleElapsedTimeMs = cycleIndex * this.cycleIntervalMs;
+    const cycleBuffer = this.cycleBuffers[cycleIndex];
+    const frameBuilder = this.frameBuilders[cycleIndex];
     const key: FrameKey = { drawingRevision, jitterKey, cycleIndex };
     const cacheKey = this.getCacheKey({
       drawing,
@@ -136,8 +152,9 @@ export class CanvasRenderer implements DrawingRenderer {
     });
     if (cached) {
       try {
+        const cloned = await this.cloneBitmap({ bitmap: cached });
         this.cycleCache.getTracker({ cycleIndex }).sync({ drawing });
-        return await this.cloneBitmap({ bitmap: cached });
+        return cloned;
       } catch {
         this.cycleCache.resetCycle({ cycleIndex });
       }
@@ -159,6 +176,8 @@ export class CanvasRenderer implements DrawingRenderer {
       drawing,
       jitterConfig,
       cycleElapsedTimeMs,
+      cycleBuffer,
+      frameBuilder,
       renderCacheEpoch,
     }).finally(() => {
       this.cycleCache.clearInFlight({ cycleIndex });
@@ -171,7 +190,7 @@ export class CanvasRenderer implements DrawingRenderer {
   }
 
   flushFromBitmap(bitmap: ImageBitmap): void {
-    const { width, height } = this.buffer.getSize();
+    const { width, height } = this.displayBuffer.getSize();
     const dpr = window.devicePixelRatio || 1;
 
     this.ctx.save();
@@ -204,6 +223,8 @@ export class CanvasRenderer implements DrawingRenderer {
     cacheKey,
     jitterConfig,
     cycleElapsedTimeMs,
+    cycleBuffer,
+    frameBuilder,
     renderCacheEpoch,
   }: {
     key: FrameKey;
@@ -211,8 +232,11 @@ export class CanvasRenderer implements DrawingRenderer {
     cacheKey: string;
     jitterConfig: JitterConfig;
     cycleElapsedTimeMs: number;
+    cycleBuffer: ImageDataBuffer;
+    frameBuilder: FrameBuilder;
     renderCacheEpoch: number;
   }): Promise<ImageBitmap> {
+    cycleBuffer.ensureSize({ width: drawing.width, height: drawing.height });
     const tracker = this.cycleCache.getTracker({ cycleIndex: key.cycleIndex });
     const baseBitmap = this.cycleCache.getBaseBitmap({
       cycleIndex: key.cycleIndex,
@@ -224,7 +248,7 @@ export class CanvasRenderer implements DrawingRenderer {
 
     if (diff.mode === "diff" && baseBitmap) {
       try {
-        bitmap = await this.frameBuilder.buildWithDiff({
+        bitmap = await frameBuilder.buildWithDiff({
           drawing,
           cycleElapsedTimeMs,
           jitterConfig,
@@ -233,14 +257,14 @@ export class CanvasRenderer implements DrawingRenderer {
           baseBitmap,
         });
       } catch {
-        bitmap = await this.frameBuilder.buildFromScratch({
+        bitmap = await frameBuilder.buildFromScratch({
           drawing,
           cycleElapsedTimeMs,
           jitterConfig,
         });
       }
     } else {
-      bitmap = await this.frameBuilder.buildFromScratch({
+      bitmap = await frameBuilder.buildFromScratch({
         drawing,
         cycleElapsedTimeMs,
         jitterConfig,
