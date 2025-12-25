@@ -469,17 +469,18 @@ export const WigglyTools = React.forwardRef<
           </button>
 
           {/* ペイント / パターン */}
-          <button
-            type="button"
-            onClick={() => {
-              uiSoundManager.play("button-tool", { stopPrevious: true });
-              handleToolClick("pattern");
-            }}
-            onKeyDown={handleButtonKeyDown(() => {
-              uiSoundManager.play("button-tool", { stopPrevious: true });
-              handleToolClick("pattern");
-            })}
-            className={`
+          <div className="relative w-full h-full">
+            <button
+              type="button"
+              onClick={() => {
+                uiSoundManager.play("button-tool", { stopPrevious: true });
+                handleToolClick("pattern");
+              }}
+              onKeyDown={handleButtonKeyDown(() => {
+                uiSoundManager.play("button-tool", { stopPrevious: true });
+                handleToolClick("pattern");
+              })}
+              className={`
                   relative flex flex-col items-center justify-center p-1.5 transition-all active:scale-[0.98] w-full h-full rounded-[8px] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2
                   ${
                     tool === "pattern"
@@ -487,35 +488,34 @@ export const WigglyTools = React.forwardRef<
                       : "bg-[#fffdeb] border-[4px] border-[#d2b48c] shadow-[4px_4px_0_rgba(210,180,140,0.3)]"
                   }
             `}
-          >
-            <div
-              className={`absolute top-2 left-2 text-sm font-black z-50 ${tool === "pattern" ? "text-black" : "text-[#a67c52]"}`}
-              style={{
-                WebkitTextStroke:
-                  tool === "pattern" ? "3px #fff700" : "3px #fffdeb",
-                paintOrder: "stroke fill",
-              }}
             >
-              塗る
-            </div>
-            {/* biome-ignore lint/performance/noImgElement: ツールアイコン表示のため */}
-            <img
-              src={
-                tool === "pattern"
-                  ? "/images/pattern_on.png"
-                  : "/images/pattern_off.png"
-              }
-              alt="塗る"
-              className="w-20 h-20 object-contain drop-shadow-sm"
-              aria-hidden="true"
-            />
+              <div
+                className={`absolute top-2 left-2 text-sm font-black z-50 ${tool === "pattern" ? "text-black" : "text-[#a67c52]"}`}
+                style={{
+                  WebkitTextStroke:
+                    tool === "pattern" ? "3px #fff700" : "3px #fffdeb",
+                  paintOrder: "stroke fill",
+                }}
+              >
+                塗る
+              </div>
+              {/* biome-ignore lint/performance/noImgElement: ツールアイコン表示のため */}
+              <img
+                src={
+                  tool === "pattern"
+                    ? "/images/pattern_on.png"
+                    : "/images/pattern_off.png"
+                }
+                alt="塗る"
+                className="w-20 h-20 object-contain drop-shadow-sm"
+                aria-hidden="true"
+              />
+            </button>
+
             {/* 角インジケータ */}
-            {/* biome-ignore lint/a11y/useSemanticElements: button要素のネストを避けるためdivを使用 */}
-            <div
-              role="button"
-              tabIndex={0}
-              onClick={(e) => {
-                e.stopPropagation();
+            <button
+              type="button"
+              onClick={() => {
                 if (activePopup === "pattern") {
                   uiSoundManager.play("popup-close", { stopPrevious: true });
                 } else {
@@ -524,21 +524,15 @@ export const WigglyTools = React.forwardRef<
                 setTool("pattern");
                 setActivePopup(activePopup === "pattern" ? "none" : "pattern");
               }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  if (activePopup === "pattern") {
-                    uiSoundManager.play("popup-close", { stopPrevious: true });
-                  } else {
-                    uiSoundManager.play("button-tool", { stopPrevious: true });
-                  }
-                  setTool("pattern");
-                  setActivePopup(
-                    activePopup === "pattern" ? "none" : "pattern",
-                  );
+              onKeyDown={handleButtonKeyDown(() => {
+                if (activePopup === "pattern") {
+                  uiSoundManager.play("popup-close", { stopPrevious: true });
+                } else {
+                  uiSoundManager.play("button-tool", { stopPrevious: true });
                 }
-              }}
+                setTool("pattern");
+                setActivePopup(activePopup === "pattern" ? "none" : "pattern");
+              })}
               className={`absolute bottom-1.5 right-1.5 w-9 h-9 border-[3px] rounded-[3px] flex items-center justify-center transition-all hover:scale-105 active:scale-95 z-[90] focus:outline-none focus-visible:ring-2 focus-visible:ring-black cursor-pointer ${tool === "pattern" ? "border-black bg-white" : "border-[#d2b48c] bg-white"}`}
             >
               <div
@@ -556,7 +550,7 @@ export const WigglyTools = React.forwardRef<
                   imageRendering: "pixelated",
                 }}
               />
-            </div>
+            </button>
 
             {/* 小さなポップアップ: パターングリッド（ドット風） */}
             {activePopup === "pattern" && (
@@ -607,8 +601,7 @@ export const WigglyTools = React.forwardRef<
                     <button
                       type="button"
                       key={p.id}
-                      onClick={(e) => {
-                        e.stopPropagation();
+                      onClick={() => {
                         uiSoundManager.play("pattern-select", {
                           stopPrevious: true,
                         });
@@ -636,7 +629,7 @@ export const WigglyTools = React.forwardRef<
                 })}
               </div>
             )}
-          </button>
+          </div>
 
           {/* 消しゴム */}
           <button
