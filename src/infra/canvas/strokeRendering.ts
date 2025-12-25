@@ -103,6 +103,7 @@ function renderSolidStroke(
   if (brushWidth > 1) {
     // 中心線を取得
     const centerPixels: Array<{ x: number; y: number }> = [];
+
     for (let i = 0; i < jitteredPoints.length; i++) {
       const current = jitteredPoints[i];
       const x = Math.round(current.x);

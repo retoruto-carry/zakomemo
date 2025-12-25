@@ -10,13 +10,6 @@ import type { BrushVariant, Drawing, Stroke } from "../../core/types";
 import { applyJitterToStroke } from "../../engine/frameRenderer";
 import type { DrawingRenderer } from "../../engine/ports";
 import { parseColorToRgb, resolveCssVariable } from "../colorUtil";
-import {
-  clearHistoryCache,
-  getFromHistoryCache,
-  type HistoryCache,
-  MAX_HISTORY_CACHE_SIZE,
-  saveAndEvict,
-} from "../historyCache";
 import { FRAME_COUNT } from "./constants";
 import type {
   CanvasRendererOptions,
@@ -43,17 +36,10 @@ export class CanvasRenderer implements DrawingRenderer {
 
   // ImageBitmapキャッシュ（3フレーム分）
   private frameBitmaps: (ImageBitmap | null)[] = [null, null, null];
+  private cachedDrawing: Drawing | null = null; // 最後に描画したDrawing（参照比較）
+  private cachedJitterConfig: JitterConfig | null = null;
   private cachedStrokeIds: Set<string> = new Set();
   private cachedStrokePointCounts: Map<string, number> = new Map();
-  private cachedDrawingHash: string | null = null;
-  private cachedJitterConfig: JitterConfig | null = null;
-
-  // バックグラウンド生成の制御
-  private backgroundGenerationAbortController: AbortController | null = null;
-  private isDrawingActive = false; // ストローク描画中かどうか
-
-  // 履歴キャッシュ（undo/redo用）
-  private historyCache: HistoryCache = new Map();
 
   constructor(options: CanvasRendererOptions) {
     this.ctx = options.ctx;
@@ -117,15 +103,8 @@ export class CanvasRenderer implements DrawingRenderer {
   /**
    * キャッシュを無効化
    * 背景色変更、パレット変更、clear()などで呼ばれる
-   * @param clearHistory 履歴キャッシュもクリアするか（デフォルト: true）
-   * 注意: undo/redo時はclearHistory=falseで呼ばれる（履歴キャッシュを保持するため）
    */
-  private invalidateCache(clearHistory = true): void {
-    // 既存のバックグラウンド生成をキャンセル
-    if (this.backgroundGenerationAbortController) {
-      this.backgroundGenerationAbortController.abort();
-      this.backgroundGenerationAbortController = null;
-    }
+  private invalidateCache(): void {
     // 既存のImageBitmapを破棄
     for (let i = 0; i < this.frameBitmaps.length; i++) {
       if (this.frameBitmaps[i]) {
@@ -133,25 +112,10 @@ export class CanvasRenderer implements DrawingRenderer {
         this.frameBitmaps[i] = null;
       }
     }
+    this.cachedDrawing = null;
+    this.cachedJitterConfig = null;
     this.cachedStrokeIds.clear();
     this.cachedStrokePointCounts.clear();
-    this.cachedDrawingHash = null;
-    this.cachedJitterConfig = null;
-    // 履歴キャッシュもクリア（背景色変更などは全履歴に影響するため）
-    if (clearHistory) {
-      this.clearHistoryCache();
-    }
-  }
-
-  /**
-   * Drawingのハッシュを計算（キャッシュのキー用）
-   * 注意: jitterConfigは別途チェックするため、ハッシュには含めない
-   */
-  private computeDrawingHash(drawing: Drawing): string {
-    const strokeInfo = drawing.strokes
-      .map((s) => `${s.id}:${s.points.length}`)
-      .join(",");
-    return `${drawing.width}x${drawing.height}:${drawing.strokes.length}:${strokeInfo}`;
   }
 
   /**
@@ -187,12 +151,6 @@ export class CanvasRenderer implements DrawingRenderer {
     const newStrokes = drawing.strokes.filter(
       (stroke) => !this.cachedStrokeIds.has(stroke.id),
     );
-    if (newStrokes.length > 0) {
-      console.log(
-        `[CanvasRenderer] getNewStrokes: ${newStrokes.length}個の新しいストローク検出`,
-        newStrokes.map((s) => ({ id: s.id, points: s.points.length })),
-      );
-    }
     return newStrokes;
   }
 
@@ -212,22 +170,11 @@ export class CanvasRenderer implements DrawingRenderer {
         });
       }
     }
-    if (result.length > 0) {
-      console.log(
-        `[CanvasRenderer] getStrokesWithNewPoints: ${result.length}個のストロークに新しいポイント`,
-        result.map((r) => ({
-          id: r.stroke.id,
-          cached: r.cachedPointCount,
-          current: r.stroke.points.length,
-          new: r.stroke.points.length - r.cachedPointCount,
-        })),
-      );
-    }
     return result;
   }
 
   /**
-   * 差分描画時のキャッシュ更新
+   * キャッシュ更新（差分描画時）
    */
   private updateCacheForDiff(
     newStrokes: Stroke[],
@@ -244,13 +191,12 @@ export class CanvasRenderer implements DrawingRenderer {
     for (const { stroke } of strokesWithNewPoints) {
       this.cachedStrokePointCounts.set(stroke.id, stroke.points.length);
     }
-    const drawingHash = this.computeDrawingHash(drawing);
-    this.cachedDrawingHash = drawingHash;
+    this.cachedDrawing = drawing;
     this.cachedJitterConfig = { ...jitterConfig };
   }
 
   /**
-   * 全再生成時のキャッシュ更新
+   * キャッシュ更新（全再生成時）
    */
   private updateCacheForScratch(
     drawing: Drawing,
@@ -263,12 +209,8 @@ export class CanvasRenderer implements DrawingRenderer {
       this.cachedStrokeIds.add(stroke.id);
       this.cachedStrokePointCounts.set(stroke.id, stroke.points.length);
     }
-    const drawingHash = this.computeDrawingHash(drawing);
-    this.cachedDrawingHash = drawingHash;
+    this.cachedDrawing = drawing;
     this.cachedJitterConfig = { ...jitterConfig };
-    console.log(
-      `[CanvasRenderer] updateCacheForScratch: キャッシュ更新 drawingHash=${drawingHash}, strokes=${drawing.strokes.length}`,
-    );
   }
 
   /**
@@ -474,7 +416,7 @@ export class CanvasRenderer implements DrawingRenderer {
         // テーブル化されたオフセットを使用（毎回計算しない）
         const offsets = getCirclePixelOffsets(radius);
         for (const { dx, dy } of offsets) {
-          this.setPixel(x + dx, y + dy, r, g, b, a);
+              this.setPixel(x + dx, y + dy, r, g, b, a);
         }
       }
     }
@@ -677,9 +619,6 @@ export class CanvasRenderer implements DrawingRenderer {
    * ストローク描画中の状態を設定
    * バックグラウンド生成を制御するために使用
    */
-  setIsDrawingActive(active: boolean): void {
-    this.isDrawingActive = active;
-  }
 
   /**
    * フレーム数を取得（固定値）
@@ -713,374 +652,186 @@ export class CanvasRenderer implements DrawingRenderer {
       this.clear(drawing.width, drawing.height);
     }
 
-    const drawingHash = this.computeDrawingHash(drawing);
+    const frameInterval = 100; // 100ms = 10fps
+    const frameElapsedTimeMs = elapsedTimeMs + frameIndex * frameInterval;
 
-    // まず履歴キャッシュをチェック（undo/redo用）
-    const historyCacheEntry = getFromHistoryCache(
-      this.historyCache,
-      drawingHash,
-    );
-    if (
-      historyCacheEntry &&
-      this.isJitterConfigEqual(historyCacheEntry.jitterConfig, jitterConfig) &&
-      historyCacheEntry.frameBitmaps[frameIndex] !== null
-    ) {
-      const cached = historyCacheEntry.frameBitmaps[frameIndex];
-      if (!cached) {
-        throw new Error(
-          `Frame bitmap at index ${frameIndex} is null in history cache`,
-        );
-      }
-      // ImageBitmapが有効かどうかを確認（無効な場合は再生成）
-      // 注意: ImageBitmapにはclosedプロパティがないため、実際に使用してみてエラーが発生するかどうかで判断
-      // ここでは、履歴キャッシュから取得したImageBitmapをそのまま返す
-      // エラーが発生した場合は、frameRenderer.tsでフォールバック処理が行われる
-      // 現在のキャッシュも更新（次回の高速化のため）
-      // ただし、履歴キャッシュのImageBitmapは参照を共有しているため、
-      // ここでframeBitmapsに設定すると、後でclose()されたときに履歴キャッシュも無効になる
-      // そのため、履歴キャッシュから取得したImageBitmapは、frameBitmapsには設定しない
-      this.cachedDrawingHash = drawingHash;
-      this.cachedJitterConfig = { ...jitterConfig };
-      this.cachedStrokeIds.clear();
-      for (const stroke of drawing.strokes) {
-        this.cachedStrokeIds.add(stroke.id);
-      }
-      return cached;
-    }
-
-    // 通常のキャッシュが有効かチェック
-    // 条件: jitterConfigが一致、ImageBitmapが存在
-    // 注意: drawingHashが一致しなくても、frameBitmapが存在し、jitterConfigが一致していれば、
-    // 差分描画を使える（ポイントが追加されただけの場合）
-    const jitterConfigMatch = this.isJitterConfigEqual(
+    // キャッシュが有効かチェック（Drawing参照とjitterConfigが一致、bitmapが存在）
+    const isDrawingMatch = this.cachedDrawing === drawing;
+    const isJitterConfigMatch = this.isJitterConfigEqual(
       this.cachedJitterConfig,
       jitterConfig,
     );
     const frameBitmapExists = this.frameBitmaps[frameIndex] !== null;
-    const drawingHashMatch = this.cachedDrawingHash === drawingHash;
+    const isCacheValid =
+      isDrawingMatch && isJitterConfigMatch && frameBitmapExists;
 
-    // 完全にキャッシュが有効な場合（drawingHashも一致）
-    const isCacheFullyValid =
-      drawingHashMatch && jitterConfigMatch && frameBitmapExists;
-
-    // 差分描画が可能な場合（drawingHashが一致しなくても、frameBitmapが存在し、jitterConfigが一致していれば）
-    // ただし、ストロークが削除された場合や、ストロークの順序が変わった場合は全再生成が必要
-    // 注意: frameBitmapExistsがfalseの場合でも、履歴キャッシュに存在する可能性があるため、
-    // 履歴キャッシュをチェックしてから判断する
-    const canUseDiffRendering =
-      !drawingHashMatch &&
-      jitterConfigMatch &&
-      (frameBitmapExists ||
-        (historyCacheEntry !== null &&
-          historyCacheEntry.frameBitmaps[frameIndex] !== null)) &&
-      this.cachedDrawingHash !== null;
-
-    if (!isCacheFullyValid && !canUseDiffRendering) {
-      console.log(`[CanvasRenderer] getFrameBitmap: キャッシュ無効の理由`, {
-        drawingHashMatch,
-        jitterConfigMatch,
-        frameBitmapExists,
-        cachedDrawingHash: this.cachedDrawingHash,
-        currentDrawingHash: drawingHash,
-        cachedJitterConfig: this.cachedJitterConfig,
-        currentJitterConfig: jitterConfig,
-      });
-    }
-
-    if (isCacheFullyValid) {
-      // 新しいストロークがあるかチェック
+    if (isCacheValid) {
+      // 新しいストロークやポイントがあるかチェック
       const newStrokes = this.getNewStrokes(drawing);
       const strokesWithNewPoints = this.getStrokesWithNewPoints(drawing);
+
       if (newStrokes.length === 0 && strokesWithNewPoints.length === 0) {
-        // キャッシュが有効で新しいストロークがない場合は、既存のImageBitmapを返す
-        // 注意: 非同期更新による競合を防ぐため、ImageBitmapをクローンして返す
+        // キャッシュが有効で変更がない場合は、既存のImageBitmapをクローンして返す
         const cached = this.frameBitmaps[frameIndex];
         if (!cached) {
           throw new Error(`Frame bitmap at index ${frameIndex} is null`);
         }
-        // クローンして返す（regenerateOtherFramesAsyncによる非同期更新との競合を防ぐ）
+        try {
         return await createImageBitmap(cached);
-      }
-
-      // 新しいストロークがある場合: 差分描画で効率的に更新
-      // 前のImageBitmapに新しいストロークだけを上書き
-      // ただし、全消しの場合は全再生成（drawing.strokes.length === 0）
-      console.log(
-        `[CanvasRenderer] getFrameBitmap: 差分描画 frameIndex=${frameIndex}, newStrokes=${newStrokes.length}, strokesWithNewPoints=${strokesWithNewPoints.length}`,
-      );
-      // elapsedTimeMsを使用（パターンのjitterが正しく動作するため）
-      // フレームごとのオフセットを加える（各フレームで異なるjitterを適用）
-      const frameInterval = 100; // 100ms = 10fps
-      const frameElapsedTimeMs = elapsedTimeMs + frameIndex * frameInterval;
-      const requested =
-        drawing.strokes.length === 0
-          ? // 全消しの場合は全再生成
-            await this.renderFrameFromScratch({
+        } catch (error) {
+          // HMRや描画中のキャンバスサイズ変更でbitmapがdetachedになることがあるため、再生成して復旧
+          console.warn(
+            `[CanvasRenderer] cached frame ${frameIndex} unusable, regenerating from scratch`,
+            error,
+          );
+          this.frameBitmaps[frameIndex]?.close();
+          this.frameBitmaps[frameIndex] = null;
+          const regenerated = await this.renderFrameFromScratch({
               drawing,
               frameIndex,
               frameElapsedTimeMs,
               jitterConfig,
-            })
-          : // 通常の場合は差分描画
-            await this.renderFrameWithDiff({
-              drawing,
-              frameIndex,
-              frameElapsedTimeMs,
-              jitterConfig,
-              newStrokes,
-            });
-
-      // 他のフレームは非同期で生成（ブロックしない）
-      // 描画中（isDrawingActive）の時、または全消し（drawing.strokes.length === 0）の時は呼ぶ
-      // アニメーションループでは既に3フレームすべてが生成されているため、通常は不要
-      if (this.isDrawingActive || drawing.strokes.length === 0) {
-        this.regenerateOtherFramesAsync(
+          });
+          this.updateCacheForScratch(drawing, jitterConfig);
+          this.frameBitmaps[frameIndex] = regenerated;
+          await this.regenerateOtherFrames(
           drawing,
           jitterConfig,
           frameIndex,
           elapsedTimeMs,
         );
+          return regenerated;
+        }
       }
 
-      return requested;
-    }
-
-    // 差分描画が可能な場合（drawingHashが一致しなくても、frameBitmapが存在し、jitterConfigが一致していれば）
-    if (canUseDiffRendering) {
-      // 新しいストロークがあるかチェック
-      const newStrokes = this.getNewStrokes(drawing);
-      const strokesWithNewPoints = this.getStrokesWithNewPoints(drawing);
-
-      // ストロークが削除された場合や、ストロークの順序が変わった場合は全再生成が必要
-      // これを検出するため、以下の条件をチェック:
-      // 1. キャッシュされたストロークIDのうち、現在のdrawingに存在しないものがある（削除された）
-      // 2. 現在のdrawingのストロークのうち、キャッシュに含まれていないものがあり、かつ新しいストロークでもない（順序変更の可能性）
-      // ただし、新しいストロークが追加されただけの場合は問題ない
-      const cachedStrokeIdsArray = Array.from(this.cachedStrokeIds);
-      const hasDeletedStrokes = cachedStrokeIdsArray.some(
-        (cachedId) => !drawing.strokes.some((s) => s.id === cachedId),
-      );
-      const hasReorderedStrokes = drawing.strokes.some((stroke) => {
-        // 新しいストロークは除外
-        if (newStrokes.some((ns) => ns.id === stroke.id)) {
-          return false;
-        }
-        // キャッシュに含まれていないストロークが存在する場合、順序変更の可能性
-        // ただし、これは新しいストロークの可能性もあるため、より詳細なチェックが必要
-        return !this.cachedStrokeIds.has(stroke.id);
-      });
-      const hasDeletedOrReorderedStrokes =
-        hasDeletedStrokes || hasReorderedStrokes;
-
-      // ストロークが削除された場合や、ストロークの順序が変わった場合は全再生成
-      if (hasDeletedOrReorderedStrokes) {
-        console.log(
-          `[CanvasRenderer] getFrameBitmap: ストロークが削除または順序変更されたため全再生成 frameIndex=${frameIndex}`,
-        );
-        // elapsedTimeMsを使用（パターンのjitterが正しく動作するため）
-        const frameInterval = 100; // 100ms = 10fps
-        const frameElapsedTimeMs = elapsedTimeMs + frameIndex * frameInterval;
-        const requested = await this.renderFrameFromScratch({
+      // 差分描画で更新
+      const bitmap = await this.renderFrameWithDiff({
           drawing,
           frameIndex,
           frameElapsedTimeMs,
           jitterConfig,
-        });
-        // 他のフレームは非同期で生成（ブロックしない）
-        // 描画中（isDrawingActive）の時、または全消し（drawing.strokes.length === 0）の時は呼ぶ
-        if (this.isDrawingActive || drawing.strokes.length === 0) {
-          this.regenerateOtherFramesAsync(
+        newStrokes,
+      });
+      this.updateCacheForDiff(
+        newStrokes,
+        strokesWithNewPoints,
             drawing,
+            jitterConfig,
+      );
+      this.frameBitmaps[frameIndex] = bitmap;
+
+      // 他のフレームも同期的に生成（必要に応じて）
+      await this.regenerateOtherFrames(
+                drawing,
             jitterConfig,
             frameIndex,
             elapsedTimeMs,
           );
-        }
-        return requested;
-      }
 
-      // 差分描画が可能な場合
-      if (newStrokes.length > 0 || strokesWithNewPoints.length > 0) {
-        console.log(
-          `[CanvasRenderer] getFrameBitmap: 差分描画（drawingHash不一致） frameIndex=${frameIndex}, newStrokes=${newStrokes.length}, strokesWithNewPoints=${strokesWithNewPoints.length}`,
-        );
-        // elapsedTimeMsを使用（パターンのjitterが正しく動作するため）
-        const frameInterval = 100; // 100ms = 10fps
-        const frameElapsedTimeMs = elapsedTimeMs + frameIndex * frameInterval;
-        const requested =
-          drawing.strokes.length === 0
-            ? // 全消しの場合は全再生成
-              await this.renderFrameFromScratch({
-                drawing,
-                frameIndex,
-                frameElapsedTimeMs,
-                jitterConfig,
-              })
-            : // 通常の場合は差分描画
-              await this.renderFrameWithDiff({
-                drawing,
-                frameIndex,
-                frameElapsedTimeMs,
-                jitterConfig,
-                newStrokes,
-              });
-
-        // 他のフレームは非同期で生成（ブロックしない）
-        // 描画中（isDrawingActive）の時、または全消し（drawing.strokes.length === 0）の時は呼ぶ
-        if (this.isDrawingActive || drawing.strokes.length === 0) {
-          this.regenerateOtherFramesAsync(
-            drawing,
-            jitterConfig,
-            frameIndex,
-            elapsedTimeMs,
-          );
-        }
-
-        return requested;
-      }
-
-      // 新しいストロークも新しいポイントもない場合は、既存のImageBitmapを返す
-      // （drawingHashが一致しないが、実際には変更がない場合）
-      // 注意: 非同期更新による競合を防ぐため、ImageBitmapをクローンして返す
-      const cached = this.frameBitmaps[frameIndex];
-      if (!cached) {
-        throw new Error(`Frame bitmap at index ${frameIndex} is null`);
-      }
-      // クローンして返す（regenerateOtherFramesAsyncによる非同期更新との競合を防ぐ）
-      return await createImageBitmap(cached);
+      return bitmap;
     }
 
-    // キャッシュが無効な場合: 要求されたフレームを優先的に生成
-    console.log(
-      `[CanvasRenderer] getFrameBitmap: キャッシュ無効、全再生成 frameIndex=${frameIndex}, strokes=${drawing.strokes.length}`,
-    );
-    // elapsedTimeMsを使用（パターンのjitterが正しく動作するため）
-    const frameInterval = 100; // 100ms = 10fps
-    const frameElapsedTimeMs = elapsedTimeMs + frameIndex * frameInterval;
-    const requested = await this.renderFrameFromScratch({
+    // キャッシュが無効な場合: 全再生成
+    const bitmap = await this.renderFrameFromScratch({
       drawing,
       frameIndex,
       frameElapsedTimeMs,
       jitterConfig,
     });
+    this.updateCacheForScratch(drawing, jitterConfig);
+    this.frameBitmaps[frameIndex] = bitmap;
 
-    // 他のフレームは非同期で生成（ブロックしない）
-    // 描画中（isDrawingActive）の時、または全消し（drawing.strokes.length === 0）の時は呼ぶ
-    // アニメーションループでは既に3フレームすべてが生成されているため、通常は不要
-    if (this.isDrawingActive || drawing.strokes.length === 0) {
-      this.regenerateOtherFramesAsync(
+    // 他のフレームも同期的に生成
+    await this.regenerateOtherFrames(
         drawing,
         jitterConfig,
         frameIndex,
         elapsedTimeMs,
       );
-    }
 
-    return requested;
+    return bitmap;
   }
 
   /**
-   * 他のフレームを非同期で再生成（バックグラウンド生成）
-   * 描画をブロックしないように、非同期で実行
-   * 注意: 描画中でも他のフレームを生成する必要がある（アニメーションに3フレームすべてが必要なため）
+   * 他のフレームを同期的に再生成
+   * 要求されたフレーム以外の2フレームを生成
    */
-  private regenerateOtherFramesAsync(
+  private async regenerateOtherFrames(
     drawing: Drawing,
     jitterConfig: JitterConfig,
     excludeIndex: number,
     baseElapsedTimeMs: number,
-  ): void {
-    console.log(
-      `[CanvasRenderer] regenerateOtherFramesAsync: 開始 excludeIndex=${excludeIndex}, isDrawingActive=${this.isDrawingActive}`,
-    );
-
-    // 既存のバックグラウンド生成をキャンセル
-    if (this.backgroundGenerationAbortController) {
-      this.backgroundGenerationAbortController.abort();
-    }
-    this.backgroundGenerationAbortController = new AbortController();
-    const signal = this.backgroundGenerationAbortController.signal;
-
-    const frameCount = FRAME_COUNT;
+  ): Promise<void> {
     const frameInterval = 100; // 100ms = 10fps
 
-    // 他のフレームを非同期で生成（awaitしない）
-    for (let i = 0; i < frameCount; i++) {
+    for (let i = 0; i < FRAME_COUNT; i++) {
       if (i === excludeIndex) continue;
 
-      // elapsedTimeMsを使用（パターンのjitterが正しく動作するため）
-      // フレームごとのオフセットを加える（各フレームで異なるjitterを適用）
+      try {
       const frameElapsedTimeMs = baseElapsedTimeMs + i * frameInterval;
-      // 非同期で実行（ブロックしない）
-      // 新しいストロークまたは新しいポイントがある場合は差分描画、ない場合は全再生成
-      // ただし、全消しの場合は全再生成（drawing.strokes.length === 0）
       const newStrokes = this.getNewStrokes(drawing);
       const strokesWithNewPoints = this.getStrokesWithNewPoints(drawing);
-      const hasNewContent =
-        newStrokes.length > 0 || strokesWithNewPoints.length > 0;
-      const renderPromise =
+
+        // 前のImageBitmapが無効かどうかをチェック
+        let previousBitmapValid = false;
+        const existingBitmap = this.frameBitmaps[i];
+        if (existingBitmap) {
+          try {
+            // bitmapが有効かどうかを確認（クローンを試みる）
+            await createImageBitmap(existingBitmap);
+            previousBitmapValid = true;
+          } catch {
+            // bitmapが無効な場合は破棄
+            existingBitmap.close();
+            this.frameBitmaps[i] = null;
+          }
+        }
+
+        // 全消し、または新しいコンテンツがない、または前のImageBitmapがない場合は全再生成
+        const bitmap =
         drawing.strokes.length === 0 ||
-        !hasNewContent ||
-        this.frameBitmaps[i] === null
-          ? // 全再生成（全消し、または新しいコンテンツがない、または前のImageBitmapがない場合）
-            // バックグラウンド生成ではキャッシュを更新しない（要求されたフレームが既に更新しているため）
-            this.renderFrameFromScratch(
-              {
+          (newStrokes.length === 0 && strokesWithNewPoints.length === 0) ||
+          !previousBitmapValid
+            ? await this.renderFrameFromScratch({
                 drawing,
                 frameIndex: i,
                 frameElapsedTimeMs,
                 jitterConfig,
-              },
-              false, // updateCache = false
-            )
-          : // 差分描画（新しいストロークまたは新しいポイントがあり、前のImageBitmapがある場合）
-            // バックグラウンド生成ではキャッシュを更新しない（要求されたフレームが既に更新しているため）
-            // renderFrameWithDiff内でstrokesWithNewPointsを再取得するため、
-            // newStrokesのみを渡す（strokesWithNewPointsはrenderFrameWithDiff内で取得）
-            this.renderFrameWithDiff(
-              {
+              })
+            : await this.renderFrameWithDiff({
                 drawing,
                 frameIndex: i,
                 frameElapsedTimeMs,
                 jitterConfig,
                 newStrokes,
-              },
-              false, // updateCache = false
-            );
+              });
 
-      renderPromise
-        .then((bitmap) => {
-          // キャンセルされていない場合のみ更新
-          if (!signal.aborted) {
-            // 古いImageBitmapは次のフレーム生成時にclose()される
-            // 新しいImageBitmapを設定（古いものはまだ使用中の可能性があるため、すぐにclose()しない）
+        // 古いImageBitmapを破棄
+        if (this.frameBitmaps[i]) {
+          this.frameBitmaps[i]?.close();
+        }
             this.frameBitmaps[i] = bitmap;
-            // 古いImageBitmapは次のフレーム生成時にclose()される
-            // 注意: すぐにclose()するとdetachedエラーが発生する可能性があるため、
-            // renderFrameFromScratchやrenderFrameWithDiffでclose()される
-          } else {
-            // キャンセルされた場合は破棄
-            bitmap.close();
+      } catch (error) {
+        // フレーム生成に失敗した場合はログを出力して続行
+        console.error(
+          `[CanvasRenderer] Failed to regenerate frame ${i}:`,
+          error,
+        );
+        // 無効なbitmapを破棄
+        if (this.frameBitmaps[i]) {
+          this.frameBitmaps[i]?.close();
+          this.frameBitmaps[i] = null;
           }
-        })
-        .catch((err) => {
-          if (!signal.aborted) {
-            console.error(`Failed to generate frame ${i}:`, err);
-          }
-        });
+      }
     }
   }
 
   /**
    * 差分描画: 前のImageBitmapに新しいストロークだけを上書き
    * リアルタイム描画時のパフォーマンス最適化
-   * @param updateCache キャッシュを更新するか（デフォルト: true）
-   * 注意: `regenerateOtherFramesAsync`から呼ばれる場合は、要求されたフレームが既にキャッシュを更新しているため、
-   * バックグラウンド生成ではキャッシュを更新しない（競合を避けるため）
    */
   private async renderFrameWithDiff(
     params: RenderFrameWithDiffParams,
-    updateCache = true,
   ): Promise<ImageBitmap> {
     const {
       drawing,
@@ -1091,18 +842,12 @@ export class CanvasRenderer implements DrawingRenderer {
     } = params;
 
     const strokesWithNewPoints = this.getStrokesWithNewPoints(drawing);
-    console.log(
-      `[CanvasRenderer] renderFrameWithDiff: 開始 frameIndex=${frameIndex}, newStrokes=${newStrokes.length}, strokesWithNewPoints=${strokesWithNewPoints.length}`,
-    );
 
     // 前のImageBitmapを取得
     // 注意: frameBitmaps[frameIndex]が非同期で更新される可能性があるため、
     // 取得した時点で有効かどうかをチェックする
     let previousBitmap = this.frameBitmaps[frameIndex];
     if (!previousBitmap) {
-      console.log(
-        `[CanvasRenderer] renderFrameWithDiff: 前のImageBitmapがないため全再生成にフォールバック`,
-      );
       // 前のImageBitmapがない場合は全再生成
       return await this.renderFrameFromScratch({
         drawing,
@@ -1226,36 +971,6 @@ export class CanvasRenderer implements DrawingRenderer {
       this.frameBitmaps[frameIndex]?.close();
       this.frameBitmaps[frameIndex] = newBitmap;
 
-      // キャッシュを更新（要求されたフレームのみ）
-      if (updateCache) {
-        this.updateCacheForDiff(
-          newStrokes,
-          strokesWithNewPoints,
-          drawing,
-          jitterConfig,
-        );
-      }
-
-      // すべてのフレームが生成された場合、履歴キャッシュに保存
-      // 非同期処理のため、awaitしない（描画をブロックしない）
-      // 注意: saveToHistoryCache内でImageBitmapをクローンするため、
-      // クローンする前に現在のframeBitmapsの状態を保存する必要がある
-      // ただし、描画中（isDrawingActive）の場合は、他のフレームがまだ生成されていない可能性があるため、
-      // 履歴キャッシュへの保存はスキップする
-      const allFramesReady = this.frameBitmaps.every((b) => b !== null);
-      if (allFramesReady && !this.isDrawingActive) {
-        const drawingHash = this.computeDrawingHash(drawing);
-        // ImageBitmapをクローンする前に、現在のframeBitmapsの参照を保存
-        // 非同期処理中にframeBitmapsが変更される可能性があるため
-        const bitmapsToClone = [...this.frameBitmaps];
-        // 非同期で実行（エラーが発生しても描画処理は続行）
-        void this.saveToHistoryCacheWithBitmaps(
-          drawingHash,
-          jitterConfig,
-          bitmapsToClone,
-        );
-      }
-
       return newBitmap;
     } finally {
       // ImageDataを元に戻す
@@ -1271,18 +986,11 @@ export class CanvasRenderer implements DrawingRenderer {
 
   /**
    * 全ストロークからフレームを生成
-   * @param updateCache キャッシュを更新するか（デフォルト: true）
-   * 注意: `regenerateOtherFramesAsync`から呼ばれる場合は、要求されたフレームが既にキャッシュを更新しているため、
-   * バックグラウンド生成ではキャッシュを更新しない（競合を避けるため）
    */
   private async renderFrameFromScratch(
     params: RenderFrameFromScratchParams,
-    updateCache = true,
   ): Promise<ImageBitmap> {
     const { drawing, frameIndex, frameElapsedTimeMs, jitterConfig } = params;
-    console.log(
-      `[CanvasRenderer] renderFrameFromScratch: 開始 frameIndex=${frameIndex}, strokes=${drawing.strokes.length}, updateCache=${updateCache}`,
-    );
     // ImageDataを初期化
     this.initializeImageData(this.lastWidth, this.lastHeight);
 
@@ -1309,40 +1017,21 @@ export class CanvasRenderer implements DrawingRenderer {
     this.offscreenCtx.putImageData(this.imageData, 0, 0);
 
     // ImageBitmapを作成
-    const newBitmap = await createImageBitmap(this.offscreenCanvas);
-    console.log(
-      `[CanvasRenderer] renderFrameFromScratch: 完了 frameIndex=${frameIndex}`,
+    let newBitmap: ImageBitmap;
+    try {
+      newBitmap = await createImageBitmap(this.offscreenCanvas);
+    } catch (error) {
+      // offscreenCanvasが無効な場合（HMRやサイズ変更など）
+      console.error(
+        `[CanvasRenderer] renderFrameFromScratch: createImageBitmap failed, canvas may be detached`,
+        error,
     );
+      throw error;
+    }
 
     // キャッシュを更新
     this.frameBitmaps[frameIndex]?.close();
     this.frameBitmaps[frameIndex] = newBitmap;
-
-    // キャッシュを更新（要求されたフレームのみ）
-    if (updateCache) {
-      this.updateCacheForScratch(drawing, jitterConfig);
-    }
-
-    // すべてのフレームが生成された場合、履歴キャッシュに保存
-    // ただし、すべてのフレームが生成されている場合のみ
-    // 非同期処理のため、awaitしない（描画をブロックしない）
-    // 注意: saveToHistoryCache内でImageBitmapをクローンするため、
-    // クローンする前に現在のframeBitmapsの状態を保存する必要がある
-    // ただし、描画中（isDrawingActive）の場合は、他のフレームがまだ生成されていない可能性があるため、
-    // 履歴キャッシュへの保存はスキップする
-    const allFramesReady = this.frameBitmaps.every((b) => b !== null);
-    if (allFramesReady && !this.isDrawingActive) {
-      const drawingHash = this.computeDrawingHash(drawing);
-      // ImageBitmapをクローンする前に、現在のframeBitmapsの参照を保存
-      // 非同期処理中にframeBitmapsが変更される可能性があるため
-      const bitmapsToClone = [...this.frameBitmaps];
-      // 非同期で実行（エラーが発生しても描画処理は続行）
-      void this.saveToHistoryCacheWithBitmaps(
-        drawingHash,
-        jitterConfig,
-        bitmapsToClone,
-      );
-    }
 
     return newBitmap;
   }
@@ -1386,88 +1075,4 @@ export class CanvasRenderer implements DrawingRenderer {
    * ImageBitmapをクローンして保存することで、参照共有による問題を回避する。
    * 非同期処理のため、エラーが発生しても描画処理は続行される。
    */
-  /**
-   * 履歴キャッシュに保存（非同期、エラーハンドリング付き）
-   * @param bitmapsToClone クローンするImageBitmapの配列（非同期処理中に変更されないように）
-   */
-  private async saveToHistoryCacheWithBitmaps(
-    drawingHash: string,
-    jitterConfig: JitterConfig,
-    bitmapsToClone: (ImageBitmap | null)[],
-  ): Promise<void> {
-    try {
-      // ImageBitmapをクローン（参照を共有しないようにする）
-      const clonedBitmaps: (ImageBitmap | null)[] = [];
-      const clonePromises: Promise<void>[] = [];
-
-      for (let i = 0; i < FRAME_COUNT; i++) {
-        const bitmap = bitmapsToClone[i];
-        if (bitmap) {
-          // createImageBitmapでクローン（非同期）
-          // 注意: bitmapが既に閉じられている可能性があるため、エラーハンドリングが必要
-          clonePromises.push(
-            createImageBitmap(bitmap)
-              .then((cloned) => {
-                clonedBitmaps[i] = cloned;
-              })
-              .catch((error) => {
-                // ImageBitmapが既に閉じられている場合など、クローンに失敗した場合はスキップ
-                console.warn(
-                  `[CanvasRenderer] saveToHistoryCache: フレーム${i}のクローンに失敗`,
-                  error,
-                );
-                clonedBitmaps[i] = null;
-              }),
-          );
-        } else {
-          clonedBitmaps[i] = null;
-        }
-      }
-
-      // すべてのクローンが完了するまで待機
-      await Promise.all(clonePromises);
-
-      // 履歴キャッシュに保存し、古いエントリを削除
-      const toClose = saveAndEvict(
-        this.historyCache,
-        drawingHash,
-        {
-          frameBitmaps: clonedBitmaps,
-          jitterConfig: { ...jitterConfig },
-          timestamp: Date.now(),
-        },
-        MAX_HISTORY_CACHE_SIZE,
-      );
-
-      // 削除されたエントリのImageBitmapを破棄
-      for (const entry of toClose) {
-        for (const bitmap of entry.frameBitmaps) {
-          if (bitmap) {
-            bitmap.close();
-          }
-        }
-      }
-    } catch (error) {
-      // エラーが発生しても描画処理は続行（ログのみ出力）
-      console.error(
-        `[CanvasRenderer] saveToHistoryCache: エラーが発生しました`,
-        error,
-      );
-    }
-  }
-
-  /**
-   * 履歴キャッシュをクリア
-   */
-  private clearHistoryCache(): void {
-    const entries = clearHistoryCache(this.historyCache);
-    // ImageBitmapを破棄
-    for (const entry of entries) {
-      for (const bitmap of entry.frameBitmaps) {
-        if (bitmap) {
-          bitmap.close();
-        }
-      }
-    }
-  }
 }

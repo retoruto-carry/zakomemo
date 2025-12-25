@@ -757,7 +757,6 @@ describe("CanvasRenderer キャッシュ", () => {
       const drawing = createTestDrawing([createTestStroke("s1")]);
 
       // 描画中フラグを設定
-      renderer.setIsDrawingActive(true);
 
       // フレーム0を取得
       await renderer.getFrameBitmap({
@@ -769,9 +768,6 @@ describe("CanvasRenderer キャッシュ", () => {
 
       // バックグラウンド生成がスキップされるため、フレーム1はまだ生成されていない
       // 注意: 実際の動作を確認するのは難しいが、エラーが発生しないことを確認
-
-      // 描画中フラグを解除
-      renderer.setIsDrawingActive(false);
 
       // フレーム1を取得（この時点で生成される）
       const bitmap1 = await renderer.getFrameBitmap({

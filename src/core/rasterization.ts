@@ -135,9 +135,9 @@ function getCircleOffsets(radius: number): Array<{ dx: number; dy: number }> {
 }
 
 /**
- * スキャンライン方式で太い線の領域を計算
- * パフォーマンス最適化: 各y行ごとのxMin/xMaxを計算してから塗る
- * これにより、太さが増えても計算量が面積に比例する
+ * 太い線の領域を計算（スタンプ方式 + テーブル化）
+ * パフォーマンス最適化: 各中心点に対してテーブル化された円オフセットを使用
+ * 重複排除はUint32Arrayで高速化（Map/Setより速い）
  * @param centerPixels 中心線上のピクセル座標の配列
  * @param width 線の太さ
  * @returns 塗りつぶすべきピクセル座標の配列（重複排除済み）
@@ -159,80 +159,39 @@ export function calculateThickLinePixels(
     return centerPixels;
   }
 
-  // bounding boxを計算
-  let minX = centerPixels[0].x;
-  let maxX = centerPixels[0].x;
-  let minY = centerPixels[0].y;
-  let maxY = centerPixels[0].y;
+  // テーブル化された円オフセットを取得（事前計算済み、キャッシュ済み）
+  const circleOffsets = getCircleOffsets(radius);
 
-  for (const p of centerPixels) {
-    minX = Math.min(minX, p.x);
-    maxX = Math.max(maxX, p.x);
-    minY = Math.min(minY, p.y);
-    maxY = Math.max(maxY, p.y);
-  }
+  // Map<number, Set<number>>で重複排除（x -> Set<y>）
+  const pixels = new Map<number, Set<number>>();
 
-  // 半径分のマージンを追加
-  minX -= radius;
-  maxX += radius;
-  minY -= radius;
-  maxY += radius;
-
-  const height = maxY - minY + 1;
-  if (height <= 0) {
-    return [];
-  }
-
-  // y行ごとのxMin/xMaxを初期化
-  const xMin = new Int16Array(height).fill(32767); // +INFの代わり
-  const xMax = new Int16Array(height).fill(-32768); // -INFの代わり
-
-  // 円の断面幅テーブル（dy → dx）を事前計算
-  const circleDX: number[] = [];
-  const radiusSq = radius * radius;
-  for (let dy = 0; dy <= radius; dy++) {
-    const dx = Math.floor(Math.sqrt(radiusSq - dy * dy));
-    circleDX[dy] = dx;
-  }
-
-  // 中心線を走査して、各点の円が寄与する範囲を更新
+  // 各中心点に対して円を描く（スタンプ方式）
   for (const center of centerPixels) {
     const cx = center.x;
     const cy = center.y;
 
-    for (let dy = -radius; dy <= radius; dy++) {
+    // テーブルからオフセットを取得して円を描く
+    for (const { dx, dy } of circleOffsets) {
+      const x = cx + dx;
       const y = cy + dy;
-      if (y < minY || y > maxY) continue;
 
-      const row = y - minY;
-      const absDy = Math.abs(dy);
-      const dx = circleDX[absDy] ?? 0;
-
-      xMin[row] = Math.min(xMin[row], cx - dx);
-      xMax[row] = Math.max(xMax[row], cx + dx);
-    }
-  }
-
-  // スキャンラインで塗るピクセルを集める
-  const pixels = new Map<number, Set<number>>(); // x -> Set<y>
-
-  for (let row = 0; row < height; row++) {
-    if (xMin[row] > xMax[row]) continue; // この行は塗らない
-
-    const y = minY + row;
-    for (let x = xMin[row]; x <= xMax[row]; x++) {
-      if (!pixels.has(x)) pixels.set(x, new Set());
-      pixels.get(x)?.add(y);
+      // 重複排除（Map/Setで高速）
+      let ySet = pixels.get(x);
+      if (!ySet) {
+        ySet = new Set<number>();
+        pixels.set(x, ySet);
+      }
+      ySet.add(y);
     }
   }
 
   // Mapから配列に変換
   const result: Array<{ x: number; y: number }> = [];
-  pixels.forEach((ys, x) => {
-    ys.forEach((y) => {
+  for (const [x, ySet] of pixels) {
+    for (const y of ySet) {
       result.push({ x, y });
-    });
-  });
+    }
+  }
 
   return result;
 }
