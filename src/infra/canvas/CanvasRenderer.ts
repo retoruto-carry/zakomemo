@@ -71,16 +71,20 @@ export class CanvasRenderer implements DrawingRenderer {
     this.invalidateCache();
   }
 
-  renderStroke(
-    stroke: Stroke,
-    jitteredPoints: { x: number; y: number }[],
-    _elapsedTimeMs: number,
-  ): void {
+  renderStroke({
+    stroke,
+    jitteredPoints,
+    elapsedTimeMs,
+  }: {
+    stroke: Stroke;
+    jitteredPoints: { x: number; y: number }[];
+    elapsedTimeMs: number;
+  }): void {
     renderStroke({
       context: this.displayBuffer,
       stroke,
       jitteredPoints,
-      elapsedTimeMs: _elapsedTimeMs,
+      elapsedTimeMs,
     });
   }
 

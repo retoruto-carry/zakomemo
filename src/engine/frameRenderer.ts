@@ -285,7 +285,11 @@ function renderDrawingAtTimeFallback(params: RenderDrawingAtTimeParams): void {
       elapsedTimeMs,
       jitterConfig,
     });
-    renderer.renderStroke(stroke, jittered, elapsedTimeMs);
+    renderer.renderStroke({
+      stroke,
+      jitteredPoints: jittered,
+      elapsedTimeMs,
+    });
   }
 
   // ImageDataベースの実装では、フレームごとに1回描画

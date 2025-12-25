@@ -17,11 +17,15 @@ class MockRenderer implements DrawingRenderer {
     this.clears.push({ width, height });
   }
 
-  renderStroke(
-    stroke: Stroke,
-    jitteredPoints: { x: number; y: number }[],
-    elapsedTimeMs: number,
-  ): void {
+  renderStroke({
+    stroke,
+    jitteredPoints,
+    elapsedTimeMs,
+  }: {
+    stroke: Stroke;
+    jitteredPoints: { x: number; y: number }[];
+    elapsedTimeMs: number;
+  }): void {
     this.strokes.push({
       stroke,
       jittered: jitteredPoints,
@@ -50,7 +54,7 @@ function createCycleRenderer(): CycleRendererStub {
 
   const renderer: CycleRendererStub = {
     clear: () => {},
-    renderStroke: () => {},
+    renderStroke: (_params) => {},
     invalidateRenderCache: () => {},
     getCycleCount: () => 1,
     getCycleBitmap,

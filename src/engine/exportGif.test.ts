@@ -15,11 +15,15 @@ class MockRenderer implements DrawingRenderer {
     this.clears.push({ width, height });
   }
 
-  renderStroke(
-    stroke: Stroke,
-    _points: { x: number; y: number }[],
-    elapsedTimeMs: number,
-  ): void {
+  renderStroke({
+    stroke,
+    jitteredPoints: _jitteredPoints,
+    elapsedTimeMs,
+  }: {
+    stroke: Stroke;
+    jitteredPoints: { x: number; y: number }[];
+    elapsedTimeMs: number;
+  }): void {
     this.renders.push({ stroke, time: elapsedTimeMs });
   }
 
@@ -62,11 +66,15 @@ class MockCycleRenderer implements DrawingRenderer {
     // モック用の空実装
   }
 
-  renderStroke(
-    _stroke: Stroke,
-    _points: { x: number; y: number }[],
-    _elapsedTimeMs: number,
-  ): void {
+  renderStroke({
+    stroke: _stroke,
+    jitteredPoints: _jitteredPoints,
+    elapsedTimeMs: _elapsedTimeMs,
+  }: {
+    stroke: Stroke;
+    jitteredPoints: { x: number; y: number }[];
+    elapsedTimeMs: number;
+  }): void {
     // モック用の空実装
   }
 

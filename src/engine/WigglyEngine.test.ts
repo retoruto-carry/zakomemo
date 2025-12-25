@@ -34,11 +34,15 @@ class MockRenderer implements DrawingRenderer {
     // モック用の空実装
   }
 
-  renderStroke(
-    stroke: Stroke,
-    jitteredPoints: { x: number; y: number }[],
-    elapsedTimeMs: number,
-  ): void {
+  renderStroke({
+    stroke,
+    jitteredPoints,
+    elapsedTimeMs,
+  }: {
+    stroke: Stroke;
+    jitteredPoints: { x: number; y: number }[];
+    elapsedTimeMs: number;
+  }): void {
     this.rendered.push({
       stroke,
       jittered: jitteredPoints,

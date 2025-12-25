@@ -6,11 +6,11 @@ import type { Drawing, Stroke } from "@/core/types";
  */
 export interface DrawingRenderer {
   clear(width: number, height: number): void;
-  renderStroke(
-    stroke: Stroke,
-    jitteredPoints: { x: number; y: number }[],
-    elapsedTimeMs: number,
-  ): void;
+  renderStroke(params: {
+    stroke: Stroke;
+    jitteredPoints: { x: number; y: number }[];
+    elapsedTimeMs: number;
+  }): void;
   /** 描画キャッシュを無効化する */
   invalidateRenderCache(): void;
 }
