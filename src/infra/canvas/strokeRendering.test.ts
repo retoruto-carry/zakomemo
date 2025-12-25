@@ -63,7 +63,12 @@ describe("renderStroke", () => {
     buffer.clear({ width: 4, height: 4 });
 
     const stroke = createSolidStroke("draw", "#ff0000");
-    renderStroke(buffer, stroke, [{ x: 2, y: 2 }], 0);
+    renderStroke({
+      context: buffer,
+      stroke,
+      jitteredPoints: [{ x: 2, y: 2 }],
+      elapsedTimeMs: 0,
+    });
 
     expect(getPixel(buffer, 2, 2)).toEqual({
       r: 255,
@@ -78,10 +83,20 @@ describe("renderStroke", () => {
     buffer.clear({ width: 4, height: 4 });
 
     const drawStroke = createSolidStroke("draw", "#ff0000");
-    renderStroke(buffer, drawStroke, [{ x: 2, y: 2 }], 0);
+    renderStroke({
+      context: buffer,
+      stroke: drawStroke,
+      jitteredPoints: [{ x: 2, y: 2 }],
+      elapsedTimeMs: 0,
+    });
 
     const eraseStroke = createSolidStroke("erase", "#000000");
-    renderStroke(buffer, eraseStroke, [{ x: 2, y: 2 }], 0);
+    renderStroke({
+      context: buffer,
+      stroke: eraseStroke,
+      jitteredPoints: [{ x: 2, y: 2 }],
+      elapsedTimeMs: 0,
+    });
 
     expect(getPixel(buffer, 2, 2)).toEqual({
       r: 255,
@@ -96,7 +111,12 @@ describe("renderStroke", () => {
     buffer.clear({ width: 8, height: 8 });
 
     const stroke = createPatternStroke("#00ff00");
-    renderStroke(buffer, stroke, [{ x: 1, y: 1 }], 0);
+    renderStroke({
+      context: buffer,
+      stroke,
+      jitteredPoints: [{ x: 1, y: 1 }],
+      elapsedTimeMs: 0,
+    });
 
     expect(getPixel(buffer, 1, 1)).toEqual({
       r: 0,

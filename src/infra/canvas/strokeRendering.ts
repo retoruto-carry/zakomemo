@@ -25,12 +25,17 @@ export type StrokeRenderingContext = ImageDataBuffer;
  * パターンはピクセル単位で実装
  * すべてImageDataに書き込む（Canvas APIは呼ばない）
  */
-export function renderStroke(
-  context: StrokeRenderingContext,
-  stroke: Stroke,
-  jitteredPoints: { x: number; y: number }[],
-  _elapsedTimeMs: number,
-): void {
+export function renderStroke({
+  context,
+  stroke,
+  jitteredPoints,
+  elapsedTimeMs: _elapsedTimeMs,
+}: {
+  context: StrokeRenderingContext;
+  stroke: Stroke;
+  jitteredPoints: { x: number; y: number }[];
+  elapsedTimeMs: number;
+}): void {
   if (jitteredPoints.length === 0 || !context.hasImageData()) return;
 
   // パターンの場合はピクセル単位描画

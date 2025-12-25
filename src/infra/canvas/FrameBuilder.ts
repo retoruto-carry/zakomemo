@@ -45,7 +45,12 @@ export class FrameBuilder {
         elapsedTimeMs: cycleElapsedTimeMs,
         jitterConfig,
       });
-      renderStroke(this.buffer, stroke, jittered, cycleElapsedTimeMs);
+      renderStroke({
+        context: this.buffer,
+        stroke,
+        jitteredPoints: jittered,
+        elapsedTimeMs: cycleElapsedTimeMs,
+      });
     }
 
     return await this.buffer.createBitmap();
@@ -72,7 +77,12 @@ export class FrameBuilder {
         elapsedTimeMs: cycleElapsedTimeMs,
         jitterConfig,
       });
-      renderStroke(this.buffer, stroke, jittered, cycleElapsedTimeMs);
+      renderStroke({
+        context: this.buffer,
+        stroke,
+        jitteredPoints: jittered,
+        elapsedTimeMs: cycleElapsedTimeMs,
+      });
     }
 
     for (const { stroke, cachedPointCount } of strokesWithNewPoints) {
@@ -89,7 +99,12 @@ export class FrameBuilder {
         elapsedTimeMs: cycleElapsedTimeMs,
         jitterConfig,
       });
-      renderStroke(this.buffer, tempStroke, jittered, cycleElapsedTimeMs);
+      renderStroke({
+        context: this.buffer,
+        stroke: tempStroke,
+        jitteredPoints: jittered,
+        elapsedTimeMs: cycleElapsedTimeMs,
+      });
     }
 
     return await this.buffer.createBitmap();

@@ -62,7 +62,8 @@ describe("FrameBuilder", () => {
 
     const mockedRenderStroke = vi.mocked(renderStroke);
     expect(mockedRenderStroke).toHaveBeenCalledTimes(1);
-    const [, usedStroke, jitteredPoints] = mockedRenderStroke.mock.calls[0];
+    const [{ stroke: usedStroke, jitteredPoints }] =
+      mockedRenderStroke.mock.calls[0];
     expect(usedStroke.points.length).toBe(jitteredPoints.length);
   });
 });

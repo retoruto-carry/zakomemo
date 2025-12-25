@@ -69,7 +69,12 @@ export class CanvasRenderer implements DrawingRenderer {
     jitteredPoints: { x: number; y: number }[],
     _elapsedTimeMs: number,
   ): void {
-    renderStroke(this.buffer, stroke, jitteredPoints, _elapsedTimeMs);
+    renderStroke({
+      context: this.buffer,
+      stroke,
+      jitteredPoints,
+      elapsedTimeMs: _elapsedTimeMs,
+    });
   }
 
   flush(): void {
