@@ -19,7 +19,8 @@
 1. 描画操作で `Drawing` が変わるたびに `drawingRevision++`
 2. RAF の tick で `cycleIndex` を計算（0..2）
 3. `frameKey = drawingRevision + jitterKey + cycleIndex`
-4. `cycleBitmapCache` で `frameKey` を引く
+4. `cacheKey = drawingId + renderCacheEpoch + jitterKey + cycleIndex`
+5. `cycleBitmapCache` で `cacheKey` を引く
    - あるなら即描画
    - ないなら生成（差分 or 全再生成）
 5. 生成完了時に `renderCacheEpoch` をチェック
@@ -39,6 +40,7 @@
 - `drawingRevision`: Drawing の内容が変わるたびに増える版番号
 - `renderCacheEpoch`: 背景色やサイズ変更などで増えるキャッシュ世代
 - `frameKey`: `drawingRevision + jitterKey + cycleIndex`
+- `cacheKey`: `drawingId + renderCacheEpoch + jitterKey + cycleIndex`
 - `cycleBitmap`: cycle ごとの `ImageBitmap`
 - `cycleBitmapCache`: cycleBitmap と in-flight Promise を保持
 - `ImageDataBuffer`: 差分/全再生成の作業バッファ（ImageData + offscreen）
@@ -56,7 +58,8 @@
 
 ## キャッシュの考え方
 
-- キャッシュは「最新 `drawingRevision` の 3 枚だけ持つ」
+- キャッシュは「Drawing 状態を最大 6 件まで（LRU）」保持する
+- 1 状態につき 3 cycle 分の ImageBitmap を持つ（最大 18 枚）
 - `cycleIndex` ごとに描画済みの状態を持つ
 - in-flight の Promise は再利用して重複生成を防ぐ
 - `renderCacheEpoch` が進んだら古い結果は破棄される
@@ -65,11 +68,11 @@
 
 各 `cycleIndex` は以下を持つ:
 
-- `bitmap`: 最新の `ImageBitmap`
 - `tracker`: `StrokeChangeTracker`（この cycle の描画済み状態）
   - `drawingRevision`: この cycle が追従している revision
   - `jitterKey`: この cycle に適用された jitter 設定
   - `renderCacheEpoch`: この cycle の生成時点の世代
+- `cacheKey`: LRU の参照キー
 
 ## 非同期と古い結果の破棄
 
@@ -90,8 +93,8 @@
   - `buildFromScratch` / `buildWithDiff`
   - 描画ロジックは `strokeRendering.ts` を使用
 - `CycleBitmapCache`
-  - `frameKey -> ImageBitmap` と in-flight を保持
-  - 最新 revision のみ保持（実質 3 枚）
+  - `cacheKey -> ImageBitmap` の LRU と in-flight を保持
+  - Drawing 状態を最大 6 件まで保持（18 枚上限）
 - `CanvasRenderer`
   - 判断と I/O のみ（オーケストレーション）
   - 実描画は上記に委譲

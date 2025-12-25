@@ -16,6 +16,9 @@ import type {
   GetCycleBitmapParams,
 } from "./types";
 
+const MAX_DRAWING_CACHE_ENTRIES = 6;
+const MAX_BITMAP_CACHE_ENTRIES = MAX_DRAWING_CACHE_ENTRIES * CYCLE_COUNT;
+
 /**
  * ImageBitmapのcycleキャッシュを使うCanvasレンダラー。
  * キャッシュ参照の制御を行い、実描画は各ヘルパーに委譲する。
@@ -27,6 +30,8 @@ export class CanvasRenderer implements DrawingRenderer {
   private cycleCache: CycleBitmapCache;
   private renderCacheEpoch = 0;
   private cycleIntervalMs = CYCLE_INTERVAL_MS;
+  private drawingIds = new WeakMap<Drawing, number>();
+  private nextDrawingId = 1;
 
   constructor(options: CanvasRendererOptions) {
     this.ctx = options.ctx;
@@ -38,6 +43,7 @@ export class CanvasRenderer implements DrawingRenderer {
     this.cycleCache = new CycleBitmapCache({
       cycleCount: CYCLE_COUNT,
       createTracker: () => new StrokeChangeTracker(),
+      maxEntries: MAX_BITMAP_CACHE_ENTRIES,
     });
   }
 
@@ -121,13 +127,21 @@ export class CanvasRenderer implements DrawingRenderer {
     const cycleElapsedTimeMs =
       elapsedTimeMs + cycleIndex * this.cycleIntervalMs;
     const key: FrameKey = { drawingRevision, jitterKey, cycleIndex };
+    const cacheKey = this.getCacheKey({
+      drawing,
+      renderCacheEpoch: this.renderCacheEpoch,
+      jitterKey,
+      cycleIndex,
+    });
 
     const cached = this.cycleCache.getBitmap({
       key,
+      cacheKey,
       renderCacheEpoch: this.renderCacheEpoch,
     });
     if (cached) {
       try {
+        this.cycleCache.getTracker({ cycleIndex }).sync({ drawing });
         return await this.cloneBitmap({ bitmap: cached });
       } catch {
         this.cycleCache.resetCycle({ cycleIndex });
@@ -146,6 +160,7 @@ export class CanvasRenderer implements DrawingRenderer {
     const renderCacheEpoch = this.renderCacheEpoch;
     const buildPromise = this.buildAndCommitCycleBitmap({
       key,
+      cacheKey,
       drawing,
       jitterConfig,
       cycleElapsedTimeMs,
@@ -191,12 +206,14 @@ export class CanvasRenderer implements DrawingRenderer {
   private async buildAndCommitCycleBitmap({
     key,
     drawing,
+    cacheKey,
     jitterConfig,
     cycleElapsedTimeMs,
     renderCacheEpoch,
   }: {
     key: FrameKey;
     drawing: Drawing;
+    cacheKey: string;
     jitterConfig: JitterConfig;
     cycleElapsedTimeMs: number;
     renderCacheEpoch: number;
@@ -240,7 +257,12 @@ export class CanvasRenderer implements DrawingRenderer {
       throw new Error("renderCacheEpoch changed");
     }
 
-    const committed = this.cycleCache.commit({ key, renderCacheEpoch, bitmap });
+    const committed = this.cycleCache.commit({
+      key,
+      cacheKey,
+      renderCacheEpoch,
+      bitmap,
+    });
     if (committed) {
       tracker.sync({ drawing });
     }
@@ -266,6 +288,30 @@ export class CanvasRenderer implements DrawingRenderer {
     jitterConfig: JitterConfig;
   }): string {
     return `${jitterConfig.amplitude}:${jitterConfig.frequency}`;
+  }
+
+  private getDrawingId({ drawing }: { drawing: Drawing }): number {
+    const existing = this.drawingIds.get(drawing);
+    if (existing) return existing;
+    const nextId = this.nextDrawingId;
+    this.nextDrawingId += 1;
+    this.drawingIds.set(drawing, nextId);
+    return nextId;
+  }
+
+  private getCacheKey({
+    drawing,
+    renderCacheEpoch,
+    jitterKey,
+    cycleIndex,
+  }: {
+    drawing: Drawing;
+    renderCacheEpoch: number;
+    jitterKey: string;
+    cycleIndex: number;
+  }): string {
+    const drawingId = this.getDrawingId({ drawing });
+    return `${drawingId}|${renderCacheEpoch}|${jitterKey}|${cycleIndex}`;
   }
 
   private async cloneBitmap({
