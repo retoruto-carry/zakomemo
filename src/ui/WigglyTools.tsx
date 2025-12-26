@@ -1035,54 +1035,50 @@ export const WigglyTools = React.forwardRef<
                     カスタムパレット
                   </span>
                   <div className="flex items-start gap-3">
-                    <div className="flex w-[72px] shrink-0 flex-col items-center gap-1.5 relative">
-                      <div className="w-full aspect-square relative">
-                        <div
-                          className="absolute inset-0 border-[2.5px] border-black/10 rounded-[4px]"
-                          style={{ backgroundColor }}
+                    <div className="flex shrink-0 flex-col gap-2">
+                      <div className="relative flex items-center gap-2">
+                        <div className="w-10 h-10 relative">
+                          <div
+                            className="absolute inset-0 border-[2.5px] border-black/10 rounded-[4px]"
+                            style={{ backgroundColor }}
+                          />
+                          <div className="absolute inset-0 border-[1.5px] border-white/30 rounded-[3px] pointer-events-none" />
+                        </div>
+                        <span className="text-sm font-black text-[#a67c52] leading-none">
+                          {backgroundColor.toUpperCase()}
+                        </span>
+                        <input
+                          type="color"
+                          value={backgroundColor}
+                          onChange={(e) => {
+                            uiSoundManager.play("custom-palette-color", {
+                              stopPrevious: true,
+                            });
+                            setBackgroundColor(e.target.value);
+                            setSelectedPaletteName(null);
+                          }}
+                          className="absolute inset-0 w-full h-full cursor-pointer opacity-0"
                         />
-                        <div className="absolute inset-0 border-[1.5px] border-white/30 rounded-[3px] pointer-events-none" />
                       </div>
-                      <span className="text-xs font-black text-[#a67c52] leading-none">
-                        {backgroundColor.toUpperCase()}
-                      </span>
-                      <input
-                        type="color"
-                        value={backgroundColor}
-                        onChange={(e) => {
-                          uiSoundManager.play("custom-palette-color", {
-                            stopPrevious: true,
-                          });
-                          setBackgroundColor(e.target.value);
-                          setSelectedPaletteName(null);
-                        }}
-                        className="absolute inset-0 w-full h-full cursor-pointer opacity-0"
-                      />
                     </div>
                     <div
                       className="self-stretch w-[3px] bg-[#e7d1b1] rounded-full"
                       aria-hidden="true"
                     />
-                    <div
-                      className="grid flex-1 gap-3"
-                      style={{
-                        gridTemplateColumns:
-                          "repeat(auto-fit, minmax(72px, 1fr))",
-                      }}
-                    >
+                    <div className="flex flex-1 flex-col gap-2">
                       {palette.map((c) => (
                         <div
                           key={`custom-palette-${c}`}
-                          className="flex flex-col items-center gap-1.5 relative w-full"
+                          className="relative flex items-center gap-2"
                         >
-                          <div className="w-full aspect-square relative">
+                          <div className="w-10 h-10 relative">
                             <div
                               className="absolute inset-0 border-[2.5px] border-black/10 rounded-[4px]"
                               style={{ backgroundColor: c }}
                             />
                             <div className="absolute inset-0 border-[1.5px] border-white/30 rounded-[3px] pointer-events-none" />
                           </div>
-                          <span className="text-xs font-black text-[#a67c52] leading-none">
+                          <span className="text-sm font-black text-[#a67c52] leading-none">
                             {c.toUpperCase()}
                           </span>
                           <input
