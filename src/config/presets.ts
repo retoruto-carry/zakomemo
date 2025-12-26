@@ -23,27 +23,6 @@ export interface BodyColor {
   hingeBorder: string;
 }
 
-export const BACKGROUND_COLOR_PRESETS = [
-  "#ffffff",
-  "#fdfbf7",
-  "#f5f5dc",
-  "#ffe4e1",
-  "#e0f2f1",
-  "#e3f2fd",
-  "#f3e5f5",
-  "#fff9c4",
-  "#e5e5e5",
-  "#d3d3d3",
-  "#c0c0c0",
-  "#a9a9a9",
-  "#808080",
-  "#696969",
-  "#555555",
-  "#2f2f2f",
-  "#1a1a1a",
-  "#0b0b0b",
-] as const;
-
 export const PALETTE_PRESETS = [
   {
     name: "スタンダード",
