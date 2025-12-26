@@ -39,8 +39,7 @@ export type ExportGifOptions = {
 export async function exportDrawingAsGif(
   options: ExportGifOptions,
 ): Promise<Blob> {
-  const { drawing, renderer, gif, jitterConfig } = options;
-  const { drawingRevision } = options;
+  const { drawing, drawingRevision, renderer, gif, jitterConfig } = options;
   const fps = Math.round(1000 / CYCLE_INTERVAL_MS);
 
   gif.begin(drawing.width, drawing.height, fps);
