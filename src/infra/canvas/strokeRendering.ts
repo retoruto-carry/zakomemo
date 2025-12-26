@@ -3,6 +3,7 @@
  * ピクセル単位でストロークを描画する機能を提供
  */
 
+import { assertNever } from "@/core/assertNever";
 import { getPatternDefinition } from "@/core/patterns";
 import type { PatternTile } from "@/core/patternTypes";
 import {
@@ -63,7 +64,7 @@ function renderSolidStroke(
   jitteredPoints: { x: number; y: number }[],
 ): void {
   const brushWidth = Math.round(stroke.brush.width);
-  const variant = stroke.brush.variant as BrushVariant | undefined;
+  const variant = stroke.brush.variant as BrushVariant;
   const eraserStampVariant = resolveEraserStampVariant({
     strokeKind: stroke.kind,
     variant,
@@ -176,7 +177,7 @@ function drawPixelToImageData(
   if (width === 1) {
     context.setPixel({ x, y, r, g, b, a });
   } else {
-    const radius = Math.floor(width / 2);
+    const radius = width / 2;
     // テーブル化されたオフセットを使用（毎回計算しない）
     const offsets = getCirclePixelOffsets(radius);
     for (const { dx, dy } of offsets) {
@@ -209,6 +210,9 @@ function buildCenterPixels(
   return centerPixels;
 }
 
+/**
+ * 消しゴムのスタンプ形状を取得する
+ */
 function resolveEraserStamp({
   variant,
   width,
@@ -226,12 +230,15 @@ function resolveEraserStamp({
   }
 }
 
+/**
+ * ストロークから消しゴムスタンプの種別を決定する
+ */
 function resolveEraserStampVariant({
   strokeKind,
   variant,
 }: {
   strokeKind: "draw" | "erase";
-  variant: BrushVariant | undefined;
+  variant: BrushVariant;
 }): "eraserLine" | "eraserSquare" | null {
   if (strokeKind !== "erase") {
     return null;
@@ -245,15 +252,10 @@ function resolveEraserStampVariant({
     case "normal":
     case "pressure":
     case "noise":
-    case undefined:
       return null;
     default:
       return assertNever(variant);
   }
-}
-
-function assertNever(value: never): never {
-  throw new Error(`Unexpected eraser variant: ${value}`);
 }
 
 /**
@@ -266,11 +268,9 @@ function renderPatternStroke(
   stroke: Stroke,
   jitteredPoints: { x: number; y: number }[],
 ): void {
-  if (stroke.brush.kind !== "pattern" || !stroke.brush.patternId) return;
+  if (stroke.brush.kind !== "pattern") return;
 
-  const patternDef = getPatternDefinition(stroke.brush.patternId);
-  if (!patternDef) return;
-  const tile = patternDef.tile;
+  const tile = getPatternDefinition(stroke.brush.patternId).tile;
 
   const color = parseColorToRgb(
     resolveBrushColor({ color: stroke.brush.color, palette }),

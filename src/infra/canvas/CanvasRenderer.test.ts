@@ -4,6 +4,7 @@ import type { Drawing, Stroke } from "@/core/types";
 import { CYCLE_COUNT } from "@/engine/renderingConstants";
 import { CanvasRenderer } from "@/infra/canvas/CanvasRenderer";
 
+/** テスト用のキャンバスを生成する */
 function createTestCanvas(): HTMLCanvasElement {
   const canvas = document.createElement("canvas");
   canvas.width = 100;
@@ -11,6 +12,7 @@ function createTestCanvas(): HTMLCanvasElement {
   return canvas;
 }
 
+/** テスト用のDrawingを生成する */
 function createTestDrawing(strokes: Stroke[] = []): Drawing {
   return {
     width: 100,
@@ -19,6 +21,7 @@ function createTestDrawing(strokes: Stroke[] = []): Drawing {
   };
 }
 
+/** テスト用のストロークを生成する */
 function createTestStroke(
   id: string,
   points: Array<{ x: number; y: number; t: number }> = [{ x: 10, y: 10, t: 0 }],
@@ -31,6 +34,7 @@ function createTestStroke(
       color: { kind: "palette", index: 0 },
       width: 2,
       opacity: 1,
+      variant: "normal",
     },
     points,
   };

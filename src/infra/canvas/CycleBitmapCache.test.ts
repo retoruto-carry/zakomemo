@@ -3,6 +3,7 @@ import type { Drawing, Stroke } from "@/core/types";
 import { CycleBitmapCache } from "@/infra/canvas/CycleBitmapCache";
 import { StrokeChangeTracker } from "@/infra/canvas/StrokeChangeTracker";
 
+/** テスト用のImageBitmapモックを生成する */
 function createBitmapMock(): ImageBitmap {
   return {
     width: 100,
@@ -11,6 +12,7 @@ function createBitmapMock(): ImageBitmap {
   } as ImageBitmap;
 }
 
+/** テスト用のストロークを生成する */
 function createStroke(
   id: string,
   points: Array<{ x: number; y: number; t: number }>,
@@ -23,11 +25,13 @@ function createStroke(
       color: { kind: "palette", index: 0 },
       width: 2,
       opacity: 1,
+      variant: "normal",
     },
     points,
   };
 }
 
+/** テスト用のDrawingを生成する */
 function createDrawing(strokes: Stroke[]): Drawing {
   return {
     width: 100,

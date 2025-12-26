@@ -3,6 +3,7 @@ import type { DrawingRenderer, GifEncoder } from "@/engine/ports";
 import { CYCLE_COUNT, CYCLE_INTERVAL_MS } from "@/engine/renderingConstants";
 import { exportDrawingAsGif } from "@/infra/exportGif";
 
+/** GIFテスト用のレンダラー */
 class MockRenderer implements DrawingRenderer {
   clears: { width: number; height: number }[] = [];
   renders: Array<{ stroke: Stroke; time: number }> = [];
@@ -40,6 +41,7 @@ class MockRenderer implements DrawingRenderer {
   }
 }
 
+/** GIFエンコーダーのテスト用モック */
 class MockGifEncoder implements GifEncoder {
   frames: ImageData[] = [];
   beginArgs: { width: number; height: number; fps: number } | null = null;
@@ -58,6 +60,7 @@ class MockGifEncoder implements GifEncoder {
   }
 }
 
+/** cycleBitmap取得を検証するためのレンダラー */
 class MockCycleRenderer implements DrawingRenderer {
   revisions: number[] = [];
   closeSpy = vi.fn();
@@ -115,6 +118,7 @@ const drawing: Drawing = {
         color: { kind: "palette", index: 0 },
         width: 2,
         opacity: 1,
+        variant: "normal",
       },
       points: [
         { x: 0, y: 0, t: 0 },

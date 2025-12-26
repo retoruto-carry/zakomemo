@@ -26,15 +26,27 @@ export type BrushVariant =
   | "eraserSquare"
   | "eraserLine";
 
-/** ブラシ設定 */
-export type BrushSettings = {
-  kind: BrushKind;
+/** ソリッドブラシの設定 */
+export type SolidBrushSettings = {
+  kind: "solid";
   color: BrushColor;
   width: number;
   opacity: number;
-  patternId?: BrushPatternId;
-  variant?: BrushVariant;
+  variant: BrushVariant;
 };
+
+/** パターンブラシの設定 */
+export type PatternBrushSettings = {
+  kind: "pattern";
+  color: BrushColor;
+  width: number;
+  opacity: number;
+  patternId: BrushPatternId;
+  variant: BrushVariant;
+};
+
+/** ブラシ設定 */
+export type BrushSettings = SolidBrushSettings | PatternBrushSettings;
 
 /** ストローク種別 */
 export type StrokeKind = "draw" | "erase";

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { DEFAULT_DRAWING } from "@/config/presets";
+import { assertNever } from "@/core/assertNever";
 import type { JitterConfig } from "@/core/jitter";
 import type { EraserVariant } from "@/engine/variants";
 import type { Tool, WigglyEngine } from "@/engine/WigglyEngine";
@@ -23,6 +24,47 @@ type PointerInfo = {
   startTime: number;
   moved: boolean;
 };
+
+type EraserGuideStyle = {
+  width: number;
+  height: number;
+  borderRadius: string;
+};
+
+/** 消しゴムガイドの表示スタイルを解決する */
+function resolveEraserGuideStyle(params: {
+  variant: EraserVariant;
+  brushWidth: number;
+}): EraserGuideStyle {
+  const { variant, brushWidth } = params;
+  const size = Math.max(brushWidth, ERASER_GUIDE.minSize);
+
+  switch (variant) {
+    case "eraserCircle":
+      return {
+        width: size,
+        height: size,
+        borderRadius: "9999px",
+      };
+    case "eraserSquare":
+      return {
+        width: size,
+        height: size,
+        borderRadius: `${ERASER_GUIDE.squareRadius}px`,
+      };
+    case "eraserLine":
+      return {
+        width: Math.max(
+          brushWidth * ERASER_GUIDE.line.lengthMult,
+          ERASER_GUIDE.minSize,
+        ),
+        height: ERASER_GUIDE.line.height,
+        borderRadius: "0px",
+      };
+    default:
+      return assertNever(variant);
+  }
+}
 
 /** WigglyCanvasの入力プロパティ */
 interface WigglyCanvasProps {
@@ -52,6 +94,10 @@ export function WigglyCanvas({
   const [eraserPos, setEraserPos] = useState<{ x: number; y: number } | null>(
     null,
   );
+  const eraserGuideStyle = resolveEraserGuideStyle({
+    variant: eraserVariant,
+    brushWidth,
+  });
 
   // イベントハンドラ内で再バインドせずに現在のツールを参照する
   const toolRef = useRef(tool);
@@ -292,24 +338,12 @@ export function WigglyCanvas({
         <div
           className="pointer-events-none absolute border border-black/70 z-10"
           style={{
-            width:
-              eraserVariant === "eraserLine"
-                ? Math.max(
-                    brushWidth * ERASER_GUIDE.line.lengthMult,
-                    ERASER_GUIDE.minSize,
-                  )
-                : Math.max(brushWidth, ERASER_GUIDE.minSize),
-            height:
-              eraserVariant === "eraserLine"
-                ? ERASER_GUIDE.line.height
-                : Math.max(brushWidth, ERASER_GUIDE.minSize),
+            width: eraserGuideStyle.width,
+            height: eraserGuideStyle.height,
             left: eraserPos.x,
             top: eraserPos.y,
             transform: "translate(-50%, -50%)",
-            borderRadius:
-              eraserVariant === "eraserSquare"
-                ? `${ERASER_GUIDE.squareRadius}px`
-                : "9999px",
+            borderRadius: eraserGuideStyle.borderRadius,
             boxShadow: "0 0 0 1px rgba(255,255,255,0.9)",
           }}
         />

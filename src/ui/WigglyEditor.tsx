@@ -222,10 +222,8 @@ export function WigglyEditor() {
     const currentPaletteIndex = selectedPaletteName
       ? PALETTE_PRESETS.findIndex((p) => p.name === selectedPaletteName)
       : -1;
-    const nextIndex =
-      currentPaletteIndex === -1
-        ? 0
-        : (currentPaletteIndex + 1) % PALETTE_PRESETS.length;
+    const safeIndex = currentPaletteIndex === -1 ? 0 : currentPaletteIndex;
+    const nextIndex = (safeIndex + 1) % PALETTE_PRESETS.length;
     const nextPreset = PALETTE_PRESETS[nextIndex];
     setPalette(nextPreset.colors);
     setBackgroundColor(nextPreset.background);
@@ -237,10 +235,12 @@ export function WigglyEditor() {
     const currentPaletteIndex = selectedPaletteName
       ? PALETTE_PRESETS.findIndex((p) => p.name === selectedPaletteName)
       : -1;
-    const prevIndex =
-      currentPaletteIndex <= 0
+    const safeIndex =
+      currentPaletteIndex === -1
         ? PALETTE_PRESETS.length - 1
-        : currentPaletteIndex - 1;
+        : currentPaletteIndex;
+    const prevIndex =
+      safeIndex === 0 ? PALETTE_PRESETS.length - 1 : safeIndex - 1;
     const prevPreset = PALETTE_PRESETS[prevIndex];
     setPalette(prevPreset.colors);
     setBackgroundColor(prevPreset.background);

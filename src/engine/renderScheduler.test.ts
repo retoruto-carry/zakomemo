@@ -5,6 +5,7 @@ import {
   renderDrawingAtTime,
 } from "@/engine/renderScheduler";
 
+/** renderSchedulerのテスト用レンダラー */
 class MockRenderer implements DrawingRenderer {
   clears: { width: number; height: number }[] = [];
   strokes: Array<{
@@ -45,6 +46,7 @@ type CycleRendererStub = DrawingRenderer & {
   resolveBitmap: (bitmap: ImageBitmap) => void;
 };
 
+/** getCycleBitmapを任意タイミングで解決できるレンダラーを生成する */
 function createCycleRenderer(): CycleRendererStub {
   let resolver: ((bitmap: ImageBitmap) => void) | null = null;
   const getCycleBitmap = () =>
@@ -84,6 +86,7 @@ describe("renderDrawingAtTime", () => {
             color: { kind: "palette", index: 0 },
             width: 4,
             opacity: 1,
+            variant: "normal",
           },
           points: [
             { x: 0, y: 0, t: 0 },
@@ -122,6 +125,7 @@ describe("renderDrawingAtTime", () => {
             color: { kind: "palette", index: 0 },
             width: 4,
             opacity: 1,
+            variant: "normal",
           },
           points: [
             { x: 0, y: 0, t: 0 },
@@ -162,6 +166,7 @@ describe("renderDrawingAtTime", () => {
             width: 4,
             opacity: 1,
             patternId: "dot_sparse",
+            variant: "normal",
           },
           points: [
             { x: 0, y: 0, t: 0 },

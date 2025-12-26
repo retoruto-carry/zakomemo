@@ -110,47 +110,80 @@ export type StampOffsets = {
 };
 
 /**
- * 半径ごとの円オフセットテーブル（キャッシュ）
- * キー: 半径、値: その半径の円内のオフセット配列
+ * 半径ごとの円スタンプテーブル（キャッシュ）
+ * キー: 半径、値: その半径の円内オフセットと範囲
  * ブラシサイズは実用範囲内を前提にし、キャッシュは上限を設けていない
  */
-const circleOffsetCache = new Map<number, Array<{ dx: number; dy: number }>>();
+const circleStampCache = new Map<number, StampOffsets>();
 const squareOffsetCache = new Map<number, StampOffsets>();
 const lineOffsetCache = new Map<number, StampOffsets>();
 
 /**
- * 指定半径の円内のオフセットを取得（テーブル化）
+ * 指定半径の円スタンプを取得（テーブル化）
  * パフォーマンス最適化: 半径ごとにオフセットを事前計算してキャッシュ
- * @param radius 半径
- * @returns 円内のオフセット配列 [{dx, dy}, ...]
+ * @param radius 半径（0.5刻みなどの小数も許容）
+ * @returns 円スタンプのオフセットと範囲
  */
-function getCircleOffsets(radius: number): Array<{ dx: number; dy: number }> {
-  if (radius <= 0) {
-    return [{ dx: 0, dy: 0 }];
-  }
+function getCircleStamp(radius: number): StampOffsets {
+  const safeRadius = Math.max(0, radius);
 
   // キャッシュをチェック
-  const cached = circleOffsetCache.get(radius);
+  const cached = circleStampCache.get(safeRadius);
   if (cached) {
     return cached;
   }
 
   // テーブルを生成
   const offsets: Array<{ dx: number; dy: number }> = [];
-  const radiusSq = radius * radius;
+  const radiusSq = safeRadius * safeRadius;
+  const limit = Math.ceil(safeRadius);
+  let minX = 0;
+  let maxX = 0;
+  let minY = 0;
+  let maxY = 0;
+  let hasOffset = false;
 
-  for (let dy = -radius; dy <= radius; dy++) {
-    for (let dx = -radius; dx <= radius; dx++) {
+  for (let dy = -limit; dy <= limit; dy++) {
+    for (let dx = -limit; dx <= limit; dx++) {
       const dSq = dx * dx + dy * dy;
       if (dSq <= radiusSq) {
         offsets.push({ dx, dy });
+        if (!hasOffset) {
+          minX = dx;
+          maxX = dx;
+          minY = dy;
+          maxY = dy;
+          hasOffset = true;
+        } else {
+          minX = Math.min(minX, dx);
+          maxX = Math.max(maxX, dx);
+          minY = Math.min(minY, dy);
+          maxY = Math.max(maxY, dy);
+        }
       }
     }
   }
 
+  // 念のためオフセットが空なら中心点のみ
+  if (!hasOffset) {
+    offsets.push({ dx: 0, dy: 0 });
+    minX = 0;
+    maxX = 0;
+    minY = 0;
+    maxY = 0;
+  }
+
+  const stamp = {
+    offsets,
+    minX,
+    maxX,
+    minY,
+    maxY,
+  };
+
   // キャッシュに保存
-  circleOffsetCache.set(radius, offsets);
-  return offsets;
+  circleStampCache.set(safeRadius, stamp);
+  return stamp;
 }
 
 /**
@@ -158,7 +191,7 @@ function getCircleOffsets(radius: number): Array<{ dx: number; dy: number }> {
  * パフォーマンス最適化: 各中心点に対してテーブル化された円オフセットを使用
  * 重複排除はビットマスクで行う
  * @param centerPixels 中心線上のピクセル座標の配列
- * @param width 線の太さ
+ * @param width 線の太さ（直径扱い、半径はwidth/2で評価）
  * @returns 塗りつぶすべきピクセル座標の配列（重複排除済み）
  */
 export function calculateThickLinePixels(
@@ -173,7 +206,7 @@ export function calculateThickLinePixels(
     return [];
   }
 
-  const radius = Math.floor(width / 2);
+  const radius = width / 2;
   if (radius <= 0) {
     return centerPixels;
   }
@@ -247,18 +280,11 @@ export function calculateStampedLinePixels(
 
 /**
  * 円スタンプのオフセットと範囲を取得
- * @param radius 半径
+ * @param radius 半径（0.5刻みなどの小数も許容）
  * @returns 円スタンプのオフセットと範囲
  */
 export function getCircleStampOffsets(radius: number): StampOffsets {
-  const safeRadius = Math.max(0, Math.floor(radius));
-  return {
-    offsets: getCircleOffsets(safeRadius),
-    minX: -safeRadius,
-    maxX: safeRadius,
-    minY: -safeRadius,
-    maxY: safeRadius,
-  };
+  return getCircleStamp(radius);
 }
 
 /**
@@ -300,7 +326,7 @@ export function getSquareStampOffsets(width: number): StampOffsets {
  * @returns 横線スタンプのオフセットと範囲
  */
 export function getLineStampOffsets(width: number): StampOffsets {
-  const safeHalfLength = Math.max(0, Math.round(width));
+  const safeHalfLength = Math.max(1, Math.round(width));
   const cached = lineOffsetCache.get(safeHalfLength);
   if (cached) {
     return cached;
@@ -325,11 +351,11 @@ export function getLineStampOffsets(width: number): StampOffsets {
 /**
  * 円を描画するためのオフセット配列を取得（テーブル化）
  * パフォーマンス最適化: 半径ごとにオフセットを事前計算
- * @param radius 半径
+ * @param radius 半径（0.5刻みなどの小数も許容）
  * @returns 円内のオフセット配列 [{dx, dy}, ...]
  */
 export function getCirclePixelOffsets(
   radius: number,
 ): Array<{ dx: number; dy: number }> {
-  return getCircleOffsets(radius);
+  return getCircleStamp(radius).offsets;
 }

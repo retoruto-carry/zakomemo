@@ -3,6 +3,7 @@ import type { BrushColor, Stroke } from "@/core/types";
 import { ImageDataBuffer } from "@/infra/canvas/ImageDataBuffer";
 import { renderStroke } from "@/infra/canvas/strokeRendering";
 
+/** テスト用のImageDataBufferを生成する */
 function createBuffer(backgroundColor: string): ImageDataBuffer {
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
@@ -12,6 +13,7 @@ function createBuffer(backgroundColor: string): ImageDataBuffer {
   return new ImageDataBuffer({ ctx, backgroundColor });
 }
 
+/** ImageDataBufferからピクセルを取得する */
 function getPixel(
   buffer: ImageDataBuffer,
   x: number,
@@ -28,6 +30,7 @@ function getPixel(
   };
 }
 
+/** ソリッドストロークを生成する */
 function createSolidStroke(kind: "draw" | "erase", color: BrushColor): Stroke {
   return {
     id: "s1",
@@ -37,11 +40,13 @@ function createSolidStroke(kind: "draw" | "erase", color: BrushColor): Stroke {
       color,
       width: 1,
       opacity: 1,
+      variant: "normal",
     },
     points: [{ x: 2, y: 2, t: 0 }],
   };
 }
 
+/** 消しゴムストロークを生成する */
 function createEraserStroke(
   variant: "eraserLine" | "eraserSquare",
   width: number,
@@ -60,6 +65,7 @@ function createEraserStroke(
   };
 }
 
+/** パターンストロークを生成する */
 function createPatternStroke(color: BrushColor): Stroke {
   return {
     id: "s1",
@@ -70,6 +76,7 @@ function createPatternStroke(color: BrushColor): Stroke {
       width: 2,
       opacity: 1,
       patternId: "dot_sparse",
+      variant: "normal",
     },
     points: [{ x: 1, y: 1, t: 0 }],
   };

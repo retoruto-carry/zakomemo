@@ -10,6 +10,7 @@ import type { JitterConfig } from "@/core/jitter";
 import { snapBrushWidth, snapToPixel } from "@/core/rasterization";
 import type {
   BrushColor,
+  BrushPatternId,
   BrushSettings,
   Drawing,
   StrokeKind,
@@ -58,7 +59,7 @@ export class WigglyEngine {
   private pendingWidth = defaultPenWidth.normal;
   private penVariant: PenVariant = "normal";
   private eraserVariant: EraserVariant = "eraserCircle";
-  private pendingPattern: BrushSettings["patternId"] = "dot_sparse";
+  private pendingPattern: BrushPatternId = "dot_sparse";
 
   private currentStrokeId: string | null = null;
   private strokeStartTime = 0;
@@ -126,7 +127,7 @@ export class WigglyEngine {
   }
 
   /** パターンIDを設定する */
-  setPattern(patternId: BrushSettings["patternId"]): void {
+  setPattern(patternId: BrushPatternId): void {
     this.pendingPattern = patternId;
   }
 
@@ -200,20 +201,29 @@ export class WigglyEngine {
     const variant: PenVariant | EraserVariant =
       strokeKind === "erase" ? this.eraserVariant : this.penVariant;
 
-    const updated = startStroke(
-      drawing,
-      strokeId,
-      strokeKind,
-      {
-        kind: brushKind,
-        color: this.pendingColor,
-        width: this.pendingWidth,
-        opacity: 1,
-        patternId: brushKind === "pattern" ? this.pendingPattern : undefined,
-        variant,
-      },
-      { x: snapped.x, y: snapped.y, t: now - this.startedAt },
-    );
+    const brush: BrushSettings =
+      brushKind === "pattern"
+        ? {
+            kind: "pattern",
+            color: this.pendingColor,
+            width: this.pendingWidth,
+            opacity: 1,
+            patternId: this.pendingPattern,
+            variant,
+          }
+        : {
+            kind: "solid",
+            color: this.pendingColor,
+            width: this.pendingWidth,
+            opacity: 1,
+            variant,
+          };
+
+    const updated = startStroke(drawing, strokeId, strokeKind, brush, {
+      x: snapped.x,
+      y: snapped.y,
+      t: now - this.startedAt,
+    });
 
     this.history = { ...this.history, present: updated };
     this.bumpDrawingRevision();
