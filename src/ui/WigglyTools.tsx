@@ -1104,9 +1104,12 @@ export const WigglyTools = React.forwardRef<
                   </div>
                   <div className="flex flex-col gap-2">
                     <div className="relative flex items-center gap-2">
-                      <span className="text-sm font-black text-[#a67c52] w-16 shrink-0">
+                      <label
+                        htmlFor="custom-palette-bg"
+                        className="text-sm font-black text-[#a67c52] w-16 shrink-0 cursor-pointer"
+                      >
                         背景
-                      </span>
+                      </label>
                       <div className="w-8 h-8 relative">
                         <div
                           className="absolute inset-0 border-[2.5px] border-black/10 rounded-[4px]"
@@ -1114,6 +1117,7 @@ export const WigglyTools = React.forwardRef<
                         />
                         <div className="absolute inset-0 border-[1.5px] border-white/30 rounded-[3px] pointer-events-none" />
                         <input
+                          id="custom-palette-bg"
                           type="color"
                           value={customBackgroundColor}
                           onChange={(e) => {
@@ -1127,9 +1131,12 @@ export const WigglyTools = React.forwardRef<
                           className="absolute inset-0 w-full h-full cursor-pointer opacity-0"
                         />
                       </div>
-                      <span className="text-sm font-black text-[#a67c52] leading-none">
+                      <label
+                        htmlFor="custom-palette-bg"
+                        className="text-sm font-black text-[#a67c52] leading-none cursor-pointer"
+                      >
                         {customBackgroundColor.toUpperCase()}
-                      </span>
+                      </label>
                     </div>
                     <div
                       className="h-[3px] w-full bg-[#e7d1b1] rounded-full"
@@ -1143,9 +1150,12 @@ export const WigglyTools = React.forwardRef<
                             key={label}
                             className="relative flex items-center gap-2"
                           >
-                            <span className="text-sm font-black text-[#a67c52] w-16 shrink-0">
+                            <label
+                              htmlFor={`custom-palette-${index}`}
+                              className="text-sm font-black text-[#a67c52] w-16 shrink-0 cursor-pointer"
+                            >
                               {label}
-                            </span>
+                            </label>
                             <div className="w-8 h-8 relative">
                               <div
                                 className="absolute inset-0 border-[2.5px] border-black/10 rounded-[4px]"
@@ -1153,6 +1163,7 @@ export const WigglyTools = React.forwardRef<
                               />
                               <div className="absolute inset-0 border-[1.5px] border-white/30 rounded-[3px] pointer-events-none" />
                               <input
+                                id={`custom-palette-${index}`}
                                 type="color"
                                 value={color}
                                 onChange={(e) => {
@@ -1167,9 +1178,12 @@ export const WigglyTools = React.forwardRef<
                                 className="absolute inset-0 w-full h-full cursor-pointer opacity-0"
                               />
                             </div>
-                            <span className="text-sm font-black text-[#a67c52] leading-none">
+                            <label
+                              htmlFor={`custom-palette-${index}`}
+                              className="text-sm font-black text-[#a67c52] leading-none cursor-pointer"
+                            >
                               {color.toUpperCase()}
-                            </span>
+                            </label>
                           </div>
                         );
                       })}
