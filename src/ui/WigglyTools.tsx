@@ -2,6 +2,7 @@
 
 import React, {
   type KeyboardEvent,
+  useCallback,
   useEffect,
   useImperativeHandle,
   useMemo,
@@ -211,6 +212,27 @@ export const WigglyTools = React.forwardRef<
       uiSoundManager.play("slider-change", { stopPrevious: true });
     }, 100),
   ).current;
+  const playCustomPaletteSound = useRef(
+    throttle(() => {
+      uiSoundManager.play("custom-palette-color", { stopPrevious: true });
+    }, 400),
+  ).current;
+
+  const selectCustomPalette = useCallback(() => {
+    if (selectedPaletteName !== CUSTOM_PALETTE_NAME) {
+      uiSoundManager.play("palette-preset-select", { stopPrevious: true });
+    }
+    setPalette(customPalette);
+    setBackgroundColor(customBackgroundColor);
+    setSelectedPaletteName(CUSTOM_PALETTE_NAME);
+  }, [
+    selectedPaletteName,
+    setPalette,
+    customPalette,
+    setBackgroundColor,
+    customBackgroundColor,
+    setSelectedPaletteName,
+  ]);
 
   // モバイルで「本体色」タブが選択されている場合、自動的に「パレット」タブに切り替え
   useEffect(() => {
@@ -1048,12 +1070,17 @@ export const WigglyTools = React.forwardRef<
                 </div>
 
                 {/* カスタムパレット */}
+                {/* biome-ignore lint/a11y/useSemanticElements: カラーピッカーを含むためdivで選択操作を扱う */}
                 <div
                   className={`mt-1.5 p-3 border-[3px] rounded-[6px] transition-all ${
                     selectedPaletteName === CUSTOM_PALETTE_NAME
                       ? "border-black bg-[#ffff00] shadow-[4px_4px_0_rgba(0,0,0,0.1)]"
                       : "border-[#e7d1b1] bg-white shadow-[2px_2px_0_rgba(210,180,140,0.1)]"
                   }`}
+                  role="button"
+                  tabIndex={0}
+                  onClick={selectCustomPalette}
+                  onKeyDown={handleButtonKeyDown(selectCustomPalette)}
                 >
                   <div className="flex items-center justify-between mb-3">
                     <span className="font-black text-base text-left text-[#a67c52]">
@@ -1061,16 +1088,8 @@ export const WigglyTools = React.forwardRef<
                     </span>
                     <button
                       type="button"
-                      onClick={() => {
-                        setPalette(customPalette);
-                        setBackgroundColor(customBackgroundColor);
-                        setSelectedPaletteName(CUSTOM_PALETTE_NAME);
-                      }}
-                      onKeyDown={handleButtonKeyDown(() => {
-                        setPalette(customPalette);
-                        setBackgroundColor(customBackgroundColor);
-                        setSelectedPaletteName(CUSTOM_PALETTE_NAME);
-                      })}
+                      onClick={selectCustomPalette}
+                      onKeyDown={handleButtonKeyDown(selectCustomPalette)}
                       className={`px-3 py-1 text-xs font-black border-[2px] rounded-[4px] transition-all ${
                         selectedPaletteName === CUSTOM_PALETTE_NAME
                           ? "border-black bg-white text-black"
@@ -1106,8 +1125,9 @@ export const WigglyTools = React.forwardRef<
                           setBackgroundColor(nextBackground);
                           setPalette(customPalette);
                           setSelectedPaletteName(CUSTOM_PALETTE_NAME);
+                          playCustomPaletteSound();
                         }}
-                        className="absolute inset-0 w-full h-full cursor-pointer opacity-0"
+                        className="absolute inset-0 w-full h-full cursor-pointer opacity-0 z-20"
                       />
                     </div>
                     <div
@@ -1145,8 +1165,9 @@ export const WigglyTools = React.forwardRef<
                                 setPalette(newPalette);
                                 setBackgroundColor(customBackgroundColor);
                                 setSelectedPaletteName(CUSTOM_PALETTE_NAME);
+                                playCustomPaletteSound();
                               }}
-                              className="absolute inset-0 w-full h-full cursor-pointer opacity-0"
+                              className="absolute inset-0 w-full h-full cursor-pointer opacity-0 z-20"
                             />
                           </div>
                         );
