@@ -114,6 +114,8 @@ const CUSTOM_COLOR_LABELS = [
 ];
 /** カスタムパレット音のデバウンス間隔(ms) */
 const CUSTOM_PALETTE_SOUND_DEBOUNCE_MS = 250;
+/** カスタムパレットの色反映を間引く間隔(ms) */
+const CUSTOM_PALETTE_APPLY_THROTTLE_MS = 50;
 
 interface WigglyToolsProps {
   tool: Tool;
@@ -219,6 +221,12 @@ export const WigglyTools = React.forwardRef<
     debounce(() => {
       uiSoundManager.play("custom-palette-color", { stopPrevious: true });
     }, CUSTOM_PALETTE_SOUND_DEBOUNCE_MS),
+  ).current;
+  const applyCustomPaletteThrottled = useRef(
+    throttle((nextPalette: string[], nextBackgroundColor: string) => {
+      setPalette(nextPalette);
+      setBackgroundColor(nextBackgroundColor);
+    }, CUSTOM_PALETTE_APPLY_THROTTLE_MS),
   ).current;
 
   const selectCustomPalette = useCallback(() => {
@@ -1139,9 +1147,11 @@ export const WigglyTools = React.forwardRef<
                           onChange={(e) => {
                             const nextBackground = e.target.value;
                             setCustomBackgroundColor(nextBackground);
-                            setBackgroundColor(nextBackground);
-                            setPalette(customPalette);
                             setSelectedPaletteName(CUSTOM_PALETTE_NAME);
+                            applyCustomPaletteThrottled(
+                              customPalette,
+                              nextBackground,
+                            );
                             playCustomPaletteSound();
                           }}
                           className="absolute inset-0 w-full h-full cursor-pointer opacity-0"
@@ -1186,9 +1196,11 @@ export const WigglyTools = React.forwardRef<
                                   const newPalette = [...customPalette];
                                   newPalette[index] = e.target.value;
                                   setCustomPalette(newPalette);
-                                  setPalette(newPalette);
-                                  setBackgroundColor(customBackgroundColor);
                                   setSelectedPaletteName(CUSTOM_PALETTE_NAME);
+                                  applyCustomPaletteThrottled(
+                                    newPalette,
+                                    customBackgroundColor,
+                                  );
                                   playCustomPaletteSound();
                                 }}
                                 className="absolute inset-0 w-full h-full cursor-pointer opacity-0"

@@ -5,14 +5,14 @@
  * @param delay 遅延時間（ミリ秒）
  * @returns throttleされた関数
  */
-export function throttle<T extends (...args: unknown[]) => void>(
-  func: T,
+export function throttle<Args extends unknown[]>(
+  func: (...args: Args) => void,
   delay: number,
-): (...args: Parameters<T>) => void {
+): (...args: Args) => void {
   let lastCall = 0;
   let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
-  return (...args: Parameters<T>) => {
+  return (...args: Args) => {
     const now = Date.now();
     const timeSinceLastCall = now - lastCall;
 
