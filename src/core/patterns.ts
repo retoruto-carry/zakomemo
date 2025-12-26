@@ -1,6 +1,7 @@
-import type { PatternDefinition } from "./patternTypes";
-import type { BrushPatternId } from "./types";
+import type { PatternDefinition } from "@/core/patternTypes";
+import type { BrushPatternId } from "@/core/types";
 
+/** パターン一覧 */
 export const PATTERNS: PatternDefinition[] = [
   {
     id: "dot_sparse",
@@ -123,6 +124,10 @@ export const PATTERNS: PatternDefinition[] = [
   },
 ];
 
+/**
+ * IDからパターン定義を取得する
+ * @param id パターンID
+ */
 export function getPatternDefinition(id: BrushPatternId): PatternDefinition {
   const definition = PATTERNS.find((pattern) => pattern.id === id);
   if (!definition) {

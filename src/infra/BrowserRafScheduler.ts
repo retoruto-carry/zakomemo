@@ -1,4 +1,4 @@
-import type { RafScheduler } from "../engine/ports";
+import type { RafScheduler } from "@/engine/ports";
 
 /**
  * requestAnimationFrameを使用したRafScheduler実装

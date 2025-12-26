@@ -9,6 +9,7 @@ export const DEFAULT_DRAWING: Drawing = {
   strokes: [],
 };
 
+/** 本体カラーの配色セット */
 export interface BodyColor {
   bg: string;
   border: string;
@@ -23,6 +24,7 @@ export interface BodyColor {
   hingeBorder: string;
 }
 
+/** 描画用のパレットプリセット */
 export const PALETTE_PRESETS = [
   {
     name: "スタンダード",
@@ -76,6 +78,7 @@ export const PALETTE_PRESETS = [
   },
 ];
 
+/** 本体カラーのプリセット */
 export const BODY_PRESETS = [
   {
     name: "マットホワイト",
@@ -416,6 +419,10 @@ function normalizeHex(hex: string): string {
   return `#${h.toLowerCase()}`;
 }
 
+/**
+ * ベース色から本体カラー一式を生成する
+ * @param hex ベース色（#RGB / #RRGGBB）
+ */
 export function generateBodyColorFromBase(hex: string): BodyColor {
   // 入力を正規化（3文字hex対応、バリデーション）
   const normalizedHex = normalizeHex(hex);

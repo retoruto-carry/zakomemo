@@ -3,7 +3,7 @@ import {
   pushHistory,
   redoHistory,
   undoHistory,
-} from "./history";
+} from "@/core/history";
 
 const initial = { value: 0 };
 

@@ -24,15 +24,20 @@ import { uiSoundManager } from "@/infra/sound/uiSounds";
 import { debounce } from "@/lib/debounce";
 import { isMobile } from "@/lib/share";
 import { throttle } from "@/lib/throttle";
-import { AnimatedGif, type AnimatedGifHandle } from "./components/AnimatedGif";
-import { PatternPreview } from "./components/PatternPreview";
-import { ShareButton } from "./components/ShareButton";
-import { eraserVariants } from "./variants";
+import {
+  AnimatedGif,
+  type AnimatedGifHandle,
+} from "@/ui/components/AnimatedGif";
+import { PatternPreview } from "@/ui/components/PatternPreview";
+import { ShareButton } from "@/ui/components/ShareButton";
+import { eraserVariants } from "@/ui/variants";
 
+/** WigglyToolsの外部操作用ハンドル */
 export interface WigglyToolsHandle {
   playUndoAnimation: () => void;
 }
 
+/** ジッター設定スライダーの入力 */
 interface JitterControlSliderProps {
   label: string;
   value: number;
@@ -117,6 +122,7 @@ const CUSTOM_PALETTE_SOUND_DEBOUNCE_MS = 250;
 /** カスタムパレットの色反映を間引く間隔(ms) */
 const CUSTOM_PALETTE_APPLY_THROTTLE_MS = 50;
 
+/** WigglyToolsの入力プロパティ */
 interface WigglyToolsProps {
   tool: Tool;
   setTool: (tool: Tool) => void;
@@ -158,6 +164,7 @@ interface WigglyToolsProps {
 
 const CUSTOM_PALETTE_NAME = "カスタム";
 
+/** 描画ツール・設定UIのメインパネル */
 export const WigglyTools = React.forwardRef<
   WigglyToolsHandle,
   WigglyToolsProps

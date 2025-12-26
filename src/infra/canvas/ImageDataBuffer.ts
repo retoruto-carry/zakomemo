@@ -1,10 +1,12 @@
 import { parseColorToRgb } from "@/infra/colorUtil";
 
+/** ImageDataBufferの初期化オプション */
 export type ImageDataBufferOptions = {
   ctx: CanvasRenderingContext2D;
   backgroundColor: string;
 };
 
+/** 1ピクセル書き込みの入力 */
 export type SetPixelParams = {
   x: number;
   y: number;

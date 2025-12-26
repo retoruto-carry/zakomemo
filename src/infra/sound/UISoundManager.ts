@@ -1,5 +1,6 @@
 import { Howl } from "howler";
 
+/** UI効果音の再生オプション */
 export interface PlayOptions {
   volume?: number;
   rate?: number;

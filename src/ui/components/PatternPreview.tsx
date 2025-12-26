@@ -5,6 +5,7 @@ import { useMemo } from "react";
 import { getPatternDefinition } from "@/core/patterns";
 import type { BrushPatternId } from "@/core/types";
 
+/** パターンプレビューの入力 */
 export type PatternPreviewProps = {
   patternId: BrushPatternId;
   pixelSize: number;
@@ -12,6 +13,7 @@ export type PatternPreviewProps = {
   className?: string;
 };
 
+/** パターンをグリッドでプレビューする */
 export function PatternPreview({
   patternId,
   pixelSize,

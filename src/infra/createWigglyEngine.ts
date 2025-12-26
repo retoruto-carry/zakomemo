@@ -23,6 +23,14 @@ function setupCanvasContext(
   return ctx;
 }
 
+/**
+ * ブラウザ向けのWigglyEngineを生成する
+ * @param canvas 描画対象のcanvas
+ * @param initialDrawing 初期描画データ
+ * @param paletteColors パレット配色
+ * @param backgroundColor 背景色
+ * @param jitterConfig jitter設定
+ */
 export function createWigglyEngine(
   canvas: HTMLCanvasElement,
   initialDrawing: Drawing,

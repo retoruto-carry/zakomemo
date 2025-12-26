@@ -3,11 +3,13 @@
 import { useEffect, useRef } from "react";
 import styles from "./LoadingScreen.module.css";
 
+/** LoadingScreenの入力 */
 interface LoadingScreenProps {
   isExiting?: boolean;
   onExited?: () => void;
 }
 
+/** ローディング画面 */
 export function LoadingScreen({ isExiting, onExited }: LoadingScreenProps) {
   const layer1Ref = useRef<HTMLDivElement>(null);
   const layer2Ref = useRef<HTMLDivElement>(null);

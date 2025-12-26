@@ -1,5 +1,5 @@
-import { computeJitter } from "./jitter";
-import type { Point } from "./types";
+import { computeJitter } from "@/core/jitter";
+import type { Point } from "@/core/types";
 
 const point: Point = { x: 10, y: 20, t: 100 };
 

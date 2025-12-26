@@ -18,6 +18,7 @@ const XIcon = () => (
   </svg>
 );
 
+/** ShareButtonの入力 */
 interface ShareButtonProps {
   /** シェアするテキスト */
   text: string;

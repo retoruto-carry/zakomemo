@@ -17,8 +17,14 @@ export function resolveCssVariable(color: string): string {
   return value || color;
 }
 
+/** パレット参照の解決に失敗した時のフォールバック色 */
 const FALLBACK_BRUSH_COLOR = "#000000";
 
+/**
+ * パレット参照/固定色をCSS色に解決する
+ * @param color ブラシ色
+ * @param palette パレット配色
+ */
 export function resolveBrushColor({
   color,
   palette,

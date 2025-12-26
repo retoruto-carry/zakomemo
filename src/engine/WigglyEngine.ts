@@ -27,8 +27,10 @@ import {
 import type { EraserVariant, PenVariant } from "@/engine/variants";
 import { defaultPenWidth, resolveWidthVariant } from "@/engine/variants";
 
+/** ツール種別 */
 export type Tool = "pen" | "pattern" | "eraser";
 
+/** WigglyEngineの初期化パラメータ */
 export type EngineOptions = {
   initialDrawing: Drawing;
   renderer: DrawingRenderer;

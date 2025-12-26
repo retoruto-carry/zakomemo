@@ -11,10 +11,10 @@ import { exportDrawingAsGif } from "@/infra/exportGif";
 import { GifEncGifEncoder } from "@/infra/GifEncGifEncoder";
 import { initializeUISounds, uiSoundManager } from "@/infra/sound/uiSounds";
 import { useWigglyEngineSync } from "@/ui/hooks/useWigglyEngineSync";
-import { DesktopLayout } from "./layouts/DesktopLayout";
-import { MobileLayout } from "./layouts/MobileLayout";
-import { WigglyCanvas } from "./WigglyCanvas";
-import { WigglyTools, type WigglyToolsHandle } from "./WigglyTools";
+import { DesktopLayout } from "@/ui/layouts/DesktopLayout";
+import { MobileLayout } from "@/ui/layouts/MobileLayout";
+import { WigglyCanvas } from "@/ui/WigglyCanvas";
+import { WigglyTools, type WigglyToolsHandle } from "@/ui/WigglyTools";
 
 const defaultPalette = PALETTE_PRESETS[0];
 
@@ -24,6 +24,7 @@ const defaultBodyColor = BODY_PRESETS[0].body;
 /** デフォルトのペン幅（engine/variants.tsのdefaultPenWidth.normalと揃える） */
 const DEFAULT_PEN_WIDTH = 16;
 
+/** 画面全体の描画UIを提供するエディタ */
 export function WigglyEditor() {
   const engineRef = useRef<WigglyEngine | null>(null);
   const toolsRef = useRef<WigglyToolsHandle | null>(null);

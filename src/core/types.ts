@@ -1,5 +1,7 @@
+/** ブラシ種別（通常/パターン） */
 export type BrushKind = "solid" | "pattern";
 
+/** パターンブラシID */
 export type BrushPatternId =
   | "dot_sparse"
   | "dot_dense"
@@ -15,6 +17,7 @@ export type BrushColor =
   | { kind: "palette"; index: number }
   | { kind: "fixed"; color: string };
 
+/** ブラシのバリアント */
 export type BrushVariant =
   | "normal"
   | "pressure"
@@ -23,6 +26,7 @@ export type BrushVariant =
   | "eraserSquare"
   | "eraserLine";
 
+/** ブラシ設定 */
 export type BrushSettings = {
   kind: BrushKind;
   color: BrushColor;
@@ -32,14 +36,17 @@ export type BrushSettings = {
   variant?: BrushVariant;
 };
 
+/** ストローク種別 */
 export type StrokeKind = "draw" | "erase";
 
+/** 描画ポイント */
 export type Point = {
   x: number;
   y: number;
   t: number;
 };
 
+/** 描画ストローク */
 export type Stroke = {
   id: string;
   kind: StrokeKind;
@@ -47,6 +54,7 @@ export type Stroke = {
   points: Point[];
 };
 
+/** 描画データ */
 export type Drawing = {
   width: number;
   height: number;

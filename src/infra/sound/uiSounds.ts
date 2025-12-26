@@ -1,4 +1,4 @@
-import { UISoundManager } from "./UISoundManager";
+import { UISoundManager } from "@/infra/sound/UISoundManager";
 
 /**
  * UI音源管理のシングルトンインスタンス

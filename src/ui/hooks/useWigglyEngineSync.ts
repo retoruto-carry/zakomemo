@@ -4,6 +4,7 @@ import type { BrushPatternId } from "@/core/types";
 import type { EraserVariant, PenVariant } from "@/engine/variants";
 import type { Tool, WigglyEngine } from "@/engine/WigglyEngine";
 
+/** UI状態をエンジンへ同期するための入力 */
 type UseWigglyEngineSyncParams = {
   engine: WigglyEngine | null;
   tool: Tool;
@@ -17,6 +18,9 @@ type UseWigglyEngineSyncParams = {
   palette: string[];
 };
 
+/**
+ * UIの状態をWigglyEngineへ同期する
+ */
 export function useWigglyEngineSync({
   engine,
   tool,

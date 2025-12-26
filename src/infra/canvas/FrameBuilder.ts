@@ -5,6 +5,7 @@ import type { ImageDataBuffer } from "@/infra/canvas/ImageDataBuffer";
 import { renderStroke } from "@/infra/canvas/strokeRendering";
 import type { StrokeWithNewPoints } from "@/infra/canvas/types";
 
+/** フレーム全再生成の入力 */
 export type BuildFromScratchParams = {
   drawing: Drawing;
   cycleElapsedTimeMs: number;
@@ -12,6 +13,7 @@ export type BuildFromScratchParams = {
   palette: string[];
 };
 
+/** フレーム差分生成の入力 */
 export type BuildWithDiffParams = {
   drawing: Drawing;
   cycleElapsedTimeMs: number;

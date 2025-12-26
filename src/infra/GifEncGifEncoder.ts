@@ -1,6 +1,6 @@
 import { applyPalette, GIFEncoder, quantize } from "gifenc";
 import type { GifEncoder } from "@/engine/ports";
-import { parseColorToRgb } from "./colorUtil";
+import { parseColorToRgb } from "@/infra/colorUtil";
 
 /**
  * gifencライブラリを使用したGIFエンコーダー実装

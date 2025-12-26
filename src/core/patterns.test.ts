@@ -1,5 +1,5 @@
-import { getPatternDefinition, PATTERNS } from "./patterns";
-import type { BrushPatternId } from "./types";
+import { getPatternDefinition, PATTERNS } from "@/core/patterns";
+import type { BrushPatternId } from "@/core/types";
 
 describe("patterns", () => {
   test("getPatternDefinitionは既知パターンを返す", () => {

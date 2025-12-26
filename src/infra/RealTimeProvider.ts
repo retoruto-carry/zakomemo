@@ -1,4 +1,4 @@
-import type { TimeProvider } from "../engine/ports";
+import type { TimeProvider } from "@/engine/ports";
 
 /**
  * performance.now()を使用したTimeProvider実装

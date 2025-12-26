@@ -17,6 +17,7 @@ type RendererWithCycleBitmap = DrawingRenderer & {
   getCycleCount(): number;
 };
 
+/** GIF出力に必要な入力パラメータ */
 export type ExportGifOptions = {
   /** 描画データ */
   drawing: Drawing;

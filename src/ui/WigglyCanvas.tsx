@@ -24,6 +24,7 @@ type PointerInfo = {
   moved: boolean;
 };
 
+/** WigglyCanvasの入力プロパティ */
 interface WigglyCanvasProps {
   tool: Tool;
   brushWidth: number;
@@ -34,6 +35,7 @@ interface WigglyCanvasProps {
   onEngineInit: (engine: WigglyEngine) => void;
 }
 
+/** 描画キャンバス本体 */
 export function WigglyCanvas({
   tool,
   brushWidth,
