@@ -159,8 +159,8 @@ export function WigglyEditor() {
   }, []);
 
   // パレット変更時は既存のImageBitmapが古い色になるためキャッシュを破棄する
+  // biome-ignore lint/correctness/useExhaustiveDependencies: パレット変更で再描画が必要なため
   useEffect(() => {
-    void palette;
     engineRef.current?.clearRendererCache();
   }, [palette]);
 
