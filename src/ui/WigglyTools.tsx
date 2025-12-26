@@ -1031,12 +1031,15 @@ export const WigglyTools = React.forwardRef<
 
                 {/* カスタムパレット */}
                 <div className="mt-1.5 p-3 bg-white border-[3px] border-[#e7d1b1] rounded-[6px] shadow-[2px_2px_0_rgba(210,180,140,0.1)]">
-                  <span className="font-black text-base mb-3 block text-center text-[#a67c52]">
+                  <span className="font-black text-base mb-3 block text-left text-[#a67c52]">
                     カスタムパレット
                   </span>
                   <div className="flex flex-col gap-2">
                     <div className="relative flex items-center gap-2">
-                      <div className="w-10 h-10 relative">
+                      <span className="text-sm font-black text-[#a67c52] w-16 shrink-0">
+                        背景
+                      </span>
+                      <div className="w-8 h-8 relative">
                         <div
                           className="absolute inset-0 border-[2.5px] border-black/10 rounded-[4px]"
                           style={{ backgroundColor }}
@@ -1061,12 +1064,15 @@ export const WigglyTools = React.forwardRef<
                       aria-hidden="true"
                     />
                     <div className="flex flex-col gap-2">
-                      {palette.map((c) => (
+                      {palette.map((c, index) => (
                         <div
                           key={`custom-palette-${c}`}
                           className="relative flex items-center gap-2"
                         >
-                          <div className="w-10 h-10 relative">
+                          <span className="text-sm font-black text-[#a67c52] w-16 shrink-0">
+                            カラー{index + 1}
+                          </span>
+                          <div className="w-8 h-8 relative">
                             <div
                               className="absolute inset-0 border-[2.5px] border-black/10 rounded-[4px]"
                               style={{ backgroundColor: c }}
