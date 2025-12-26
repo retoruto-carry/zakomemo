@@ -18,15 +18,16 @@ export function PatternPreview({
   repeat,
   className,
 }: PatternPreviewProps): React.ReactElement {
-  const { tile } = getPatternDefinition(patternId);
-  const repeatWidth = tile.width * repeat;
-  const repeatHeight = tile.height * repeat;
+  const { tile, preview } = getPatternDefinition(patternId);
+  const previewTile = preview ?? tile;
+  const repeatWidth = previewTile.width * repeat;
+  const repeatHeight = previewTile.height * repeat;
   const cells = useMemo(() => {
     const result: React.ReactElement[] = [];
     for (let y = 0; y < repeatHeight; y += 1) {
-      const rowOffset = (y % tile.height) * tile.width;
+      const rowOffset = (y % previewTile.height) * previewTile.width;
       for (let x = 0; x < repeatWidth; x += 1) {
-        const value = tile.alpha[rowOffset + (x % tile.width)];
+        const value = previewTile.alpha[rowOffset + (x % previewTile.width)];
         result.push(
           <div
             key={`${patternId}-${x}-${y}`}
@@ -40,7 +41,7 @@ export function PatternPreview({
       }
     }
     return result;
-  }, [patternId, pixelSize, repeatWidth, repeatHeight, tile]);
+  }, [patternId, pixelSize, repeatWidth, repeatHeight, previewTile]);
 
   return (
     <div

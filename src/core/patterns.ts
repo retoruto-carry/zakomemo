@@ -14,10 +14,31 @@ export const PATTERNS: PatternDefinition[] = [
         0,0,0,
       ],
     },
+    preview: {
+      width: 3,
+      height: 3,
+      // biome-ignore format: パターンの行分割を維持するため
+      alpha: [
+        0,0,0,
+        0,1,0,
+        0,0,0,
+      ],
+    },
   },
   {
     id: "dot_dense",
     tile: {
+      width: 4,
+      height: 4,
+      // biome-ignore format: パターンの行分割を維持するため
+      alpha: [
+        0,1,0,1,
+        0,0,0,0,
+        0,1,0,1,
+        0,0,0,0,
+      ],
+    },
+    preview: {
       width: 4,
       height: 4,
       // biome-ignore format: パターンの行分割を維持するため
@@ -42,10 +63,32 @@ export const PATTERNS: PatternDefinition[] = [
         1,1,1,1,
       ],
     },
+    preview: {
+      width: 4,
+      height: 4,
+      // biome-ignore format: パターンの行分割を維持するため
+      alpha: [
+        0,0,0,0,
+        1,1,1,1,
+        0,0,0,0,
+        1,1,1,1,
+      ],
+    },
   },
   {
     id: "stripe_vertical",
     tile: {
+      width: 4,
+      height: 4,
+      // biome-ignore format: パターンの行分割を維持するため
+      alpha: [
+        1,0,1,0,
+        1,0,1,0,
+        1,0,1,0,
+        1,0,1,0,
+      ],
+    },
+    preview: {
       width: 4,
       height: 4,
       // biome-ignore format: パターンの行分割を維持するため
@@ -70,10 +113,32 @@ export const PATTERNS: PatternDefinition[] = [
         0,1,0,1,
       ],
     },
+    preview: {
+      width: 4,
+      height: 4,
+      // biome-ignore format: パターンの行分割を維持するため
+      alpha: [
+        1,0,1,0,
+        0,1,0,1,
+        1,0,1,0,
+        0,1,0,1,
+      ],
+    },
   },
   {
     id: "mesh",
     tile: {
+      width: 4,
+      height: 4,
+      // biome-ignore format: パターンの行分割を維持するため
+      alpha: [
+        1,1,1,1,
+        1,0,1,0,
+        1,1,1,1,
+        1,0,1,0,
+      ],
+    },
+    preview: {
       width: 4,
       height: 4,
       // biome-ignore format: パターンの行分割を維持するため
@@ -98,10 +163,32 @@ export const PATTERNS: PatternDefinition[] = [
         1,1,1,1,
       ],
     },
+    preview: {
+      width: 4,
+      height: 4,
+      // biome-ignore format: パターンの行分割を維持するため
+      alpha: [
+        1,1,1,1,
+        1,1,1,1,
+        1,1,0,1,
+        1,1,1,1,
+      ],
+    },
   },
   {
     id: "crosshatch",
     tile: {
+      width: 4,
+      height: 4,
+      // biome-ignore format: パターンの行分割を維持するため
+      alpha: [
+        1,0,1,0,
+        0,1,0,0,
+        1,0,1,0,
+        0,0,0,1,
+      ],
+    },
+    preview: {
       width: 4,
       height: 4,
       // biome-ignore format: パターンの行分割を維持するため
