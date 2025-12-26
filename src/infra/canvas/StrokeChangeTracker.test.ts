@@ -11,7 +11,7 @@ function createStroke(
     kind: "draw",
     brush: {
       kind: "solid",
-      color: "#000000",
+      color: { kind: "palette", index: 0 },
       width: 2,
       opacity: 1,
     },

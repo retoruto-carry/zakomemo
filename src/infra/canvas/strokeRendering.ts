@@ -15,7 +15,7 @@ import {
 } from "@/core/rasterization";
 import type { BrushVariant, Stroke } from "@/core/types";
 import type { ImageDataBuffer } from "@/infra/canvas/ImageDataBuffer";
-import { parseColorToRgb, resolveCssVariable } from "@/infra/colorUtil";
+import { parseColorToRgb, resolveBrushColor } from "@/infra/colorUtil";
 
 /**
  * ストローク描画のコンテキスト
@@ -30,11 +30,13 @@ export type StrokeRenderingContext = ImageDataBuffer;
  */
 export function renderStroke({
   context,
+  palette,
   stroke,
   jitteredPoints,
   elapsedTimeMs: _elapsedTimeMs,
 }: {
   context: StrokeRenderingContext;
+  palette: string[];
   stroke: Stroke;
   jitteredPoints: { x: number; y: number }[];
   elapsedTimeMs: number;
@@ -43,12 +45,12 @@ export function renderStroke({
 
   // パターンの場合はピクセル単位描画
   if (stroke.brush.kind === "pattern") {
-    renderPatternStroke(context, stroke, jitteredPoints);
+    renderPatternStroke(context, palette, stroke, jitteredPoints);
     return;
   }
 
   // ソリッド/消しゴムはピクセル単位描画
-  renderSolidStroke(context, stroke, jitteredPoints);
+  renderSolidStroke(context, palette, stroke, jitteredPoints);
 }
 
 /**
@@ -56,6 +58,7 @@ export function renderStroke({
  */
 function renderSolidStroke(
   context: StrokeRenderingContext,
+  palette: string[],
   stroke: Stroke,
   jitteredPoints: { x: number; y: number }[],
 ): void {
@@ -81,7 +84,9 @@ function renderSolidStroke(
     a = bg.a * 255; // 0-255に変換
   } else {
     // 通常のペン: ストロークの色を使用
-    const color = parseColorToRgb(resolveCssVariable(stroke.brush.color));
+    const color = parseColorToRgb(
+      resolveBrushColor({ color: stroke.brush.color, palette }),
+    );
     r = color.r;
     g = color.g;
     b = color.b;
@@ -257,6 +262,7 @@ function assertNever(value: never): never {
  */
 function renderPatternStroke(
   context: StrokeRenderingContext,
+  palette: string[],
   stroke: Stroke,
   jitteredPoints: { x: number; y: number }[],
 ): void {
@@ -266,7 +272,9 @@ function renderPatternStroke(
   if (!patternDef) return;
   const tile = patternDef.tile;
 
-  const color = parseColorToRgb(resolveCssVariable(stroke.brush.color));
+  const color = parseColorToRgb(
+    resolveBrushColor({ color: stroke.brush.color, palette }),
+  );
   const brushWidth = Math.round(stroke.brush.width);
 
   let areaPixels: Array<{ x: number; y: number }>;
@@ -296,9 +304,7 @@ function renderPatternStroke(
         const prevX = Math.round(prev.x);
         const prevY = Math.round(prev.y);
         const linePixels = bresenhamLine(prevX, prevY, x, y);
-        if (linePixels.length > 0) {
-          centerPixels.push(...linePixels.slice(1));
-        }
+        centerPixels.push(...linePixels.slice(1));
       }
     }
 

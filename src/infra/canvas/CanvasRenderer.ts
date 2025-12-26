@@ -1,6 +1,10 @@
 import type { JitterConfig } from "@/core/jitter";
 import type { Drawing, Stroke } from "@/core/types";
-import type { DrawingRenderer, GetCycleBitmapParams } from "@/engine/ports";
+import type {
+  DrawingRenderer,
+  GetCycleBitmapParams,
+  PaletteRenderer,
+} from "@/engine/ports";
 import { CYCLE_COUNT, CYCLE_INTERVAL_MS } from "@/engine/renderingConstants";
 import { CycleBitmapCache } from "@/infra/canvas/CycleBitmapCache";
 import { FrameBuilder } from "@/infra/canvas/FrameBuilder";
@@ -18,7 +22,7 @@ const MAX_BITMAP_CACHE_ENTRIES = MAX_DRAWING_CACHE_ENTRIES * CYCLE_COUNT;
  * ImageBitmapのcycleキャッシュを使うCanvasレンダラー。
  * キャッシュ参照の制御を行い、実描画は各ヘルパーに委譲する。
  */
-export class CanvasRenderer implements DrawingRenderer {
+export class CanvasRenderer implements DrawingRenderer, PaletteRenderer {
   private ctx: CanvasRenderingContext2D;
   private displayBuffer: ImageDataBuffer;
   private cycleBuffers: ImageDataBuffer[];
@@ -26,6 +30,7 @@ export class CanvasRenderer implements DrawingRenderer {
   private cycleCache: CycleBitmapCache;
   private renderCacheEpoch = 0;
   private cycleIntervalMs = CYCLE_INTERVAL_MS;
+  private paletteColors: string[];
   /** Drawing参照に安定IDを付け、undo/redoで同じ状態を再利用できるようにする */
   private drawingIds = new WeakMap<Drawing, number>();
   private nextDrawingId = 1;
@@ -52,6 +57,7 @@ export class CanvasRenderer implements DrawingRenderer {
       createTracker: () => new StrokeChangeTracker(),
       maxEntries: MAX_BITMAP_CACHE_ENTRIES,
     });
+    this.paletteColors = options.paletteColors ?? [];
   }
 
   setBackgroundColor(backgroundColor: string): void {
@@ -71,6 +77,10 @@ export class CanvasRenderer implements DrawingRenderer {
     this.invalidateCache();
   }
 
+  setPaletteColors(palette: string[]): void {
+    this.paletteColors = [...palette];
+  }
+
   renderStroke({
     stroke,
     jitteredPoints,
@@ -82,6 +92,7 @@ export class CanvasRenderer implements DrawingRenderer {
   }): void {
     renderStroke({
       context: this.displayBuffer,
+      palette: this.paletteColors,
       stroke,
       jitteredPoints,
       elapsedTimeMs,
@@ -270,6 +281,7 @@ export class CanvasRenderer implements DrawingRenderer {
           drawing,
           cycleElapsedTimeMs,
           jitterConfig,
+          palette: this.paletteColors,
           newStrokes: diff.newStrokes,
           strokesWithNewPoints: diff.strokesWithNewPoints,
           baseBitmap,
@@ -279,6 +291,7 @@ export class CanvasRenderer implements DrawingRenderer {
           drawing,
           cycleElapsedTimeMs,
           jitterConfig,
+          palette: this.paletteColors,
         });
       }
     } else {
@@ -286,6 +299,7 @@ export class CanvasRenderer implements DrawingRenderer {
         drawing,
         cycleElapsedTimeMs,
         jitterConfig,
+        palette: this.paletteColors,
       });
     }
 

@@ -10,6 +10,11 @@ export type BrushPatternId =
   | "mesh_bold"
   | "crosshatch";
 
+/** パレット参照または固定色で表現するブラシ色 */
+export type BrushColor =
+  | { kind: "palette"; index: number }
+  | { kind: "fixed"; color: string };
+
 export type BrushVariant =
   | "normal"
   | "pressure"
@@ -20,7 +25,7 @@ export type BrushVariant =
 
 export type BrushSettings = {
   kind: BrushKind;
-  color: string;
+  color: BrushColor;
   width: number;
   opacity: number;
   patternId?: BrushPatternId;

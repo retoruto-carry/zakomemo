@@ -219,6 +219,41 @@ describe("WigglyEngine", () => {
     invalidateSpy.mockRestore();
   });
 
+  test("パレット変更でレンダラーとキャッシュを同期する", () => {
+    class MockRendererWithPalette extends MockRenderer {
+      setPaletteColors = vi.fn();
+    }
+
+    const time = new MockTime();
+    const raf = new MockRaf();
+    const renderer = new MockRendererWithPalette(
+      initialDrawing.width,
+      initialDrawing.height,
+    );
+    const engine = new WigglyEngine({
+      initialDrawing,
+      renderer,
+      time,
+      raf,
+      jitterConfig: { amplitude: 0, frequency: 1 },
+    });
+    const invalidateSpy = vi.spyOn(
+      renderScheduler,
+      "invalidatePendingRequests",
+    );
+    const cacheSpy = vi.spyOn(renderer, "invalidateRenderCache");
+
+    const palette = ["#000000", "#ffffff"];
+    engine.setPaletteColors(palette);
+
+    expect(renderer.setPaletteColors).toHaveBeenCalledWith(palette);
+    expect(cacheSpy).toHaveBeenCalled();
+    expect(invalidateSpy).toHaveBeenCalledWith(renderer);
+
+    engine.destroy();
+    invalidateSpy.mockRestore();
+  });
+
   test("destroyでRAFループをキャンセルする", () => {
     const { engine, raf } = createEngine();
     const cancelSpy = vi.spyOn(raf, "cancel");

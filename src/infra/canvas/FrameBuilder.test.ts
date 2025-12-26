@@ -27,7 +27,7 @@ describe("FrameBuilder", () => {
       kind: "draw",
       brush: {
         kind: "solid",
-        color: "#000",
+        color: { kind: "palette", index: 0 },
         width: 2,
         opacity: 1,
       },
@@ -55,6 +55,7 @@ describe("FrameBuilder", () => {
       drawing,
       cycleElapsedTimeMs: 0,
       jitterConfig,
+      palette: ["#000000"],
       newStrokes: [],
       strokesWithNewPoints: [{ stroke, cachedPointCount: 2 }],
       baseBitmap,

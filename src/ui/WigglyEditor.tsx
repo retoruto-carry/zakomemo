@@ -4,10 +4,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { BODY_PRESETS, PALETTE_PRESETS } from "@/config/presets";
 import type { JitterConfig } from "@/core/jitter";
 import type { BrushPatternId } from "@/core/types";
-import { exportDrawingAsGif } from "@/engine/exportGif";
 import type { EraserVariant, PenVariant } from "@/engine/variants";
 import type { Tool, WigglyEngine } from "@/engine/WigglyEngine";
 import { CanvasRenderer } from "@/infra/canvas/CanvasRenderer";
+import { exportDrawingAsGif } from "@/infra/exportGif";
 import { GifEncGifEncoder } from "@/infra/GifEncGifEncoder";
 import { initializeUISounds, uiSoundManager } from "@/infra/sound/uiSounds";
 import { useWigglyEngineSync } from "@/ui/hooks/useWigglyEngineSync";
@@ -27,7 +27,7 @@ const DEFAULT_PEN_WIDTH = 16;
 export function WigglyEditor() {
   const engineRef = useRef<WigglyEngine | null>(null);
   const toolsRef = useRef<WigglyToolsHandle | null>(null);
-  const [engineVersion, setEngineVersion] = useState(0);
+  const [engine, setEngine] = useState<WigglyEngine | null>(null);
 
   // 音源の初期化（初回のみ）
   useEffect(() => {
@@ -36,7 +36,7 @@ export function WigglyEditor() {
 
   // 状態
   const [tool, setTool] = useState<Tool>("pen");
-  const [color, setColor] = useState("var(--palette-0)");
+  const [colorIndex, setColorIndex] = useState(0);
   const [brushWidth, setBrushWidth] = useState(DEFAULT_PEN_WIDTH);
   // penVariantは現在"normal"のみなので定数として扱う
   const penVariant: PenVariant = "normal";
@@ -127,6 +127,7 @@ export function WigglyEditor() {
       const renderer = new CanvasRenderer({
         ctx,
         backgroundColor,
+        paletteColors: palette,
       });
 
       const gifEncoder = new GifEncGifEncoder();
@@ -151,6 +152,7 @@ export function WigglyEditor() {
 
   const onEngineInit = useCallback((engine: WigglyEngine) => {
     engineRef.current = engine;
+    setEngine(engine);
     engine.setHistoryChangeListener(() => {
       setCanUndo(engine.canUndo());
       setCanRedo(engine.canRedo());
@@ -158,14 +160,12 @@ export function WigglyEditor() {
     // 初期チェック
     setCanUndo(engine.canUndo());
     setCanRedo(engine.canRedo());
-    setEngineVersion((prev) => prev + 1);
   }, []);
 
   useWigglyEngineSync({
-    engineRef,
-    engineVersion,
+    engine,
     tool,
-    color,
+    colorIndex,
     brushWidth,
     penVariant,
     eraserVariant,
@@ -199,20 +199,9 @@ export function WigglyEditor() {
 
   const handleDSButtonY = useCallback(() => {
     uiSoundManager.play("ds-button-y", { stopPrevious: true });
-    let currentIndex = -1;
-    if (color.startsWith("var(--palette-")) {
-      const parsedIndex = parseInt(
-        color.substring("var(--palette-".length, color.length - 1),
-        10,
-      );
-      if (!Number.isNaN(parsedIndex) && parsedIndex >= 0) {
-        currentIndex = parsedIndex;
-      }
-    }
-    const safeIndex = currentIndex === -1 ? 0 : currentIndex;
-    const nextIndex = (safeIndex + 1) % palette.length;
-    setColor(`var(--palette-${nextIndex})`);
-  }, [color, palette]);
+    const nextIndex = (colorIndex + 1) % palette.length;
+    setColorIndex(nextIndex);
+  }, [colorIndex, palette.length]);
 
   const handleDSButtonUp = useCallback(() => {
     uiSoundManager.play("ds-button-up", { stopPrevious: true });
@@ -390,8 +379,8 @@ export function WigglyEditor() {
             ref={toolsRef}
             tool={tool}
             setTool={setTool}
-            color={color}
-            setColor={setColor}
+            colorIndex={colorIndex}
+            setColorIndex={setColorIndex}
             brushWidth={brushWidth}
             setBrushWidth={setBrushWidth}
             eraserVariant={eraserVariant}

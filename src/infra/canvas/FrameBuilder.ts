@@ -9,12 +9,14 @@ export type BuildFromScratchParams = {
   drawing: Drawing;
   cycleElapsedTimeMs: number;
   jitterConfig: JitterConfig;
+  palette: string[];
 };
 
 export type BuildWithDiffParams = {
   drawing: Drawing;
   cycleElapsedTimeMs: number;
   jitterConfig: JitterConfig;
+  palette: string[];
   newStrokes: Stroke[];
   strokesWithNewPoints: StrokeWithNewPoints[];
   baseBitmap: ImageBitmap;
@@ -36,6 +38,7 @@ export class FrameBuilder {
     drawing,
     cycleElapsedTimeMs,
     jitterConfig,
+    palette,
   }: BuildFromScratchParams): Promise<ImageBitmap> {
     this.buffer.clear({ width: drawing.width, height: drawing.height });
 
@@ -47,6 +50,7 @@ export class FrameBuilder {
       });
       renderStroke({
         context: this.buffer,
+        palette,
         stroke,
         jitteredPoints: jittered,
         elapsedTimeMs: cycleElapsedTimeMs,
@@ -61,6 +65,7 @@ export class FrameBuilder {
     drawing,
     cycleElapsedTimeMs,
     jitterConfig,
+    palette,
     newStrokes,
     strokesWithNewPoints,
     baseBitmap,
@@ -79,6 +84,7 @@ export class FrameBuilder {
       });
       renderStroke({
         context: this.buffer,
+        palette,
         stroke,
         jitteredPoints: jittered,
         elapsedTimeMs: cycleElapsedTimeMs,
@@ -101,6 +107,7 @@ export class FrameBuilder {
       });
       renderStroke({
         context: this.buffer,
+        palette,
         stroke: tempStroke,
         jitteredPoints: jittered,
         elapsedTimeMs: cycleElapsedTimeMs,

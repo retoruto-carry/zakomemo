@@ -120,8 +120,8 @@ const CUSTOM_PALETTE_APPLY_THROTTLE_MS = 50;
 interface WigglyToolsProps {
   tool: Tool;
   setTool: (tool: Tool) => void;
-  color: string;
-  setColor: (color: string) => void;
+  colorIndex: number;
+  setColorIndex: (colorIndex: number) => void;
   brushWidth: number;
   setBrushWidth: (brushWidth: number) => void;
   eraserVariant: EraserVariant;
@@ -165,8 +165,8 @@ export const WigglyTools = React.forwardRef<
   {
     tool,
     setTool,
-    color,
-    setColor,
+    colorIndex,
+    setColorIndex,
     brushWidth,
     setBrushWidth,
     eraserVariant,
@@ -793,25 +793,26 @@ export const WigglyTools = React.forwardRef<
           />
           {palette.map((_c, idx) => {
             const varName = `var(--palette-${idx})`;
+            const isSelected = colorIndex === idx;
             return (
               <button
                 type="button"
                 key={varName}
                 onClick={() => {
                   uiSoundManager.play("color-select", { stopPrevious: true });
-                  setColor(varName);
+                  setColorIndex(idx);
                 }}
                 style={{ backgroundColor: varName }}
                 className={`
                               h-8 w-8 rounded-[2px] transition-transform shadow-sm shrink-0 relative cursor-pointer
                               ${
-                                color === varName
+                                isSelected
                                   ? "border-black border-[3px] scale-110 z-10 shadow-[0_0_0_2px_rgba(255,255,255,0.8)]"
                                   : "border-white border-[2px] hover:scale-105"
                               }
                           `}
               >
-                {color === varName && (
+                {isSelected && (
                   <div className="absolute inset-0 border-2 border-white opacity-80 pointer-events-none" />
                 )}
               </button>

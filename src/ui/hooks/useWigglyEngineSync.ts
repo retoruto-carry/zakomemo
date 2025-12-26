@@ -1,4 +1,3 @@
-import type { RefObject } from "react";
 import { useEffect } from "react";
 import type { JitterConfig } from "@/core/jitter";
 import type { BrushPatternId } from "@/core/types";
@@ -6,10 +5,9 @@ import type { EraserVariant, PenVariant } from "@/engine/variants";
 import type { Tool, WigglyEngine } from "@/engine/WigglyEngine";
 
 type UseWigglyEngineSyncParams = {
-  engineRef: RefObject<WigglyEngine | null>;
-  engineVersion: number;
+  engine: WigglyEngine | null;
   tool: Tool;
-  color: string;
+  colorIndex: number;
   brushWidth: number;
   penVariant: PenVariant;
   eraserVariant: EraserVariant;
@@ -20,10 +18,9 @@ type UseWigglyEngineSyncParams = {
 };
 
 export function useWigglyEngineSync({
-  engineRef,
-  engineVersion,
+  engine,
   tool,
-  color,
+  colorIndex,
   brushWidth,
   penVariant,
   eraserVariant,
@@ -34,49 +31,47 @@ export function useWigglyEngineSync({
 }: UseWigglyEngineSyncParams): void {
   // エンジンの生成完了後に同期を走らせる
   useEffect(() => {
-    if (engineVersion === 0) return;
-    engineRef.current?.setTool(tool);
-  }, [engineRef, engineVersion, tool]);
+    if (!engine) return;
+    engine.setTool(tool);
+  }, [engine, tool]);
 
   useEffect(() => {
-    if (engineVersion === 0) return;
-    engineRef.current?.setBrushColor(color);
-  }, [color, engineRef, engineVersion]);
+    if (!engine) return;
+    engine.setBrushColor({ kind: "palette", index: colorIndex });
+  }, [colorIndex, engine]);
 
   useEffect(() => {
-    if (engineVersion === 0) return;
-    engineRef.current?.setBrushWidth(brushWidth);
-  }, [brushWidth, engineRef, engineVersion]);
+    if (!engine) return;
+    engine.setBrushWidth(brushWidth);
+  }, [brushWidth, engine]);
 
   useEffect(() => {
-    if (engineVersion === 0) return;
-    engineRef.current?.setPattern(patternId);
-  }, [engineRef, engineVersion, patternId]);
+    if (!engine) return;
+    engine.setPattern(patternId);
+  }, [engine, patternId]);
 
   useEffect(() => {
-    if (engineVersion === 0) return;
-    engineRef.current?.setPenVariant(penVariant);
-  }, [engineRef, engineVersion, penVariant]);
+    if (!engine) return;
+    engine.setPenVariant(penVariant);
+  }, [engine, penVariant]);
 
   useEffect(() => {
-    if (engineVersion === 0) return;
-    engineRef.current?.setEraserVariant(eraserVariant);
-  }, [engineRef, engineVersion, eraserVariant]);
+    if (!engine) return;
+    engine.setEraserVariant(eraserVariant);
+  }, [engine, eraserVariant]);
 
   useEffect(() => {
-    if (engineVersion === 0) return;
-    engineRef.current?.setBackgroundColor(backgroundColor);
-  }, [backgroundColor, engineRef, engineVersion]);
+    if (!engine) return;
+    engine.setBackgroundColor(backgroundColor);
+  }, [backgroundColor, engine]);
 
   useEffect(() => {
-    if (engineVersion === 0) return;
-    engineRef.current?.setJitterConfig(jitterConfig);
-  }, [engineRef, engineVersion, jitterConfig]);
+    if (!engine) return;
+    engine.setJitterConfig(jitterConfig);
+  }, [engine, jitterConfig]);
 
-  // パレット変更時は既存のImageBitmapが古い色になるためキャッシュを破棄する
-  // biome-ignore lint/correctness/useExhaustiveDependencies: パレット変更で再描画が必要なため
   useEffect(() => {
-    if (engineVersion === 0) return;
-    engineRef.current?.clearRendererCache();
-  }, [palette, engineRef, engineVersion]);
+    if (!engine) return;
+    engine.setPaletteColors(palette);
+  }, [engine, palette]);
 }

@@ -1,7 +1,7 @@
 import type { Drawing, Stroke } from "@/core/types";
-import { exportDrawingAsGif } from "@/engine/exportGif";
 import type { DrawingRenderer, GifEncoder } from "@/engine/ports";
 import { CYCLE_COUNT, CYCLE_INTERVAL_MS } from "@/engine/renderingConstants";
+import { exportDrawingAsGif } from "@/infra/exportGif";
 
 class MockRenderer implements DrawingRenderer {
   clears: { width: number; height: number }[] = [];
@@ -106,7 +106,12 @@ const drawing: Drawing = {
     {
       id: "s1",
       kind: "draw",
-      brush: { kind: "solid", color: "#000", width: 2, opacity: 1 },
+      brush: {
+        kind: "solid",
+        color: { kind: "palette", index: 0 },
+        width: 2,
+        opacity: 1,
+      },
       points: [
         { x: 0, y: 0, t: 0 },
         { x: 10, y: 0, t: 10 },

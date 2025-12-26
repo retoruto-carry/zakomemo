@@ -1,3 +1,5 @@
+import type { BrushColor } from "@/core/types";
+
 /**
  * CSS変数を解決（SSR時はそのまま返す）
  */
@@ -13,6 +15,21 @@ export function resolveCssVariable(color: string): string {
     .getPropertyValue(varName)
     .trim();
   return value || color;
+}
+
+const FALLBACK_BRUSH_COLOR = "#000000";
+
+export function resolveBrushColor({
+  color,
+  palette,
+}: {
+  color: BrushColor;
+  palette: string[];
+}): string {
+  if (color.kind === "fixed") {
+    return color.color;
+  }
+  return palette[color.index] ?? FALLBACK_BRUSH_COLOR;
 }
 
 /**

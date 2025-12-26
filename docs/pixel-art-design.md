@@ -94,7 +94,7 @@ ui/      Reactコンポーネント（スライダーのstep属性設定）
 - ブラシサイズの整数化テスト
 
 #### 2.2.3 infra層
-**変更ファイル: `src/engine/createWigglyEngine.ts`**
+**変更ファイル: `src/infra/createWigglyEngine.ts`**
 - `setupCanvasContext`: `imageSmoothingEnabled = false`を設定
 
 **変更ファイル: `src/infra/canvas/CanvasRenderer.ts`**
@@ -200,7 +200,7 @@ alpha = tile.alpha[alphaIndex]
 - [x] コミット: `feat: エンジン層で座標とブラシサイズを整数化`
 
 ### 3.3 フェーズ3: インフラ層の変更（アンチエイリアス無効化）
-- [x] `src/engine/createWigglyEngine.ts` 修正
+- [x] `src/infra/createWigglyEngine.ts` 修正
   - [x] `setupCanvasContext` で `imageSmoothingEnabled = false` を設定
 - [x] `pnpm typecheck` で型チェック通過確認
 - [x] `pnpm lint` でリント通過確認

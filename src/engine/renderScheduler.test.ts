@@ -81,7 +81,7 @@ describe("renderDrawingAtTime", () => {
           kind: "draw",
           brush: {
             kind: "solid",
-            color: "#000",
+            color: { kind: "palette", index: 0 },
             width: 4,
             opacity: 1,
           },
@@ -119,7 +119,7 @@ describe("renderDrawingAtTime", () => {
           kind: "draw",
           brush: {
             kind: "solid",
-            color: "#000",
+            color: { kind: "palette", index: 0 },
             width: 4,
             opacity: 1,
           },
@@ -158,7 +158,7 @@ describe("renderDrawingAtTime", () => {
           kind: "draw",
           brush: {
             kind: "pattern",
-            color: "#000",
+            color: { kind: "palette", index: 0 },
             width: 4,
             opacity: 1,
             patternId: "dot_sparse",

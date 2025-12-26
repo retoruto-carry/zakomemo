@@ -16,6 +16,13 @@ export interface DrawingRenderer {
 }
 
 /**
+ * パレット変更を受け取れるレンダラー
+ */
+export interface PaletteRenderer {
+  setPaletteColors(palette: string[]): void;
+}
+
+/**
  * cycle Bitmap取得の引数
  */
 export type GetCycleBitmapParams = {

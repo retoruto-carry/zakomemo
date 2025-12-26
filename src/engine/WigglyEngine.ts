@@ -8,7 +8,12 @@ import {
 } from "@/core/history";
 import type { JitterConfig } from "@/core/jitter";
 import { snapBrushWidth, snapToPixel } from "@/core/rasterization";
-import type { BrushSettings, Drawing, StrokeKind } from "@/core/types";
+import type {
+  BrushColor,
+  BrushSettings,
+  Drawing,
+  StrokeKind,
+} from "@/core/types";
 import type {
   DrawingRenderer,
   RafScheduler,
@@ -47,7 +52,7 @@ export class WigglyEngine {
   private drawingRevision = 0;
 
   private currentTool: Tool = "pen";
-  private pendingColor = "#000000";
+  private pendingColor: BrushColor = { kind: "palette", index: 0 };
   private pendingWidth = defaultPenWidth.normal;
   private penVariant: PenVariant = "normal";
   private eraserVariant: EraserVariant = "eraserCircle";
@@ -82,8 +87,22 @@ export class WigglyEngine {
     this.currentTool = tool;
   }
 
-  setBrushColor(color: string): void {
+  setBrushColor(color: BrushColor): void {
     this.pendingColor = color;
+  }
+
+  /**
+   * パレット変更をレンダラーへ同期する
+   */
+  setPaletteColors(palette: string[]): void {
+    if (
+      "setPaletteColors" in this.renderer &&
+      typeof this.renderer.setPaletteColors === "function"
+    ) {
+      this.renderer.setPaletteColors(palette);
+      this.clearRendererCache();
+      this.lastRenderAt = 0;
+    }
   }
 
   setBrushWidth(width: number): void {

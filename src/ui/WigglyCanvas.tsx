@@ -3,9 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import { DEFAULT_DRAWING } from "@/config/presets";
 import type { JitterConfig } from "@/core/jitter";
-import { createWigglyEngine } from "@/engine/createWigglyEngine";
 import type { EraserVariant } from "@/engine/variants";
 import type { Tool, WigglyEngine } from "@/engine/WigglyEngine";
+import { createWigglyEngine } from "@/infra/createWigglyEngine";
 
 const ERASER_GUIDE = {
   minSize: 12,

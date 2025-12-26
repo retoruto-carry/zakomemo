@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import type { Stroke } from "@/core/types";
+import type { BrushColor, Stroke } from "@/core/types";
 import { ImageDataBuffer } from "@/infra/canvas/ImageDataBuffer";
 import { renderStroke } from "@/infra/canvas/strokeRendering";
 
@@ -28,7 +28,7 @@ function getPixel(
   };
 }
 
-function createSolidStroke(kind: "draw" | "erase", color: string): Stroke {
+function createSolidStroke(kind: "draw" | "erase", color: BrushColor): Stroke {
   return {
     id: "s1",
     kind,
@@ -51,7 +51,7 @@ function createEraserStroke(
     kind: "erase",
     brush: {
       kind: "solid",
-      color: "#000000",
+      color: { kind: "palette", index: 0 },
       width,
       opacity: 1,
       variant,
@@ -60,7 +60,7 @@ function createEraserStroke(
   };
 }
 
-function createPatternStroke(color: string): Stroke {
+function createPatternStroke(color: BrushColor): Stroke {
   return {
     id: "s1",
     kind: "draw",
@@ -79,10 +79,12 @@ describe("renderStroke", () => {
   test("ソリッドストロークがバッファに色を書き込む", () => {
     const buffer = createBuffer("#ffffff");
     buffer.clear({ width: 4, height: 4 });
+    const palette = ["#ff0000", "#00ff00", "#0000ff"];
 
-    const stroke = createSolidStroke("draw", "#ff0000");
+    const stroke = createSolidStroke("draw", { kind: "palette", index: 0 });
     renderStroke({
       context: buffer,
+      palette,
       stroke,
       jitteredPoints: [{ x: 2, y: 2 }],
       elapsedTimeMs: 0,
@@ -99,18 +101,24 @@ describe("renderStroke", () => {
   test("消しゴムストロークが背景色に戻す", () => {
     const buffer = createBuffer("#ffffff");
     buffer.clear({ width: 4, height: 4 });
+    const palette = ["#ff0000", "#00ff00", "#0000ff"];
 
-    const drawStroke = createSolidStroke("draw", "#ff0000");
+    const drawStroke = createSolidStroke("draw", { kind: "palette", index: 0 });
     renderStroke({
       context: buffer,
+      palette,
       stroke: drawStroke,
       jitteredPoints: [{ x: 2, y: 2 }],
       elapsedTimeMs: 0,
     });
 
-    const eraseStroke = createSolidStroke("erase", "#000000");
+    const eraseStroke = createSolidStroke("erase", {
+      kind: "palette",
+      index: 1,
+    });
     renderStroke({
       context: buffer,
+      palette,
       stroke: eraseStroke,
       jitteredPoints: [{ x: 2, y: 2 }],
       elapsedTimeMs: 0,
@@ -128,10 +136,12 @@ describe("renderStroke", () => {
     const buffer = createBuffer("#ffffff");
     buffer.clear({ width: 9, height: 9 });
     buffer.setPixel({ x: 8, y: 4, r: 0, g: 0, b: 0, a: 255 });
+    const palette = ["#ff0000", "#00ff00", "#0000ff"];
 
     const eraseStroke = createEraserStroke("eraserLine", 2);
     renderStroke({
       context: buffer,
+      palette,
       stroke: eraseStroke,
       jitteredPoints: [
         { x: 2, y: 4 },
@@ -152,10 +162,12 @@ describe("renderStroke", () => {
     const buffer = createBuffer("#ffffff");
     buffer.clear({ width: 9, height: 9 });
     buffer.setPixel({ x: 6, y: 3, r: 0, g: 0, b: 0, a: 255 });
+    const palette = ["#ff0000", "#00ff00", "#0000ff"];
 
     const eraseStroke = createEraserStroke("eraserSquare", 3);
     renderStroke({
       context: buffer,
+      palette,
       stroke: eraseStroke,
       jitteredPoints: [
         { x: 2, y: 4 },
@@ -175,10 +187,12 @@ describe("renderStroke", () => {
   test("パターンストロークがパターン色を書き込む", () => {
     const buffer = createBuffer("#ffffff");
     buffer.clear({ width: 8, height: 8 });
+    const palette = ["#ff0000", "#00ff00", "#0000ff"];
 
-    const stroke = createPatternStroke("#00ff00");
+    const stroke = createPatternStroke({ kind: "palette", index: 1 });
     renderStroke({
       context: buffer,
+      palette,
       stroke,
       jitteredPoints: [{ x: 1, y: 1 }],
       elapsedTimeMs: 0,
