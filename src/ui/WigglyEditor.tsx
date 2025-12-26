@@ -369,6 +369,7 @@ export function WigglyEditor() {
             tool={tool}
             brushWidth={brushWidth}
             eraserVariant={eraserVariant}
+            paletteColors={palette}
             backgroundColor={backgroundColor}
             jitterConfig={jitterConfig}
             onEngineInit={onEngineInit}

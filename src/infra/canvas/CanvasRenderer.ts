@@ -57,7 +57,7 @@ export class CanvasRenderer implements DrawingRenderer, PaletteRenderer {
       createTracker: () => new StrokeChangeTracker(),
       maxEntries: MAX_BITMAP_CACHE_ENTRIES,
     });
-    this.paletteColors = options.paletteColors ?? [];
+    this.paletteColors = [...options.paletteColors];
   }
 
   setBackgroundColor(backgroundColor: string): void {

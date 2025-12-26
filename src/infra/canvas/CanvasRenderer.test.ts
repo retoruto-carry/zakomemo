@@ -84,6 +84,7 @@ describe("CanvasRenderer (cycle bitmap cache)", () => {
     renderer = new CanvasRenderer({
       ctx,
       backgroundColor: "#ffffff",
+      paletteColors: ["#000000"],
     });
   });
 

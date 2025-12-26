@@ -55,7 +55,7 @@ export interface GifEncoder {
   begin(width: number, height: number, fps: number): void;
   addFrame(imageData: ImageData): void;
   finish(): Promise<Blob>;
-  setBackgroundColor?(backgroundColor: string): void;
+  setBackgroundColor(backgroundColor: string): void;
 }
 
 /**

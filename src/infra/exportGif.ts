@@ -1,20 +1,29 @@
 import type { JitterConfig } from "@/core/jitter";
 import type { Drawing } from "@/core/types";
-import type { DrawingRenderer, GifEncoder } from "@/engine/ports";
+import type {
+  DrawingRenderer,
+  GetCycleBitmapParams,
+  GifEncoder,
+} from "@/engine/ports";
 import { CYCLE_COUNT, CYCLE_INTERVAL_MS } from "@/engine/renderingConstants";
 import { renderDrawingAtTime } from "@/engine/renderScheduler";
 
 type RendererWithImageData = DrawingRenderer & {
-  getImageData?: () => ImageData;
+  getImageData: () => ImageData;
+};
+
+type RendererWithCycleBitmap = DrawingRenderer & {
+  getCycleBitmap(params: GetCycleBitmapParams): Promise<ImageBitmap>;
+  getCycleCount(): number;
 };
 
 export type ExportGifOptions = {
   /** 描画データ */
   drawing: Drawing;
   /** Drawingの版番号（キャッシュ無効化用） */
-  drawingRevision?: number;
+  drawingRevision: number;
   /** 描画レンダラー */
-  renderer: RendererWithImageData;
+  renderer: RendererWithImageData | RendererWithCycleBitmap;
   /** GIFエンコーダー */
   gif: GifEncoder;
   /** jitter設定 */
@@ -31,7 +40,7 @@ export async function exportDrawingAsGif(
   options: ExportGifOptions,
 ): Promise<Blob> {
   const { drawing, renderer, gif, jitterConfig } = options;
-  const drawingRevision = options.drawingRevision ?? 0;
+  const { drawingRevision } = options;
   const fps = Math.round(1000 / CYCLE_INTERVAL_MS);
 
   gif.begin(drawing.width, drawing.height, fps);
@@ -45,7 +54,8 @@ export async function exportDrawingAsGif(
     "getCycleCount" in renderer &&
     typeof renderer.getCycleCount === "function"
   ) {
-    const cycleCount = renderer.getCycleCount();
+    const cycleRenderer = renderer as RendererWithCycleBitmap;
+    const cycleCount = cycleRenderer.getCycleCount();
     const totalFrames = cycleCount;
 
     const tempCanvas = document.createElement("canvas");
@@ -61,7 +71,7 @@ export async function exportDrawingAsGif(
     for (let i = 0; i < totalFrames; i += 1) {
       const elapsedTimeMs = i * CYCLE_INTERVAL_MS;
 
-      const bitmap = await renderer.getCycleBitmap({
+      const bitmap = await cycleRenderer.getCycleBitmap({
         drawing,
         drawingRevision,
         cycleIndex: i,
@@ -88,6 +98,7 @@ export async function exportDrawingAsGif(
   } else {
     // フォールバック: 通常の描画（1サイクル分）
     const totalFrames = CYCLE_COUNT;
+    const imageRenderer = renderer as RendererWithImageData;
 
     for (let i = 0; i < totalFrames; i += 1) {
       const elapsedTimeMs = i * CYCLE_INTERVAL_MS;
@@ -98,12 +109,7 @@ export async function exportDrawingAsGif(
         jitterConfig,
         elapsedTimeMs,
       });
-      const imageData = renderer.getImageData?.();
-      if (!imageData) {
-        throw new Error(
-          "DrawingRenderer must provide getImageData for GIF export",
-        );
-      }
+      const imageData = imageRenderer.getImageData();
       gif.addFrame(imageData);
     }
   }

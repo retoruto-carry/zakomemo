@@ -43,11 +43,15 @@ class MockRenderer implements DrawingRenderer {
 class MockGifEncoder implements GifEncoder {
   frames: ImageData[] = [];
   beginArgs: { width: number; height: number; fps: number } | null = null;
+  backgroundColor: string | null = null;
   begin(width: number, height: number, fps: number): void {
     this.beginArgs = { width, height, fps };
   }
   addFrame(imageData: ImageData): void {
     this.frames.push(imageData);
+  }
+  setBackgroundColor(backgroundColor: string): void {
+    this.backgroundColor = backgroundColor;
   }
   async finish(): Promise<Blob> {
     return new Blob(["gif"]);
@@ -127,6 +131,7 @@ describe("exportDrawingAsGif", () => {
 
     const blob = await exportDrawingAsGif({
       drawing,
+      drawingRevision: 0,
       renderer,
       gif,
       jitterConfig: { amplitude: 0, frequency: 1 },

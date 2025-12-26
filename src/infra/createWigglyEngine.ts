@@ -26,6 +26,7 @@ function setupCanvasContext(
 export function createWigglyEngine(
   canvas: HTMLCanvasElement,
   initialDrawing: Drawing,
+  paletteColors: string[],
   backgroundColor: string = "#fdfbf7",
   jitterConfig: JitterConfig = { amplitude: 1.2, frequency: 0.008 },
 ): WigglyEngine {
@@ -36,6 +37,7 @@ export function createWigglyEngine(
   const renderer = new CanvasRenderer({
     ctx,
     backgroundColor,
+    paletteColors,
   });
   // レンダラーを初期サイズで初期化（最初のフレーム描画前に必須）
   renderer.clear(logicalWidth, logicalHeight);

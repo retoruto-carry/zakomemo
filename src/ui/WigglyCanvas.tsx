@@ -28,6 +28,7 @@ interface WigglyCanvasProps {
   tool: Tool;
   brushWidth: number;
   eraserVariant: EraserVariant;
+  paletteColors: string[];
   backgroundColor: string;
   jitterConfig: JitterConfig;
   onEngineInit: (engine: WigglyEngine) => void;
@@ -37,6 +38,7 @@ export function WigglyCanvas({
   tool,
   brushWidth,
   eraserVariant,
+  paletteColors,
   backgroundColor,
   jitterConfig,
   onEngineInit,
@@ -64,6 +66,7 @@ export function WigglyCanvas({
     const engine = createWigglyEngine(
       canvas,
       DEFAULT_DRAWING,
+      paletteColors,
       backgroundColor,
       jitterConfig,
     );

@@ -9,7 +9,7 @@ export interface CanvasRendererOptions {
   /** 背景色（CSS色文字列） */
   backgroundColor: string;
   /** パレット色（6色想定） */
-  paletteColors?: string[];
+  paletteColors: string[];
 }
 
 /**

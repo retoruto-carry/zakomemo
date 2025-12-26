@@ -131,8 +131,8 @@ interface WigglyToolsProps {
 
   onUndo: () => void;
   onRedo: () => void;
-  canUndo?: boolean;
-  canRedo?: boolean;
+  canUndo: boolean;
+  canRedo: boolean;
   onClear: () => void;
   onExport: () => void;
   isExporting: boolean;
