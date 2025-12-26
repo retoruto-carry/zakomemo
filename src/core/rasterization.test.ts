@@ -390,9 +390,9 @@ describe("rasterization", () => {
       expect(result).toContainEqual({ x: 3, y: 2 });
     });
 
-    it("四角スタンプはサイズ分のピクセルを返す", () => {
+    it("四角スタンプは偶数サイズで生成される", () => {
       const centerPixels = [{ x: 0, y: 0 }];
-      const stamp = getSquareStampOffsets(2);
+      const stamp = getSquareStampOffsets(3);
       const result = calculateStampedLinePixels(centerPixels, stamp);
       expect(result.length).toBe(4);
       expect(result).toContainEqual({ x: -1, y: -1 });

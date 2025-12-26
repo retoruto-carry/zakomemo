@@ -61,9 +61,11 @@ function renderSolidStroke(
 ): void {
   const brushWidth = Math.round(stroke.brush.width);
   const variant = stroke.brush.variant as BrushVariant | undefined;
-  const isEraserVariant =
+  const eraserStampVariant =
     stroke.kind === "erase" &&
-    (variant === "eraserLine" || variant === "eraserSquare");
+    (variant === "eraserLine" || variant === "eraserSquare")
+      ? variant
+      : null;
 
   // 色を取得
   let r: number;
@@ -87,12 +89,12 @@ function renderSolidStroke(
     a = stroke.brush.opacity * 255; // 0-255に変換
   }
 
-  if (isEraserVariant) {
+  if (eraserStampVariant) {
     const centerPixels = buildCenterPixels(jitteredPoints);
-    const stamp =
-      variant === "eraserLine"
-        ? getLineStampOffsets(brushWidth)
-        : getSquareStampOffsets(brushWidth);
+    const stamp = resolveEraserStamp({
+      variant: eraserStampVariant,
+      width: brushWidth,
+    });
     const stampedPixels = calculateStampedLinePixels(centerPixels, stamp);
     for (const pixel of stampedPixels) {
       context.setPixel({ x: pixel.x, y: pixel.y, r, g, b, a });
@@ -201,6 +203,27 @@ function buildCenterPixels(
   }
 
   return centerPixels;
+}
+
+function resolveEraserStamp({
+  variant,
+  width,
+}: {
+  variant: "eraserLine" | "eraserSquare";
+  width: number;
+}) {
+  switch (variant) {
+    case "eraserLine":
+      return getLineStampOffsets(width);
+    case "eraserSquare":
+      return getSquareStampOffsets(width);
+    default:
+      return assertNever(variant);
+  }
+}
+
+function assertNever(value: never): never {
+  throw new Error(`Unexpected eraser variant: ${value}`);
 }
 
 /**

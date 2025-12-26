@@ -241,8 +241,10 @@ export function getCircleStampOffsets(radius: number): StampOffsets {
   };
 }
 
-export function getSquareStampOffsets(size: number): StampOffsets {
-  const safeSize = Math.max(1, Math.round(size));
+export function getSquareStampOffsets(width: number): StampOffsets {
+  // 既存の四角消しゴムのサイズ感に合わせて偶数サイズに寄せる
+  const evenSize = Math.floor(width / 2) * 2;
+  const safeSize = Math.max(1, evenSize);
   const cached = squareOffsetCache.get(safeSize);
   if (cached) {
     return cached;
@@ -269,8 +271,8 @@ export function getSquareStampOffsets(size: number): StampOffsets {
   return stamp;
 }
 
-export function getLineStampOffsets(halfLength: number): StampOffsets {
-  const safeHalfLength = Math.max(0, Math.round(halfLength));
+export function getLineStampOffsets(width: number): StampOffsets {
+  const safeHalfLength = Math.max(0, Math.round(width));
   const cached = lineOffsetCache.get(safeHalfLength);
   if (cached) {
     return cached;
