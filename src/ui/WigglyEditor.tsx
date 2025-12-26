@@ -205,12 +205,12 @@ export function WigglyEditor() {
 
   const handleDSButtonUp = useCallback(() => {
     uiSoundManager.play("ds-button-up", { stopPrevious: true });
-    // TODO: 将来的に別機能を割り当てる
+    // TODO: 将来的に別機能を割り当てる（例: ブラシサイズ変更、ツール切り替えなど）
   }, []);
 
   const handleDSButtonDown = useCallback(() => {
     uiSoundManager.play("ds-button-down", { stopPrevious: true });
-    // TODO: 将来的に別機能を割り当てる
+    // TODO: 将来的に別機能を割り当てる（例: ブラシサイズ変更、ツール切り替えなど）
   }, []);
 
   const handleDSButtonRight = useCallback(() => {

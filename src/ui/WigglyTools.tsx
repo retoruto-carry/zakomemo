@@ -1025,65 +1025,74 @@ export const WigglyTools = React.forwardRef<
               <div className="flex flex-col gap-2.5">
                 {/* パレットプリセット */}
                 <div className="flex flex-col gap-2.5">
-                  {PALETTE_PRESETS.map((p) => (
-                    <button
-                      type="button"
-                      key={p.name}
-                      onClick={() => {
-                        uiSoundManager.play("palette-preset-select", {
-                          stopPrevious: true,
-                        });
-                        setPalette(p.colors);
-                        setBackgroundColor(p.background);
-                        setSelectedPaletteName(p.name);
-                      }}
-                      className={`flex items-center justify-between p-2.5 rounded-[4px] border-[3px] transition-all relative overflow-hidden cursor-pointer ${
-                        selectedPaletteName === p.name
-                          ? "border-black bg-[#ffff00] shadow-[4px_4px_0_rgba(0,0,0,0.1)]"
-                          : "border-[#e7d1b1] bg-white hover:border-[#ff9d5c] shadow-[2px_2px_0_rgba(210,180,140,0.1)]"
-                      }`}
-                    >
-                      <span
-                        className={`font-black text-sm ${selectedPaletteName === p.name ? "text-black" : "text-[#a67c52]"}`}
+                  {PALETTE_PRESETS.map((p) => {
+                    const colorCounts = new Map<string, number>();
+                    return (
+                      <button
+                        type="button"
+                        key={p.name}
+                        onClick={() => {
+                          uiSoundManager.play("palette-preset-select", {
+                            stopPrevious: true,
+                          });
+                          setPalette(p.colors);
+                          setBackgroundColor(p.background);
+                          setSelectedPaletteName(p.name);
+                        }}
+                        className={`flex items-center justify-between p-2.5 rounded-[4px] border-[3px] transition-all relative overflow-hidden cursor-pointer ${
+                          selectedPaletteName === p.name
+                            ? "border-black bg-[#ffff00] shadow-[4px_4px_0_rgba(0,0,0,0.1)]"
+                            : "border-[#e7d1b1] bg-white hover:border-[#ff9d5c] shadow-[2px_2px_0_rgba(210,180,140,0.1)]"
+                        }`}
                       >
-                        {p.name}
-                      </span>
-                      <div className="flex items-center gap-1.5">
-                        <div
-                          key={`preview-bg-${p.name}`}
-                          className="w-6 h-6 border-[2px] border-black/20 rounded-[3px] shrink-0"
-                          style={{ backgroundColor: p.background }}
-                        />
-                        <div
-                          className="w-[3px] h-6 bg-[#e7d1b1] rounded-full"
-                          aria-hidden="true"
-                        />
-                        {p.colors.map((c) => (
+                        <span
+                          className={`font-black text-sm ${selectedPaletteName === p.name ? "text-black" : "text-[#a67c52]"}`}
+                        >
+                          {p.name}
+                        </span>
+                        <div className="flex items-center gap-1.5">
                           <div
-                            key={`preview-${p.name}-${c}`}
+                            key={`preview-bg-${p.name}`}
                             className="w-6 h-6 border-[2px] border-black/20 rounded-[3px] shrink-0"
-                            style={{ backgroundColor: c }}
+                            style={{ backgroundColor: p.background }}
                           />
-                        ))}
-                      </div>
-                    </button>
-                  ))}
+                          <div
+                            className="w-[3px] h-6 bg-[#e7d1b1] rounded-full"
+                            aria-hidden="true"
+                          />
+                          {p.colors.map((c) => {
+                            const count = (colorCounts.get(c) ?? 0) + 1;
+                            colorCounts.set(c, count);
+                            return (
+                              <div
+                                key={`preview-${p.name}-${c}-${count}`}
+                                className="w-6 h-6 border-[2px] border-black/20 rounded-[3px] shrink-0"
+                                style={{ backgroundColor: c }}
+                              />
+                            );
+                          })}
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
 
                 {/* カスタムパレット */}
-                {/* biome-ignore lint/a11y/useSemanticElements: カラーピッカーを含むためdivで選択操作を扱う */}
                 <div
-                  className={`mt-1.5 p-3 border-[3px] rounded-[6px] transition-all cursor-pointer ${
+                  className={`mt-1.5 p-3 border-[3px] rounded-[6px] transition-all cursor-pointer relative ${
                     selectedPaletteName === CUSTOM_PALETTE_NAME
                       ? "border-black bg-[#ffff00] shadow-[4px_4px_0_rgba(0,0,0,0.1)] hover:brightness-95"
                       : "border-[#e7d1b1] bg-white shadow-[2px_2px_0_rgba(210,180,140,0.1)] hover:border-[#ff9d5c]"
                   }`}
-                  role="button"
-                  tabIndex={0}
-                  onClick={selectCustomPalette}
-                  onKeyDown={handleButtonKeyDown(selectCustomPalette)}
                 >
-                  <div className="flex items-center justify-between mb-3">
+                  <button
+                    type="button"
+                    onClick={selectCustomPalette}
+                    aria-hidden="true"
+                    tabIndex={-1}
+                    className="absolute inset-0 cursor-pointer"
+                  />
+                  <div className="relative z-10 flex items-center justify-between mb-3">
                     <span className="font-black text-base text-left text-[#a67c52]">
                       カスタムパレット
                     </span>
@@ -1102,7 +1111,7 @@ export const WigglyTools = React.forwardRef<
                         : "選択"}
                     </button>
                   </div>
-                  <div className="flex flex-col gap-2">
+                  <div className="relative z-10 flex flex-col gap-2">
                     <div className="relative flex items-center gap-2">
                       <label
                         htmlFor="custom-palette-bg"
