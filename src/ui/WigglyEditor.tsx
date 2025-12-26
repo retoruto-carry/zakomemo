@@ -158,11 +158,11 @@ export function WigglyEditor() {
     setCanRedo(engine.canRedo());
   }, []);
 
-  // パレット/本体色の変更をエンジンのパターンキャッシュに同期
-  // biome-ignore lint/correctness/useExhaustiveDependencies: palette/bodyColor変更時のみ動かすため
+  // パレット変更時は既存のImageBitmapが古い色になるためキャッシュを破棄する
   useEffect(() => {
+    void palette;
     engineRef.current?.clearRendererCache();
-  }, [palette, bodyColor]);
+  }, [palette]);
 
   const Layout = isDesktop ? DesktopLayout : MobileLayout;
 
