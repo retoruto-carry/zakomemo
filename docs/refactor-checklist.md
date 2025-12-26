@@ -10,6 +10,8 @@
 - [x] スタンプ半径の計算を見直し（偶数/奇数の差分を反映）
 - [x] JSDoc/コメントの整備（日本語・プロダクション向け）
 - [x] エントリーポイントからの深読み（page → editor → canvas → engine）
+- [x] KISS/YAGNI観点での過不足チェック
+- [x] 責務分離と設計齟齬の再確認
 
 ## 既存変更（完了済み）
 - [x] `frameRenderer` → `renderScheduler` へ命名・責務整理
