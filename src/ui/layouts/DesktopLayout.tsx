@@ -34,7 +34,7 @@ export function DesktopLayout({ canvas, tools, dsButtons }: LayoutProps) {
       />
 
       {/* Nintendo DSi風の本体 */}
-      <div className="relative flex flex-col items-center gap-0 rounded-[3rem] bg-(--ugo-body-bg) shadow-[0_50px_100px_rgba(0,0,0,0.8),inset_0_-4px_10px_rgba(0,0,0,0.05),0_0_0_1px_rgba(0,0,0,0.1)] w-[650px] shrink-0 transform transition-transform duration-500 overflow-hidden border-b-[6px] border-(--ugo-body-border)">
+      <div className="relative flex flex-col items-center gap-0 rounded-[3rem] bg-(--ugo-body-bg) shadow-[0_50px_100px_rgba(0,0,0,0.8),inset_0_-4px_10px_rgba(0,0,0,0.05),0_0_0_1px_rgba(0,0,0,0.1)] w-[650px] shrink-0 overflow-hidden border-b-[6px] border-(--ugo-body-border)">
         {/* 上部シェル */}
         <div className="w-full bg-(--ugo-body-bg) p-4 pt-6 pb-6 flex flex-col items-center relative">
           {/* スピーカー穴（左） */}
