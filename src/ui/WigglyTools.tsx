@@ -112,6 +112,8 @@ const CUSTOM_COLOR_LABELS = [
   "カラー5",
   "カラー6",
 ];
+/** カスタムパレット音のデバウンス間隔(ms) */
+const CUSTOM_PALETTE_SOUND_DEBOUNCE_MS = 250;
 
 interface WigglyToolsProps {
   tool: Tool;
@@ -216,7 +218,7 @@ export const WigglyTools = React.forwardRef<
   const playCustomPaletteSound = useRef(
     debounce(() => {
       uiSoundManager.play("custom-palette-color", { stopPrevious: true });
-    }, 250),
+    }, CUSTOM_PALETTE_SOUND_DEBOUNCE_MS),
   ).current;
 
   const selectCustomPalette = useCallback(() => {
