@@ -93,11 +93,19 @@ export function bresenhamLine(
   return points;
 }
 
+/**
+ * スタンプ描画用のオフセットと、その範囲（バウンディングボックス）
+ */
 export type StampOffsets = {
+  /** スタンプの相対オフセット */
   offsets: Array<{ dx: number; dy: number }>;
+  /** オフセットの最小X */
   minX: number;
+  /** オフセットの最大X */
   maxX: number;
+  /** オフセットの最小Y */
   minY: number;
+  /** オフセットの最大Y */
   maxY: number;
 };
 
@@ -176,6 +184,13 @@ export function calculateThickLinePixels(
   );
 }
 
+/**
+ * 任意スタンプで中心線を塗りつぶす
+ * 重複排除はビットマスクで行う
+ * @param centerPixels 中心線上のピクセル座標の配列
+ * @param stamp スタンプのオフセットと範囲
+ * @returns 塗りつぶすべきピクセル座標の配列（重複排除済み）
+ */
 export function calculateStampedLinePixels(
   centerPixels: Array<{ x: number; y: number }>,
   stamp: StampOffsets,
@@ -230,6 +245,11 @@ export function calculateStampedLinePixels(
   return result;
 }
 
+/**
+ * 円スタンプのオフセットと範囲を取得
+ * @param radius 半径
+ * @returns 円スタンプのオフセットと範囲
+ */
 export function getCircleStampOffsets(radius: number): StampOffsets {
   const safeRadius = Math.max(0, Math.floor(radius));
   return {
@@ -241,6 +261,11 @@ export function getCircleStampOffsets(radius: number): StampOffsets {
   };
 }
 
+/**
+ * 四角スタンプのオフセットと範囲を取得
+ * @param width 四角の一辺の長さ（px）
+ * @returns 四角スタンプのオフセットと範囲
+ */
 export function getSquareStampOffsets(width: number): StampOffsets {
   const safeSize = Math.max(1, Math.round(width));
   const cached = squareOffsetCache.get(safeSize);
@@ -269,6 +294,11 @@ export function getSquareStampOffsets(width: number): StampOffsets {
   return stamp;
 }
 
+/**
+ * 横線スタンプのオフセットと範囲を取得
+ * @param width 左右に伸ばす半長さ（px）
+ * @returns 横線スタンプのオフセットと範囲
+ */
 export function getLineStampOffsets(width: number): StampOffsets {
   const safeHalfLength = Math.max(0, Math.round(width));
   const cached = lineOffsetCache.get(safeHalfLength);
