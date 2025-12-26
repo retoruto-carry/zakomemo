@@ -150,6 +150,7 @@ describe("renderStroke", () => {
       elapsedTimeMs: 0,
     });
 
+    // eraserLine(width=2)は中心から左右2px伸びるため、終点(6,4)の外側(8,4)も消える
     expect(getPixel(buffer, 8, 4)).toEqual({
       r: 255,
       g: 255,
