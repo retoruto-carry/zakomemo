@@ -58,6 +58,9 @@ function renderSolidStroke(
 ): void {
   const brushWidth = Math.round(stroke.brush.width);
   const variant = stroke.brush.variant as BrushVariant | undefined;
+  const isEraserVariant =
+    stroke.kind === "erase" &&
+    (variant === "eraserLine" || variant === "eraserSquare");
 
   // 色を取得
   let r: number;
@@ -79,6 +82,25 @@ function renderSolidStroke(
     g = color.g;
     b = color.b;
     a = stroke.brush.opacity * 255; // 0-255に変換
+  }
+
+  if (isEraserVariant) {
+    const centerPixels = buildCenterPixels(jitteredPoints);
+    for (const pixel of centerPixels) {
+      drawPixelToImageData(
+        context,
+        pixel.x,
+        pixel.y,
+        brushWidth,
+        variant,
+        stroke.kind,
+        r,
+        g,
+        b,
+        a,
+      );
+    }
+    return;
   }
 
   // 1点だけのとき
@@ -103,28 +125,7 @@ function renderSolidStroke(
 
   // パフォーマンス最適化: 太い線の場合は領域を直接計算
   if (brushWidth > 1) {
-    // 中心線を取得
-    const centerPixels: Array<{ x: number; y: number }> = [];
-
-    for (let i = 0; i < jitteredPoints.length; i++) {
-      const current = jitteredPoints[i];
-      const x = Math.round(current.x);
-      const y = Math.round(current.y);
-
-      if (i === 0) {
-        centerPixels.push({ x, y });
-      } else {
-        // 前の点から現在の点までBresenhamで線を描画
-        const prev = jitteredPoints[i - 1];
-        const prevX = Math.round(prev.x);
-        const prevY = Math.round(prev.y);
-        const linePixels = bresenhamLine(prevX, prevY, x, y);
-        // 最初の点は重複するのでスキップ
-        if (linePixels.length > 0) {
-          centerPixels.push(...linePixels.slice(1));
-        }
-      }
-    }
+    const centerPixels = buildCenterPixels(jitteredPoints);
 
     // 太い線の領域を計算（重複排除済み）
     const thickPixels = calculateThickLinePixels(centerPixels, brushWidth);
@@ -189,9 +190,11 @@ function drawPixelToImageData(
     }
   } else if (strokeKind === "erase" && variant === "eraserSquare") {
     // 消しゴム（四角）: 四角形で描画
-    const halfWidth = Math.floor(width / 2);
-    for (let dy = -halfWidth; dy < halfWidth; dy++) {
-      for (let dx = -halfWidth; dx < halfWidth; dx++) {
+    const size = Math.max(1, Math.round(width));
+    const start = -Math.floor(size / 2);
+    const end = start + size - 1;
+    for (let dy = start; dy <= end; dy++) {
+      for (let dx = start; dx <= end; dx++) {
         context.setPixel({ x: x + dx, y: y + dy, r, g, b, a });
       }
     }
@@ -208,6 +211,32 @@ function drawPixelToImageData(
       }
     }
   }
+}
+
+function buildCenterPixels(
+  jitteredPoints: { x: number; y: number }[],
+): Array<{ x: number; y: number }> {
+  const centerPixels: Array<{ x: number; y: number }> = [];
+
+  for (let i = 0; i < jitteredPoints.length; i++) {
+    const current = jitteredPoints[i];
+    const x = Math.round(current.x);
+    const y = Math.round(current.y);
+
+    if (i === 0) {
+      centerPixels.push({ x, y });
+    } else {
+      const prev = jitteredPoints[i - 1];
+      const prevX = Math.round(prev.x);
+      const prevY = Math.round(prev.y);
+      const linePixels = bresenhamLine(prevX, prevY, x, y);
+      if (linePixels.length > 0) {
+        centerPixels.push(...linePixels.slice(1));
+      }
+    }
+  }
+
+  return centerPixels;
 }
 
 /**

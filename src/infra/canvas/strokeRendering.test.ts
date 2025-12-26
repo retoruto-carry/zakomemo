@@ -42,6 +42,24 @@ function createSolidStroke(kind: "draw" | "erase", color: string): Stroke {
   };
 }
 
+function createEraserStroke(
+  variant: "eraserLine" | "eraserSquare",
+  width: number,
+): Stroke {
+  return {
+    id: "s-erase",
+    kind: "erase",
+    brush: {
+      kind: "solid",
+      color: "#000000",
+      width,
+      opacity: 1,
+      variant,
+    },
+    points: [{ x: 2, y: 2, t: 0 }],
+  };
+}
+
 function createPatternStroke(color: string): Stroke {
   return {
     id: "s1",
@@ -99,6 +117,54 @@ describe("renderStroke", () => {
     });
 
     expect(getPixel(buffer, 2, 2)).toEqual({
+      r: 255,
+      g: 255,
+      b: 255,
+      a: 255,
+    });
+  });
+
+  test("消しゴムの線が移動中も形状を維持する", () => {
+    const buffer = createBuffer("#ffffff");
+    buffer.clear({ width: 9, height: 9 });
+    buffer.setPixel({ x: 8, y: 4, r: 0, g: 0, b: 0, a: 255 });
+
+    const eraseStroke = createEraserStroke("eraserLine", 2);
+    renderStroke({
+      context: buffer,
+      stroke: eraseStroke,
+      jitteredPoints: [
+        { x: 2, y: 4 },
+        { x: 6, y: 4 },
+      ],
+      elapsedTimeMs: 0,
+    });
+
+    expect(getPixel(buffer, 8, 4)).toEqual({
+      r: 255,
+      g: 255,
+      b: 255,
+      a: 255,
+    });
+  });
+
+  test("消しゴムの四角が移動中も形状を維持する", () => {
+    const buffer = createBuffer("#ffffff");
+    buffer.clear({ width: 9, height: 9 });
+    buffer.setPixel({ x: 6, y: 3, r: 0, g: 0, b: 0, a: 255 });
+
+    const eraseStroke = createEraserStroke("eraserSquare", 3);
+    renderStroke({
+      context: buffer,
+      stroke: eraseStroke,
+      jitteredPoints: [
+        { x: 2, y: 4 },
+        { x: 6, y: 4 },
+      ],
+      elapsedTimeMs: 0,
+    });
+
+    expect(getPixel(buffer, 6, 3)).toEqual({
       r: 255,
       g: 255,
       b: 255,
