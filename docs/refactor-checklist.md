@@ -9,6 +9,7 @@
 - [x] eraser形状の維持ロジックをスタンプ方式に統一
 - [x] スタンプ半径の計算を見直し（偶数/奇数の差分を反映）
 - [x] JSDoc/コメントの整備（日本語・プロダクション向け）
+- [x] エントリーポイントからの深読み（page → editor → canvas → engine）
 
 ## 既存変更（完了済み）
 - [x] `frameRenderer` → `renderScheduler` へ命名・責務整理
@@ -44,3 +45,4 @@
 - [x] 既存のテストが通ることを確認（format/lint/typecheck/test）
 - [x] 変更後に同様のテストが通ることを確認
 - [x] Docstring Coverageの警告が解消されているか確認（98.39%）
+- [x] 主要UI操作の想定フローを再確認（パレット/消しゴム/エクスポート）
