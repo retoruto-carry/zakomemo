@@ -1,11 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  BACKGROUND_COLOR_PRESETS,
-  BODY_PRESETS,
-  PALETTE_PRESETS,
-} from "@/config/presets";
+import { BODY_PRESETS, PALETTE_PRESETS } from "@/config/presets";
 import type { JitterConfig } from "@/core/jitter";
 import type { BrushPatternId } from "@/core/types";
 import { exportDrawingAsGif } from "@/engine/exportGif";
@@ -19,8 +15,7 @@ import { MobileLayout } from "./layouts/MobileLayout";
 import { WigglyCanvas } from "./WigglyCanvas";
 import { WigglyTools, type WigglyToolsHandle } from "./WigglyTools";
 
-// デフォルトパレット: 黒、赤、緑、青、黄、紫
-const defaultPalette = PALETTE_PRESETS[0].colors;
+const defaultPalette = PALETTE_PRESETS[0];
 
 // 標準DSホワイト本体
 const defaultBodyColor = BODY_PRESETS[0].body;
@@ -55,12 +50,20 @@ export function WigglyEditor() {
   const [canRedo, setCanRedo] = useState(false);
 
   // パレット/本体色の状態
-  const [palette, setPalette] = useState(defaultPalette);
+  const [palette, setPalette] = useState(defaultPalette.colors);
+  const [customPalette, setCustomPalette] = useState([
+    ...defaultPalette.colors,
+  ]);
   const [selectedPaletteName, setSelectedPaletteName] = useState<string | null>(
     PALETTE_PRESETS[0].name,
   );
   const [bodyColor, setBodyColor] = useState(defaultBodyColor);
-  const [backgroundColor, setBackgroundColor] = useState("#fdfbf7");
+  const [backgroundColor, setBackgroundColor] = useState(
+    defaultPalette.background,
+  );
+  const [customBackgroundColor, setCustomBackgroundColor] = useState(
+    defaultPalette.background,
+  );
   const [jitterConfig, setJitterConfig] = useState<JitterConfig>({
     amplitude: 1.2,
     frequency: 0.008,
@@ -202,48 +205,27 @@ export function WigglyEditor() {
 
   const handleDSButtonUp = useCallback(() => {
     uiSoundManager.play("ds-button-up", { stopPrevious: true });
-    const currentIndex = BACKGROUND_COLOR_PRESETS.indexOf(
-      backgroundColor as (typeof BACKGROUND_COLOR_PRESETS)[number],
-    );
-    if (currentIndex === -1) {
-      setBackgroundColor(BACKGROUND_COLOR_PRESETS[0]);
-    } else {
-      const nextIndex = (currentIndex + 1) % BACKGROUND_COLOR_PRESETS.length;
-      setBackgroundColor(BACKGROUND_COLOR_PRESETS[nextIndex]);
-    }
-  }, [backgroundColor]);
+    // TODO: 将来的に別機能を割り当てる（例: ブラシサイズ変更、ツール切り替えなど）
+  }, []);
 
   const handleDSButtonDown = useCallback(() => {
     uiSoundManager.play("ds-button-down", { stopPrevious: true });
-    const currentIndex = BACKGROUND_COLOR_PRESETS.indexOf(
-      backgroundColor as (typeof BACKGROUND_COLOR_PRESETS)[number],
-    );
-    if (currentIndex === -1) {
-      setBackgroundColor(
-        BACKGROUND_COLOR_PRESETS[BACKGROUND_COLOR_PRESETS.length - 1],
-      );
-    } else {
-      const prevIndex =
-        currentIndex === 0
-          ? BACKGROUND_COLOR_PRESETS.length - 1
-          : currentIndex - 1;
-      setBackgroundColor(BACKGROUND_COLOR_PRESETS[prevIndex]);
-    }
-  }, [backgroundColor]);
+    // TODO: 将来的に別機能を割り当てる（例: ブラシサイズ変更、ツール切り替えなど）
+  }, []);
 
   const handleDSButtonRight = useCallback(() => {
     uiSoundManager.play("ds-button-right", { stopPrevious: true });
     const currentPaletteIndex = selectedPaletteName
       ? PALETTE_PRESETS.findIndex((p) => p.name === selectedPaletteName)
       : -1;
-    if (currentPaletteIndex === -1) {
-      setPalette(PALETTE_PRESETS[0].colors);
-      setSelectedPaletteName(PALETTE_PRESETS[0].name);
-    } else {
-      const nextIndex = (currentPaletteIndex + 1) % PALETTE_PRESETS.length;
-      setPalette(PALETTE_PRESETS[nextIndex].colors);
-      setSelectedPaletteName(PALETTE_PRESETS[nextIndex].name);
-    }
+    const nextIndex =
+      currentPaletteIndex === -1
+        ? 0
+        : (currentPaletteIndex + 1) % PALETTE_PRESETS.length;
+    const nextPreset = PALETTE_PRESETS[nextIndex];
+    setPalette(nextPreset.colors);
+    setBackgroundColor(nextPreset.background);
+    setSelectedPaletteName(nextPreset.name);
   }, [selectedPaletteName]);
 
   const handleDSButtonLeft = useCallback(() => {
@@ -251,17 +233,14 @@ export function WigglyEditor() {
     const currentPaletteIndex = selectedPaletteName
       ? PALETTE_PRESETS.findIndex((p) => p.name === selectedPaletteName)
       : -1;
-    if (currentPaletteIndex === -1) {
-      setPalette(PALETTE_PRESETS[PALETTE_PRESETS.length - 1].colors);
-      setSelectedPaletteName(PALETTE_PRESETS[PALETTE_PRESETS.length - 1].name);
-    } else {
-      const prevIndex =
-        currentPaletteIndex === 0
-          ? PALETTE_PRESETS.length - 1
-          : currentPaletteIndex - 1;
-      setPalette(PALETTE_PRESETS[prevIndex].colors);
-      setSelectedPaletteName(PALETTE_PRESETS[prevIndex].name);
-    }
+    const prevIndex =
+      currentPaletteIndex <= 0
+        ? PALETTE_PRESETS.length - 1
+        : currentPaletteIndex - 1;
+    const prevPreset = PALETTE_PRESETS[prevIndex];
+    setPalette(prevPreset.colors);
+    setBackgroundColor(prevPreset.background);
+    setSelectedPaletteName(prevPreset.name);
   }, [selectedPaletteName]);
 
   const handleDSButtonStart = useCallback(() => {
@@ -426,12 +405,16 @@ export function WigglyEditor() {
             exportError={exportError}
             palette={palette}
             setPalette={setPalette}
+            customPalette={customPalette}
+            setCustomPalette={setCustomPalette}
             selectedPaletteName={selectedPaletteName}
             setSelectedPaletteName={setSelectedPaletteName}
             bodyColor={bodyColor}
             setBodyColor={setBodyColor}
             backgroundColor={backgroundColor}
             setBackgroundColor={setBackgroundColor}
+            customBackgroundColor={customBackgroundColor}
+            setCustomBackgroundColor={setCustomBackgroundColor}
             jitterConfig={jitterConfig}
             setJitterConfig={setJitterConfig}
           />
