@@ -80,6 +80,7 @@ export function WigglyCanvas({
     canvas.style.touchAction = "pan-x pan-y pinch-zoom";
 
     // 座標変換: client座標→キャンバス論理座標
+    /** ポインター座標をキャンバスの論理座標へ変換する */
     const toCanvasPos = (ev: PointerEvent) => {
       const rect = canvas.getBoundingClientRect();
       const visualX = ev.clientX - rect.left;
@@ -99,6 +100,7 @@ export function WigglyCanvas({
       };
     };
 
+    /** 描画開始のポインター処理 */
     const handlePointerDown = (ev: PointerEvent) => {
       // Apple Pencilの初期pointerdownイベントではpressure=0になることがあるため、
       // pointerdownでは筆圧をチェックせず、すべてのペン入力を処理します。
@@ -149,6 +151,7 @@ export function WigglyCanvas({
       }
     };
 
+    /** 描画中のポインター移動処理 */
     const handlePointerMove = (ev: PointerEvent) => {
       const info = activePointersRef.current.get(ev.pointerId);
       const { visual, internal } = toCanvasPos(ev);
@@ -185,6 +188,7 @@ export function WigglyCanvas({
       }
     };
 
+    /** ポインター終了時の後片付け */
     const cleanupPointer = (
       ev: PointerEvent,
       isCancel: boolean = false,
@@ -224,10 +228,12 @@ export function WigglyCanvas({
       canvas.releasePointerCapture(ev.pointerId);
     };
 
+    /** 描画終了のポインター処理 */
     const handlePointerUp = (ev: PointerEvent) => {
       cleanupPointer(ev, false);
     };
 
+    /** ポインターキャンセル時の処理 */
     const handlePointerCancel = (ev: PointerEvent) => {
       // ポインターがキャンセルされた場合（例: 共有ダイアログが開いた後など）
       // すべての状態をリセット
@@ -235,6 +241,7 @@ export function WigglyCanvas({
     };
 
     // pointercaptureを使うため、move/upはcanvasで処理する
+    /** キャンバス外へ出た時のホバー処理 */
     const handlePointerLeave = () => {
       // ドラッグ中でない場合、ペンがキャンバス外に出たら消しゴムを隠す
       if (toolRef.current === "eraser" && !primaryPointerIdRef.current) {

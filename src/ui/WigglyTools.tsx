@@ -48,6 +48,7 @@ interface JitterControlSliderProps {
   onChange: (value: number) => void;
 }
 
+/** ジッター設定用のスライダー */
 function JitterControlSlider({
   label,
   value,
@@ -95,6 +96,7 @@ function JitterControlSlider({
 }
 
 // キーボードアクセシビリティ: Enter/Space で onClick を発火
+/** Enter/SpaceでonClick相当の操作を行う */
 const handleButtonKeyDown = (callback: () => void) => (e: KeyboardEvent) => {
   if (e.key === "Enter" || e.key === " ") {
     e.preventDefault();
@@ -265,6 +267,7 @@ export const WigglyTools = React.forwardRef<
     },
   }));
 
+  /** undoボタン処理 */
   const handleUndo = () => {
     uiSoundManager.play("button-undo", { stopPrevious: true });
     undoGifRef.current?.playAnimation();
@@ -272,6 +275,7 @@ export const WigglyTools = React.forwardRef<
   };
 
   // トグル処理
+  /** ツール切り替えとポップアップ制御 */
   const handleToolClick = (t: Tool) => {
     // すでに選択中のツールをクリックした場合
     if (tool === t) {

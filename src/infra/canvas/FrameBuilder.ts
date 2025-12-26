@@ -31,6 +31,7 @@ export type BuildWithDiffParams = {
 export class FrameBuilder {
   private buffer: ImageDataBuffer;
 
+  /** バッファを受け取って初期化する */
   constructor({ buffer }: { buffer: ImageDataBuffer }) {
     this.buffer = buffer;
   }

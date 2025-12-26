@@ -6,6 +6,9 @@ import { CanvasRenderer } from "@/infra/canvas/CanvasRenderer";
 import { RealTimeProvider } from "@/infra/RealTimeProvider";
 import { WebAudioStrokeSound } from "@/infra/sound/WebAudioStrokeSound";
 
+/**
+ * キャンバスのDPRを考慮して描画コンテキストを初期化する
+ */
 function setupCanvasContext(
   canvas: HTMLCanvasElement,
   logicalWidth: number,

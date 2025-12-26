@@ -59,6 +59,7 @@ export const AnimatedGif = forwardRef<AnimatedGifHandle, AnimatedGifProps>(
       };
     }, [isAnimating, staticSrc, animationDuration]);
 
+    /** アニメーション再生を開始する */
     const playAnimation = () => {
       if (!isAnimating) {
         setIsAnimating(true);

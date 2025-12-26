@@ -84,6 +84,7 @@ export class UISoundManager {
     return soundId;
   }
 
+  /** 指定IDの音源を停止する */
   stop(id: string): void {
     const sound = this.sounds.get(id);
     if (sound) {
@@ -92,12 +93,14 @@ export class UISoundManager {
     }
   }
 
+  /** 登録済みの音源をすべて停止する */
   stopAll(): void {
     for (const [id] of this.sounds) {
       this.stop(id);
     }
   }
 
+  /** 指定IDの音源を削除する */
   unregister(id: string): void {
     this.stop(id);
     const sound = this.sounds.get(id);
@@ -107,16 +110,19 @@ export class UISoundManager {
     }
   }
 
+  /** 登録済みの音源をすべて削除する */
   unregisterAll(): void {
     for (const [id] of this.sounds) {
       this.unregister(id);
     }
   }
 
+  /** デフォルト音量を設定する */
   setDefaultVolume(volume: number): void {
     this.defaultVolume = Math.max(0, Math.min(1, volume));
   }
 
+  /** 同時再生数の上限を設定する */
   setMaxConcurrentSounds(max: number): void {
     this.maxConcurrentSounds = Math.max(1, max);
   }

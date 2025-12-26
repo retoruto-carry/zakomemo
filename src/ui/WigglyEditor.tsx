@@ -76,6 +76,7 @@ export function WigglyEditor() {
   const [isDesktop, setIsDesktop] = useState(false);
 
   useEffect(() => {
+    /** 画面幅からレイアウト種別を判定する */
     const check = () => setIsDesktop(window.innerWidth >= 768);
     check();
     window.addEventListener("resize", check);
@@ -84,6 +85,7 @@ export function WigglyEditor() {
 
   // グローバルショートカット（Ctrl/Cmd+Z/Yはやり直し/進むのみ）
   useEffect(() => {
+    /** undo/redoショートカットを処理する */
     const handleKey = (ev: KeyboardEvent) => {
       const engine = engineRef.current;
       if (!engine) return;
@@ -104,6 +106,7 @@ export function WigglyEditor() {
     return () => window.removeEventListener("keydown", handleKey);
   }, []);
 
+  /** GIFエクスポートを実行する */
   const handleExportGif = async () => {
     const engine = engineRef.current;
     const drawing = engine?.getDrawing();

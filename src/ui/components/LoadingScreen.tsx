@@ -18,6 +18,7 @@ export function LoadingScreen({ isExiting, onExited }: LoadingScreenProps) {
   useEffect(() => {
     if (!isExiting || !onExited) return;
 
+    /** アニメーション終了時にコールバックを呼ぶ */
     const handleAnimationEnd = () => {
       if (!hasCalledOnExitedRef.current) {
         hasCalledOnExitedRef.current = true;

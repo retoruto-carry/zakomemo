@@ -12,6 +12,9 @@ export type JitterOffset = {
   dy: number;
 };
 
+/**
+ * 簡易な決定性ハッシュを生成する
+ */
 function hashNoise(a: number, b: number, c: number): number {
   // 簡易な決定性ハッシュで0..1に正規化
   const n = Math.sin(a * 12.9898 + b * 78.233 + c * 37.719) * 43758.5453;
