@@ -1112,23 +1112,23 @@ export const WigglyTools = React.forwardRef<
                           style={{ backgroundColor: customBackgroundColor }}
                         />
                         <div className="absolute inset-0 border-[1.5px] border-white/30 rounded-[3px] pointer-events-none" />
+                        <input
+                          type="color"
+                          value={customBackgroundColor}
+                          onChange={(e) => {
+                            const nextBackground = e.target.value;
+                            setCustomBackgroundColor(nextBackground);
+                            setBackgroundColor(nextBackground);
+                            setPalette(customPalette);
+                            setSelectedPaletteName(CUSTOM_PALETTE_NAME);
+                            playCustomPaletteSound();
+                          }}
+                          className="absolute inset-0 w-full h-full cursor-pointer opacity-0"
+                        />
                       </div>
                       <span className="text-sm font-black text-[#a67c52] leading-none">
                         {customBackgroundColor.toUpperCase()}
                       </span>
-                      <input
-                        type="color"
-                        value={customBackgroundColor}
-                        onChange={(e) => {
-                          const nextBackground = e.target.value;
-                          setCustomBackgroundColor(nextBackground);
-                          setBackgroundColor(nextBackground);
-                          setPalette(customPalette);
-                          setSelectedPaletteName(CUSTOM_PALETTE_NAME);
-                          playCustomPaletteSound();
-                        }}
-                        className="absolute inset-0 w-full h-full cursor-pointer opacity-0 z-20"
-                      />
                     </div>
                     <div
                       className="h-[3px] w-full bg-[#e7d1b1] rounded-full"
@@ -1151,24 +1151,24 @@ export const WigglyTools = React.forwardRef<
                                 style={{ backgroundColor: color }}
                               />
                               <div className="absolute inset-0 border-[1.5px] border-white/30 rounded-[3px] pointer-events-none" />
+                              <input
+                                type="color"
+                                value={color}
+                                onChange={(e) => {
+                                  const newPalette = [...customPalette];
+                                  newPalette[index] = e.target.value;
+                                  setCustomPalette(newPalette);
+                                  setPalette(newPalette);
+                                  setBackgroundColor(customBackgroundColor);
+                                  setSelectedPaletteName(CUSTOM_PALETTE_NAME);
+                                  playCustomPaletteSound();
+                                }}
+                                className="absolute inset-0 w-full h-full cursor-pointer opacity-0"
+                              />
                             </div>
                             <span className="text-sm font-black text-[#a67c52] leading-none">
                               {color.toUpperCase()}
                             </span>
-                            <input
-                              type="color"
-                              value={color}
-                              onChange={(e) => {
-                                const newPalette = [...customPalette];
-                                newPalette[index] = e.target.value;
-                                setCustomPalette(newPalette);
-                                setPalette(newPalette);
-                                setBackgroundColor(customBackgroundColor);
-                                setSelectedPaletteName(CUSTOM_PALETTE_NAME);
-                                playCustomPaletteSound();
-                              }}
-                              className="absolute inset-0 w-full h-full cursor-pointer opacity-0 z-20"
-                            />
                           </div>
                         );
                       })}
