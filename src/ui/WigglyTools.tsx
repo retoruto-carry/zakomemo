@@ -4,6 +4,7 @@ import React, {
   type KeyboardEvent,
   useEffect,
   useImperativeHandle,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -180,7 +181,10 @@ export const WigglyTools = React.forwardRef<
   const [activePopup, setActivePopup] = useState<
     "none" | "pattern" | "eraser" | "settings"
   >("none");
-  const currentPattern = getPatternDefinition(patternId);
+  const currentPattern = useMemo(
+    () => getPatternDefinition(patternId),
+    [patternId],
+  );
   const [settingsTab, setSettingsTab] = useState<
     "palette" | "body" | "background" | "jitter"
   >("palette");
