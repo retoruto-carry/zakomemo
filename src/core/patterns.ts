@@ -14,16 +14,7 @@ export const PATTERNS: PatternDefinition[] = [
         0,0,0,
       ],
     },
-    preview: {
-      width: 3,
-      height: 3,
-      // biome-ignore format: パターンの行分割を維持するため
-      alpha: [
-        0,0,0,
-        0,1,0,
-        0,0,0,
-      ],
-    },
+    previewRepeatTime: 3,
   },
   {
     id: "dot_dense",
@@ -38,17 +29,7 @@ export const PATTERNS: PatternDefinition[] = [
         0,0,0,0,
       ],
     },
-    preview: {
-      width: 4,
-      height: 4,
-      // biome-ignore format: パターンの行分割を維持するため
-      alpha: [
-        0,1,0,1,
-        0,0,0,0,
-        0,1,0,1,
-        0,0,0,0,
-      ],
-    },
+    previewRepeatTime: 2,
   },
   {
     id: "stripe_horizontal",
@@ -63,17 +44,7 @@ export const PATTERNS: PatternDefinition[] = [
         1,1,1,1,
       ],
     },
-    preview: {
-      width: 4,
-      height: 4,
-      // biome-ignore format: パターンの行分割を維持するため
-      alpha: [
-        0,0,0,0,
-        1,1,1,1,
-        0,0,0,0,
-        1,1,1,1,
-      ],
-    },
+    previewRepeatTime: 2,
   },
   {
     id: "stripe_vertical",
@@ -88,17 +59,7 @@ export const PATTERNS: PatternDefinition[] = [
         1,0,1,0,
       ],
     },
-    preview: {
-      width: 4,
-      height: 4,
-      // biome-ignore format: パターンの行分割を維持するため
-      alpha: [
-        1,0,1,0,
-        1,0,1,0,
-        1,0,1,0,
-        1,0,1,0,
-      ],
-    },
+    previewRepeatTime: 2,
   },
   {
     id: "check",
@@ -113,17 +74,7 @@ export const PATTERNS: PatternDefinition[] = [
         0,1,0,1,
       ],
     },
-    preview: {
-      width: 4,
-      height: 4,
-      // biome-ignore format: パターンの行分割を維持するため
-      alpha: [
-        1,0,1,0,
-        0,1,0,1,
-        1,0,1,0,
-        0,1,0,1,
-      ],
-    },
+    previewRepeatTime: 2,
   },
   {
     id: "mesh",
@@ -138,17 +89,7 @@ export const PATTERNS: PatternDefinition[] = [
         1,0,1,0,
       ],
     },
-    preview: {
-      width: 4,
-      height: 4,
-      // biome-ignore format: パターンの行分割を維持するため
-      alpha: [
-        1,1,1,1,
-        1,0,1,0,
-        1,1,1,1,
-        1,0,1,0,
-      ],
-    },
+    previewRepeatTime: 2,
   },
   {
     id: "mesh_bold",
@@ -163,17 +104,7 @@ export const PATTERNS: PatternDefinition[] = [
         1,1,1,1,
       ],
     },
-    preview: {
-      width: 4,
-      height: 4,
-      // biome-ignore format: パターンの行分割を維持するため
-      alpha: [
-        1,1,1,1,
-        1,1,1,1,
-        1,1,0,1,
-        1,1,1,1,
-      ],
-    },
+    previewRepeatTime: 2,
   },
   {
     id: "crosshatch",
@@ -188,17 +119,7 @@ export const PATTERNS: PatternDefinition[] = [
         0,0,0,1,
       ],
     },
-    preview: {
-      width: 4,
-      height: 4,
-      // biome-ignore format: パターンの行分割を維持するため
-      alpha: [
-        1,0,1,0,
-        0,1,0,0,
-        1,0,1,0,
-        0,0,0,1,
-      ],
-    },
+    previewRepeatTime: 2,
   },
 ];
 

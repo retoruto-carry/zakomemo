@@ -15,7 +15,7 @@ import {
   PALETTE_PRESETS,
 } from "@/config/presets";
 import type { JitterConfig } from "@/core/jitter";
-import { PATTERNS } from "@/core/patterns";
+import { getPatternDefinition, PATTERNS } from "@/core/patterns";
 import type { BrushPatternId } from "@/core/types";
 import type { EraserVariant } from "@/engine/variants";
 import type { Tool } from "@/engine/WigglyEngine";
@@ -102,8 +102,6 @@ const MAX_PEN_WIDTH = 48;
 
 /** パターンプレビューの1ドットサイズ(px) */
 const PATTERN_PREVIEW_PIXEL_SIZE = 2;
-/** パターンプレビューのタイル繰り返し回数 */
-const PATTERN_PREVIEW_REPEAT = 2;
 
 interface WigglyToolsProps {
   tool: Tool;
@@ -182,6 +180,7 @@ export const WigglyTools = React.forwardRef<
   const [activePopup, setActivePopup] = useState<
     "none" | "pattern" | "eraser" | "settings"
   >("none");
+  const currentPattern = getPatternDefinition(patternId);
   const [settingsTab, setSettingsTab] = useState<
     "palette" | "body" | "background" | "jitter"
   >("palette");
@@ -512,7 +511,7 @@ export const WigglyTools = React.forwardRef<
               <PatternPreview
                 patternId={patternId}
                 pixelSize={PATTERN_PREVIEW_PIXEL_SIZE}
-                repeat={PATTERN_PREVIEW_REPEAT}
+                repeat={currentPattern.previewRepeatTime}
                 className={`shadow-inner ${tool === "pattern" ? "opacity-100" : "opacity-50"}`}
               />
             </button>
@@ -550,7 +549,7 @@ export const WigglyTools = React.forwardRef<
                       <PatternPreview
                         patternId={pattern.id}
                         pixelSize={PATTERN_PREVIEW_PIXEL_SIZE}
-                        repeat={PATTERN_PREVIEW_REPEAT}
+                        repeat={pattern.previewRepeatTime}
                         className="shadow-inner"
                       />
                     </button>

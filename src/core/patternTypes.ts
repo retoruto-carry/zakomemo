@@ -9,5 +9,5 @@ export type PatternTile = {
 export type PatternDefinition = {
   id: BrushPatternId;
   tile: PatternTile;
-  preview?: PatternTile;
+  previewRepeatTime: number;
 };
