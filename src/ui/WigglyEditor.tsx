@@ -218,16 +218,14 @@ export function WigglyEditor() {
     const currentPaletteIndex = selectedPaletteName
       ? PALETTE_PRESETS.findIndex((p) => p.name === selectedPaletteName)
       : -1;
-    if (currentPaletteIndex === -1) {
-      setPalette(PALETTE_PRESETS[0].colors);
-      setBackgroundColor(PALETTE_PRESETS[0].background);
-      setSelectedPaletteName(PALETTE_PRESETS[0].name);
-    } else {
-      const nextIndex = (currentPaletteIndex + 1) % PALETTE_PRESETS.length;
-      setPalette(PALETTE_PRESETS[nextIndex].colors);
-      setBackgroundColor(PALETTE_PRESETS[nextIndex].background);
-      setSelectedPaletteName(PALETTE_PRESETS[nextIndex].name);
-    }
+    const nextIndex =
+      currentPaletteIndex === -1
+        ? 0
+        : (currentPaletteIndex + 1) % PALETTE_PRESETS.length;
+    const nextPreset = PALETTE_PRESETS[nextIndex];
+    setPalette(nextPreset.colors);
+    setBackgroundColor(nextPreset.background);
+    setSelectedPaletteName(nextPreset.name);
   }, [selectedPaletteName]);
 
   const handleDSButtonLeft = useCallback(() => {
@@ -235,21 +233,14 @@ export function WigglyEditor() {
     const currentPaletteIndex = selectedPaletteName
       ? PALETTE_PRESETS.findIndex((p) => p.name === selectedPaletteName)
       : -1;
-    if (currentPaletteIndex === -1) {
-      setPalette(PALETTE_PRESETS[PALETTE_PRESETS.length - 1].colors);
-      setBackgroundColor(
-        PALETTE_PRESETS[PALETTE_PRESETS.length - 1].background,
-      );
-      setSelectedPaletteName(PALETTE_PRESETS[PALETTE_PRESETS.length - 1].name);
-    } else {
-      const prevIndex =
-        currentPaletteIndex === 0
-          ? PALETTE_PRESETS.length - 1
-          : currentPaletteIndex - 1;
-      setPalette(PALETTE_PRESETS[prevIndex].colors);
-      setBackgroundColor(PALETTE_PRESETS[prevIndex].background);
-      setSelectedPaletteName(PALETTE_PRESETS[prevIndex].name);
-    }
+    const prevIndex =
+      currentPaletteIndex <= 0
+        ? PALETTE_PRESETS.length - 1
+        : currentPaletteIndex - 1;
+    const prevPreset = PALETTE_PRESETS[prevIndex];
+    setPalette(prevPreset.colors);
+    setBackgroundColor(prevPreset.background);
+    setSelectedPaletteName(prevPreset.name);
   }, [selectedPaletteName]);
 
   const handleDSButtonStart = useCallback(() => {
