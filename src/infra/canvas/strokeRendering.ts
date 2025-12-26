@@ -230,9 +230,7 @@ function buildCenterPixels(
       const prevX = Math.round(prev.x);
       const prevY = Math.round(prev.y);
       const linePixels = bresenhamLine(prevX, prevY, x, y);
-      if (linePixels.length > 0) {
-        centerPixels.push(...linePixels.slice(1));
-      }
+      centerPixels.push(...linePixels.slice(1));
     }
   }
 
