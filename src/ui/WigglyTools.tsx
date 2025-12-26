@@ -102,6 +102,14 @@ const MAX_PEN_WIDTH = 48;
 
 /** パターンプレビューの1ドットサイズ(px) */
 const PATTERN_PREVIEW_PIXEL_SIZE = 2;
+const CUSTOM_COLOR_LABELS = [
+  "カラー1",
+  "カラー2",
+  "カラー3",
+  "カラー4",
+  "カラー5",
+  "カラー6",
+];
 
 interface WigglyToolsProps {
   tool: Tool;
@@ -128,15 +136,21 @@ interface WigglyToolsProps {
 
   palette: string[];
   setPalette: (palette: string[]) => void;
+  customPalette: string[];
+  setCustomPalette: (palette: string[]) => void;
   selectedPaletteName: string | null;
   setSelectedPaletteName: (name: string | null) => void;
   bodyColor: BodyColor;
   setBodyColor: (bodyColor: BodyColor) => void;
   backgroundColor: string;
   setBackgroundColor: (backgroundColor: string) => void;
+  customBackgroundColor: string;
+  setCustomBackgroundColor: (backgroundColor: string) => void;
   jitterConfig: JitterConfig;
   setJitterConfig: (jitterConfig: JitterConfig) => void;
 }
+
+const CUSTOM_PALETTE_NAME = "カスタム";
 
 export const WigglyTools = React.forwardRef<
   WigglyToolsHandle,
@@ -165,12 +179,16 @@ export const WigglyTools = React.forwardRef<
     onCloseExport,
     palette,
     setPalette,
+    customPalette,
+    setCustomPalette,
     selectedPaletteName,
     setSelectedPaletteName,
     bodyColor,
     setBodyColor,
     backgroundColor,
     setBackgroundColor,
+    customBackgroundColor,
+    setCustomBackgroundColor,
     jitterConfig,
     setJitterConfig,
   }: WigglyToolsProps,
@@ -1030,10 +1048,40 @@ export const WigglyTools = React.forwardRef<
                 </div>
 
                 {/* カスタムパレット */}
-                <div className="mt-1.5 p-3 bg-white border-[3px] border-[#e7d1b1] rounded-[6px] shadow-[2px_2px_0_rgba(210,180,140,0.1)]">
-                  <span className="font-black text-base mb-3 block text-left text-[#a67c52]">
-                    カスタムパレット
-                  </span>
+                <div
+                  className={`mt-1.5 p-3 border-[3px] rounded-[6px] transition-all ${
+                    selectedPaletteName === CUSTOM_PALETTE_NAME
+                      ? "border-black bg-[#ffff00] shadow-[4px_4px_0_rgba(0,0,0,0.1)]"
+                      : "border-[#e7d1b1] bg-white shadow-[2px_2px_0_rgba(210,180,140,0.1)]"
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="font-black text-base text-left text-[#a67c52]">
+                      カスタムパレット
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPalette(customPalette);
+                        setBackgroundColor(customBackgroundColor);
+                        setSelectedPaletteName(CUSTOM_PALETTE_NAME);
+                      }}
+                      onKeyDown={handleButtonKeyDown(() => {
+                        setPalette(customPalette);
+                        setBackgroundColor(customBackgroundColor);
+                        setSelectedPaletteName(CUSTOM_PALETTE_NAME);
+                      })}
+                      className={`px-3 py-1 text-xs font-black border-[2px] rounded-[4px] transition-all ${
+                        selectedPaletteName === CUSTOM_PALETTE_NAME
+                          ? "border-black bg-white text-black"
+                          : "border-[#e7d1b1] bg-[#fffdeb] text-[#a67c52] hover:border-[#ff9d5c]"
+                      }`}
+                    >
+                      {selectedPaletteName === CUSTOM_PALETTE_NAME
+                        ? "選択中"
+                        : "選択"}
+                    </button>
+                  </div>
                   <div className="flex flex-col gap-2">
                     <div className="relative flex items-center gap-2">
                       <span className="text-sm font-black text-[#a67c52] w-16 shrink-0">
@@ -1042,19 +1090,22 @@ export const WigglyTools = React.forwardRef<
                       <div className="w-8 h-8 relative">
                         <div
                           className="absolute inset-0 border-[2.5px] border-black/10 rounded-[4px]"
-                          style={{ backgroundColor }}
+                          style={{ backgroundColor: customBackgroundColor }}
                         />
                         <div className="absolute inset-0 border-[1.5px] border-white/30 rounded-[3px] pointer-events-none" />
                       </div>
                       <span className="text-sm font-black text-[#a67c52] leading-none">
-                        {backgroundColor.toUpperCase()}
+                        {customBackgroundColor.toUpperCase()}
                       </span>
                       <input
                         type="color"
-                        value={backgroundColor}
+                        value={customBackgroundColor}
                         onChange={(e) => {
-                          setBackgroundColor(e.target.value);
-                          setSelectedPaletteName(null);
+                          const nextBackground = e.target.value;
+                          setCustomBackgroundColor(nextBackground);
+                          setBackgroundColor(nextBackground);
+                          setPalette(customPalette);
+                          setSelectedPaletteName(CUSTOM_PALETTE_NAME);
                         }}
                         className="absolute inset-0 w-full h-full cursor-pointer opacity-0"
                       />
@@ -1064,40 +1115,42 @@ export const WigglyTools = React.forwardRef<
                       aria-hidden="true"
                     />
                     <div className="flex flex-col gap-2">
-                      {palette.map((c, index) => (
-                        <div
-                          key={`custom-palette-${c}`}
-                          className="relative flex items-center gap-2"
-                        >
-                          <span className="text-sm font-black text-[#a67c52] w-16 shrink-0">
-                            カラー{index + 1}
-                          </span>
-                          <div className="w-8 h-8 relative">
-                            <div
-                              className="absolute inset-0 border-[2.5px] border-black/10 rounded-[4px]"
-                              style={{ backgroundColor: c }}
-                            />
-                            <div className="absolute inset-0 border-[1.5px] border-white/30 rounded-[3px] pointer-events-none" />
-                          </div>
-                          <span className="text-sm font-black text-[#a67c52] leading-none">
-                            {c.toUpperCase()}
-                          </span>
-                          <input
-                            type="color"
-                            value={c}
-                            onChange={(e) => {
-                              const colorIndex = palette.indexOf(c);
-                              if (colorIndex !== -1) {
-                                const newPalette = [...palette];
-                                newPalette[colorIndex] = e.target.value;
+                      {CUSTOM_COLOR_LABELS.map((label, index) => {
+                        const color = customPalette[index] ?? "#000000";
+                        return (
+                          <div
+                            key={label}
+                            className="relative flex items-center gap-2"
+                          >
+                            <span className="text-sm font-black text-[#a67c52] w-16 shrink-0">
+                              {label}
+                            </span>
+                            <div className="w-8 h-8 relative">
+                              <div
+                                className="absolute inset-0 border-[2.5px] border-black/10 rounded-[4px]"
+                                style={{ backgroundColor: color }}
+                              />
+                              <div className="absolute inset-0 border-[1.5px] border-white/30 rounded-[3px] pointer-events-none" />
+                            </div>
+                            <span className="text-sm font-black text-[#a67c52] leading-none">
+                              {color.toUpperCase()}
+                            </span>
+                            <input
+                              type="color"
+                              value={color}
+                              onChange={(e) => {
+                                const newPalette = [...customPalette];
+                                newPalette[index] = e.target.value;
+                                setCustomPalette(newPalette);
                                 setPalette(newPalette);
-                                setSelectedPaletteName(null);
-                              }
-                            }}
-                            className="absolute inset-0 w-full h-full cursor-pointer opacity-0"
-                          />
-                        </div>
-                      ))}
+                                setBackgroundColor(customBackgroundColor);
+                                setSelectedPaletteName(CUSTOM_PALETTE_NAME);
+                              }}
+                              className="absolute inset-0 w-full h-full cursor-pointer opacity-0"
+                            />
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
