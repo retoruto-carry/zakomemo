@@ -32,8 +32,8 @@ export const PATTERNS: PatternDefinition[] = [
       ],
     },
     previewRepeatTime: 3,
-    previewShiftX: 0,
-    previewShiftY: 0,
+    previewShiftX: 1,
+    previewShiftY: -1,
   },
   {
     id: "stripe_horizontal",

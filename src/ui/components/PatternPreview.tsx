@@ -25,13 +25,9 @@ export function PatternPreview({
   const cells = useMemo(() => {
     const result: React.ReactElement[] = [];
     for (let y = 0; y < repeatHeight; y += 1) {
-      const shiftedY = y + previewShiftY;
-      const rowOffset =
-        (((shiftedY % tile.height) + tile.height) % tile.height) * tile.width;
+      const rowOffset = (y % tile.height) * tile.width;
       for (let x = 0; x < repeatWidth; x += 1) {
-        const shiftedX = x + previewShiftX;
-        const tileX = ((shiftedX % tile.width) + tile.width) % tile.width;
-        const value = tile.alpha[rowOffset + tileX];
+        const value = tile.alpha[rowOffset + (x % tile.width)];
         result.push(
           <div
             key={`${patternId}-${x}-${y}`}
@@ -45,28 +41,33 @@ export function PatternPreview({
       }
     }
     return result;
-  }, [
-    patternId,
-    pixelSize,
-    repeatWidth,
-    repeatHeight,
-    tile,
-    previewShiftX,
-    previewShiftY,
-  ]);
+  }, [patternId, pixelSize, repeatWidth, repeatHeight, tile]);
+
+  const shiftX = previewShiftX * pixelSize;
+  const shiftY = previewShiftY * pixelSize;
 
   return (
     <div
-      className={`grid ${className ?? ""}`}
+      className={className}
       style={{
-        gridTemplateColumns: `repeat(${repeatWidth}, ${pixelSize}px)`,
-        gridTemplateRows: `repeat(${repeatHeight}, ${pixelSize}px)`,
         width: repeatWidth * pixelSize,
         height: repeatHeight * pixelSize,
+        overflow: "hidden",
       }}
       aria-hidden="true"
     >
-      {cells}
+      <div
+        className="grid"
+        style={{
+          gridTemplateColumns: `repeat(${repeatWidth}, ${pixelSize}px)`,
+          gridTemplateRows: `repeat(${repeatHeight}, ${pixelSize}px)`,
+          width: repeatWidth * pixelSize,
+          height: repeatHeight * pixelSize,
+          transform: `translate(${shiftX}px, ${shiftY}px)`,
+        }}
+      >
+        {cells}
+      </div>
     </div>
   );
 }

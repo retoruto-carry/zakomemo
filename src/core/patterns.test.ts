@@ -7,8 +7,8 @@ describe("patterns", () => {
     expect(dots.id).toBe("dot_sparse");
     expect(dots.tile.alpha.length).toBe(dots.tile.width * dots.tile.height);
     expect(dots.previewRepeatTime).toBeGreaterThan(0);
-    expect(Number.isInteger(dots.previewShiftX)).toBe(true);
-    expect(Number.isInteger(dots.previewShiftY)).toBe(true);
+    expect(Number.isFinite(dots.previewShiftX)).toBe(true);
+    expect(Number.isFinite(dots.previewShiftY)).toBe(true);
   });
 
   test("patternsに複数のバリアントが含まれる", () => {
@@ -25,8 +25,8 @@ describe("patterns", () => {
       const def = getPatternDefinition(id);
       expect(def.tile.alpha.length).toBe(def.tile.width * def.tile.height);
       expect(def.previewRepeatTime).toBeGreaterThan(0);
-      expect(Number.isInteger(def.previewShiftX)).toBe(true);
-      expect(Number.isInteger(def.previewShiftY)).toBe(true);
+      expect(Number.isFinite(def.previewShiftX)).toBe(true);
+      expect(Number.isFinite(def.previewShiftY)).toBe(true);
     });
   });
 
