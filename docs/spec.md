@@ -75,7 +75,7 @@
   - RafScheduler(request/cancel)
   - GifEncoder(begin/addFrame/finish)
   - StrokeSound(onStrokeStart/Update/End)
-- frameRenderer: `renderDrawingAtTime({ drawing, drawingRevision, renderer, jitterConfig, elapsedTimeMs })` で任意時刻の描画を共通化。`elapsedTimeMs`はエンジン開始からの経過時間（ミリ秒）。
+- renderScheduler: `renderDrawingAtTime({ drawing, drawingRevision, renderer, jitterConfig, elapsedTimeMs })` で任意時刻の描画を共通化。`elapsedTimeMs`はエンジン開始からの経過時間（ミリ秒）。
 - WigglyEngine:
   - History<Drawing> を保持し、tool/color/width の現在値を管理。
   - pointerDown/move/up で core を更新し、stroke 完了時のみ履歴に push。

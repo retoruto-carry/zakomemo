@@ -9,16 +9,16 @@ import {
 import type { JitterConfig } from "@/core/jitter";
 import { snapBrushWidth, snapToPixel } from "@/core/rasterization";
 import type { BrushSettings, Drawing, StrokeKind } from "@/core/types";
-import {
-  invalidatePendingRequests,
-  renderDrawingAtTime,
-} from "@/engine/frameRenderer";
 import type {
   DrawingRenderer,
   RafScheduler,
   StrokeSound,
   TimeProvider,
 } from "@/engine/ports";
+import {
+  invalidatePendingRequests,
+  renderDrawingAtTime,
+} from "@/engine/renderScheduler";
 import type { EraserVariant, PenVariant } from "@/engine/variants";
 import { defaultPenWidth, resolveWidthVariant } from "@/engine/variants";
 

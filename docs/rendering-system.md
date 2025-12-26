@@ -78,19 +78,21 @@
 ## 非同期と古い結果の破棄
 
 - `createImageBitmap` は Promise を返すので生成は非同期で完了する
-- `frameRenderer` の `requestId` が最新かどうかで flush を制御
+- `renderScheduler` の `requestId` が最新かどうかで flush を制御
 - `CycleBitmapCache` は `renderCacheEpoch` が違う結果を捨てる
 - これにより「古い Drawing が表示される」問題を回避する
 
 ## コンポーネント責務
 
-- `frameRenderer`（engine）
+- `renderScheduler`（engine）
   - 描画スケジューラ（時間と描画要求の整合を取る）
   - キャッシュ対応レンダラーかの判定とフォールバック制御
   - `requestId` で古い非同期結果を弾く
 - `ImageDataBuffer`
   - ImageData と offscreenCanvas の管理
   - 背景塗りつぶし、`setPixel`、`putImageData`
+- `strokeJitter`
+  - ジッター適用と整数スナップの純粋関数
 - `StrokeChangeTracker`
   - ストローク ID とポイント数を保持
   - 追加のみなら差分、削除/順序変更なら全再生成
@@ -107,7 +109,7 @@
 
 ## 責務境界の整理（現状）
 
-- engine 側 (`frameRenderer`)
+- engine 側 (`renderScheduler`)
   - 「いつ」「どのフレームを」描画するかを決める
   - 非同期結果の安全な反映（古い結果を捨てる）
   - キャッシュ非対応レンダラーのフォールバック
@@ -117,11 +119,11 @@
 
 ## 改善方針（提案）
 
-- `frameRenderer` は「スケジュールと安全な描画反映」に集中
+- `renderScheduler` は「スケジュールと安全な描画反映」に集中
 - `CanvasRenderer` は「描画生成とキャッシュ運用」に集中
 - 依存関係は `DrawingRenderer` の契約で明確化
 - どちらが「時間（cycle）」を持つかは整理対象
-  - 現状は `frameRenderer` が `cycleIndex` を決め、`CanvasRenderer` が時間を固定化して生成
+  - 現状は `renderScheduler` が `cycleIndex` を決め、`CanvasRenderer` が時間を固定化して生成
   - ここを一本化すると責務境界が読みやすくなる
 
 ## 代表的なシナリオ

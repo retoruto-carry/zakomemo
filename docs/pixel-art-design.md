@@ -72,6 +72,9 @@ ui/      Reactコンポーネント（スライダーのstep属性設定）
 - `bresenhamLine(x0: number, y0: number, x1: number, y1: number): Array<{x: number, y: number}>` - Bresenhamアルゴリズム実装
 - `snapBrushWidth(width: number): number` - ブラシサイズを整数にスナップ
 
+**新規ファイル: `src/core/strokeJitter.ts`**
+- ジッター適用後の座標を整数にスナップ
+
 **テストファイル: `src/core/rasterization.test.ts`**
 - 座標スナップのテスト
 - Bresenhamアルゴリズムのテスト
@@ -83,8 +86,8 @@ ui/      Reactコンポーネント（スライダーのstep属性設定）
 - `pointerMove`: 座標を整数にスナップしてから処理
 - `setBrushWidth`: ブラシサイズを整数化
 
-**変更ファイル: `src/engine/frameRenderer.ts`**
-- ジッター適用後の座標を整数にスナップ
+**変更ファイル: `src/engine/renderScheduler.ts`**
+- 描画スケジュールとrequestId制御を担当
 
 **テストファイル: `src/engine/WigglyEngine.test.ts`**
 - 座標の整数化テスト
@@ -121,7 +124,7 @@ WigglyEngine.pointerDown/Move (整数にスナップ)
   ↓
 core/drawingLogic (整数座標で保存)
   ↓
-frameRenderer (ジッター適用、整数にスナップ)
+strokeJitter (ジッター適用、整数にスナップ)
   ↓
 CanvasRenderer.renderStroke (Bresenhamでピクセル単位描画)
 ```
@@ -185,7 +188,7 @@ alpha = tile.alpha[alphaIndex]
   - [x] `pointerDown` で座標を整数にスナップ
   - [x] `pointerMove` で座標を整数にスナップ
   - [x] `setBrushWidth` でブラシサイズを整数化
-- [x] `src/engine/frameRenderer.ts` 修正
+- [x] `src/engine/renderScheduler.ts` 修正
   - [x] ジッター適用後の座標を整数にスナップ
 - [x] `src/engine/WigglyEngine.test.ts` 修正
   - [x] 座標の整数化テスト追加

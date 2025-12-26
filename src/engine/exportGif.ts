@@ -1,8 +1,8 @@
 import type { JitterConfig } from "@/core/jitter";
 import type { Drawing } from "@/core/types";
-import { renderDrawingAtTime } from "@/engine/frameRenderer";
 import type { DrawingRenderer, GifEncoder } from "@/engine/ports";
 import { CYCLE_COUNT, CYCLE_INTERVAL_MS } from "@/engine/renderingConstants";
+import { renderDrawingAtTime } from "@/engine/renderScheduler";
 
 type RendererWithImageData = DrawingRenderer & {
   getImageData?: () => ImageData;

@@ -1,5 +1,4 @@
 import type { Drawing, Stroke } from "@/core/types";
-import * as frameRenderer from "@/engine/frameRenderer";
 import type {
   DrawingRenderer,
   RafScheduler,
@@ -7,6 +6,7 @@ import type {
   StrokeSoundInfo,
   TimeProvider,
 } from "@/engine/ports";
+import * as renderScheduler from "@/engine/renderScheduler";
 import { WigglyEngine } from "@/engine/WigglyEngine";
 
 class MockRenderer implements DrawingRenderer {
@@ -205,7 +205,10 @@ describe("WigglyEngine", () => {
       raf,
       jitterConfig: { amplitude: 0, frequency: 1 },
     });
-    const invalidateSpy = vi.spyOn(frameRenderer, "invalidatePendingRequests");
+    const invalidateSpy = vi.spyOn(
+      renderScheduler,
+      "invalidatePendingRequests",
+    );
 
     engine.setBackgroundColor("#000000");
 
