@@ -6,6 +6,7 @@ describe("patterns", () => {
     const dots = getPatternDefinition("dot_sparse");
     expect(dots.id).toBe("dot_sparse");
     expect(dots.tile.alpha.length).toBe(dots.tile.width * dots.tile.height);
+    expect(dots.previewRepeatTime).toBeGreaterThan(0);
   });
 
   test("patternsに複数のバリアントが含まれる", () => {
@@ -21,6 +22,7 @@ describe("patterns", () => {
     ids.forEach((id) => {
       const def = getPatternDefinition(id);
       expect(def.tile.alpha.length).toBe(def.tile.width * def.tile.height);
+      expect(def.previewRepeatTime).toBeGreaterThan(0);
     });
   });
 
