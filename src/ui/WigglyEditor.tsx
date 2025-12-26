@@ -10,6 +10,7 @@ import type { Tool, WigglyEngine } from "@/engine/WigglyEngine";
 import { CanvasRenderer } from "@/infra/canvas/CanvasRenderer";
 import { GifEncGifEncoder } from "@/infra/GifEncGifEncoder";
 import { initializeUISounds, uiSoundManager } from "@/infra/sound/uiSounds";
+import { useWigglyEngineSync } from "@/ui/hooks/useWigglyEngineSync";
 import { DesktopLayout } from "./layouts/DesktopLayout";
 import { MobileLayout } from "./layouts/MobileLayout";
 import { WigglyCanvas } from "./WigglyCanvas";
@@ -26,6 +27,7 @@ const DEFAULT_PEN_WIDTH = 16;
 export function WigglyEditor() {
   const engineRef = useRef<WigglyEngine | null>(null);
   const toolsRef = useRef<WigglyToolsHandle | null>(null);
+  const [engineVersion, setEngineVersion] = useState(0);
 
   // 音源の初期化（初回のみ）
   useEffect(() => {
@@ -156,13 +158,22 @@ export function WigglyEditor() {
     // 初期チェック
     setCanUndo(engine.canUndo());
     setCanRedo(engine.canRedo());
+    setEngineVersion((prev) => prev + 1);
   }, []);
 
-  // パレット変更時は既存のImageBitmapが古い色になるためキャッシュを破棄する
-  // biome-ignore lint/correctness/useExhaustiveDependencies: パレット変更で再描画が必要なため
-  useEffect(() => {
-    engineRef.current?.clearRendererCache();
-  }, [palette]);
+  useWigglyEngineSync({
+    engineRef,
+    engineVersion,
+    tool,
+    color,
+    brushWidth,
+    penVariant,
+    eraserVariant,
+    patternId,
+    backgroundColor,
+    jitterConfig,
+    palette,
+  });
 
   const Layout = isDesktop ? DesktopLayout : MobileLayout;
 
@@ -367,11 +378,8 @@ export function WigglyEditor() {
         canvas={
           <WigglyCanvas
             tool={tool}
-            color={color}
             brushWidth={brushWidth}
-            penVariant={penVariant}
             eraserVariant={eraserVariant}
-            patternId={patternId}
             backgroundColor={backgroundColor}
             jitterConfig={jitterConfig}
             onEngineInit={onEngineInit}

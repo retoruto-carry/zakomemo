@@ -3,9 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { DEFAULT_DRAWING } from "@/config/presets";
 import type { JitterConfig } from "@/core/jitter";
-import type { BrushPatternId } from "@/core/types";
 import { createWigglyEngine } from "@/engine/createWigglyEngine";
-import type { EraserVariant, PenVariant } from "@/engine/variants";
+import type { EraserVariant } from "@/engine/variants";
 import type { Tool, WigglyEngine } from "@/engine/WigglyEngine";
 
 const ERASER_GUIDE = {
@@ -27,11 +26,8 @@ type PointerInfo = {
 
 interface WigglyCanvasProps {
   tool: Tool;
-  color: string;
   brushWidth: number;
-  penVariant: PenVariant;
   eraserVariant: EraserVariant;
-  patternId: BrushPatternId;
   backgroundColor: string;
   jitterConfig: JitterConfig;
   onEngineInit: (engine: WigglyEngine) => void;
@@ -39,17 +35,13 @@ interface WigglyCanvasProps {
 
 export function WigglyCanvas({
   tool,
-  color,
   brushWidth,
-  penVariant,
   eraserVariant,
-  patternId,
   backgroundColor,
   jitterConfig,
   onEngineInit,
 }: WigglyCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const engineRef = useRef<WigglyEngine | null>(null);
   const primaryPointerIdRef = useRef<number | null>(null);
   const activePointersRef = useRef<Map<number, PointerInfo>>(new Map());
   const isMultiTouchRef = useRef(false);
@@ -63,36 +55,6 @@ export function WigglyCanvas({
     toolRef.current = tool;
   }, [tool]);
 
-  // 入力プロパティをエンジンに同期
-  useEffect(() => {
-    engineRef.current?.setTool(tool);
-  }, [tool]);
-  useEffect(() => {
-    engineRef.current?.setBrushColor(color);
-  }, [color]);
-  useEffect(() => {
-    engineRef.current?.setBrushWidth(brushWidth);
-  }, [brushWidth]);
-  useEffect(() => {
-    engineRef.current?.setPattern(patternId);
-  }, [patternId]);
-  useEffect(() => {
-    engineRef.current?.setPenVariant(penVariant);
-  }, [penVariant]);
-  useEffect(() => {
-    engineRef.current?.setEraserVariant(eraserVariant);
-  }, [eraserVariant]);
-
-  // 背景色をレンダラーに同期
-  useEffect(() => {
-    engineRef.current?.setBackgroundColor(backgroundColor);
-  }, [backgroundColor]);
-
-  // ジッター設定をエンジンに同期
-  useEffect(() => {
-    engineRef.current?.setJitterConfig(jitterConfig);
-  }, [jitterConfig]);
-
   // エンジンとイベントリスナーを初期化
   // biome-ignore lint/correctness/useExhaustiveDependencies: マウント時に1回だけ実行するため
   useEffect(() => {
@@ -105,7 +67,6 @@ export function WigglyCanvas({
       backgroundColor,
       jitterConfig,
     );
-    engineRef.current = engine;
     onEngineInit(engine);
 
     // ピンチジェスチャーを許可しつつ、描画のためにパンも制御
