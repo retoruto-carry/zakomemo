@@ -968,7 +968,7 @@ export const WigglyTools = React.forwardRef<
                 }}
                 className={`px-3 py-1.5 rounded-t-[8px] font-black text-sm transition-all cursor-pointer ${
                   settingsTab === "palette"
-                    ? "bg-[#fdfbf7] text-[#ff6b00] translate-y-px border-t-[3px] border-l-[3px] border-r-[3px] border-[#e7d1b1]"
+                    ? "bg-[#fdfbf7] text-[#ff6b00] translate-y-px border-t-[3px] border-l-[3px] border-r-[3px] border-[#e7d1b1] hover:brightness-95"
                     : "bg-[#ff9d5c] text-white hover:bg-[#ff8c00]"
                 }`}
               >
@@ -983,7 +983,7 @@ export const WigglyTools = React.forwardRef<
                   }}
                   className={`px-3 py-1.5 rounded-t-[8px] font-black text-sm transition-all cursor-pointer ${
                     settingsTab === "body"
-                      ? "bg-[#fdfbf7] text-[#ff6b00] translate-y-px border-t-[3px] border-l-[3px] border-r-[3px] border-[#e7d1b1]"
+                      ? "bg-[#fdfbf7] text-[#ff6b00] translate-y-px border-t-[3px] border-l-[3px] border-r-[3px] border-[#e7d1b1] hover:brightness-95"
                       : "bg-[#ff9d5c] text-white hover:bg-[#ff8c00]"
                   }`}
                 >
@@ -998,7 +998,7 @@ export const WigglyTools = React.forwardRef<
                 }}
                 className={`px-3 py-1.5 rounded-t-[8px] font-black text-sm transition-all cursor-pointer ${
                   settingsTab === "jitter"
-                    ? "bg-[#fdfbf7] text-[#ff6b00] translate-y-px border-t-[3px] border-l-[3px] border-r-[3px] border-[#e7d1b1]"
+                    ? "bg-[#fdfbf7] text-[#ff6b00] translate-y-px border-t-[3px] border-l-[3px] border-r-[3px] border-[#e7d1b1] hover:brightness-95"
                     : "bg-[#ff9d5c] text-white hover:bg-[#ff8c00]"
                 }`}
               >
@@ -1072,10 +1072,10 @@ export const WigglyTools = React.forwardRef<
                 {/* カスタムパレット */}
                 {/* biome-ignore lint/a11y/useSemanticElements: カラーピッカーを含むためdivで選択操作を扱う */}
                 <div
-                  className={`mt-1.5 p-3 border-[3px] rounded-[6px] transition-all ${
+                  className={`mt-1.5 p-3 border-[3px] rounded-[6px] transition-all cursor-pointer ${
                     selectedPaletteName === CUSTOM_PALETTE_NAME
-                      ? "border-black bg-[#ffff00] shadow-[4px_4px_0_rgba(0,0,0,0.1)]"
-                      : "border-[#e7d1b1] bg-white shadow-[2px_2px_0_rgba(210,180,140,0.1)]"
+                      ? "border-black bg-[#ffff00] shadow-[4px_4px_0_rgba(0,0,0,0.1)] hover:brightness-95"
+                      : "border-[#e7d1b1] bg-white shadow-[2px_2px_0_rgba(210,180,140,0.1)] hover:border-[#ff9d5c]"
                   }`}
                   role="button"
                   tabIndex={0}
@@ -1090,7 +1090,7 @@ export const WigglyTools = React.forwardRef<
                       type="button"
                       onClick={selectCustomPalette}
                       onKeyDown={handleButtonKeyDown(selectCustomPalette)}
-                      className={`px-3 py-1 text-xs font-black border-[2px] rounded-[4px] transition-all ${
+                      className={`px-3 py-1 text-xs font-black border-[2px] rounded-[4px] transition-all cursor-pointer ${
                         selectedPaletteName === CUSTOM_PALETTE_NAME
                           ? "border-black bg-white text-black"
                           : "border-[#e7d1b1] bg-[#fffdeb] text-[#a67c52] hover:border-[#ff9d5c]"
