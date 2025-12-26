@@ -14,7 +14,9 @@ export const PATTERNS: PatternDefinition[] = [
         0,0,0,
       ],
     },
-    previewRepeatTime: 3,
+    previewRepeatTime: 4,
+    previewShiftX: 0,
+    previewShiftY: 0,
   },
   {
     id: "dot_dense",
@@ -29,7 +31,9 @@ export const PATTERNS: PatternDefinition[] = [
         0,0,0,0,
       ],
     },
-    previewRepeatTime: 2,
+    previewRepeatTime: 3,
+    previewShiftX: 0,
+    previewShiftY: 0,
   },
   {
     id: "stripe_horizontal",
@@ -44,7 +48,9 @@ export const PATTERNS: PatternDefinition[] = [
         1,1,1,1,
       ],
     },
-    previewRepeatTime: 2,
+    previewRepeatTime: 3,
+    previewShiftX: 0,
+    previewShiftY: 0,
   },
   {
     id: "stripe_vertical",
@@ -59,7 +65,9 @@ export const PATTERNS: PatternDefinition[] = [
         1,0,1,0,
       ],
     },
-    previewRepeatTime: 2,
+    previewRepeatTime: 3,
+    previewShiftX: 0,
+    previewShiftY: 0,
   },
   {
     id: "check",
@@ -74,7 +82,9 @@ export const PATTERNS: PatternDefinition[] = [
         0,1,0,1,
       ],
     },
-    previewRepeatTime: 2,
+    previewRepeatTime: 3,
+    previewShiftX: 0,
+    previewShiftY: 0,
   },
   {
     id: "mesh",
@@ -89,7 +99,9 @@ export const PATTERNS: PatternDefinition[] = [
         1,0,1,0,
       ],
     },
-    previewRepeatTime: 2,
+    previewRepeatTime: 3,
+    previewShiftX: 0,
+    previewShiftY: 0,
   },
   {
     id: "mesh_bold",
@@ -104,7 +116,9 @@ export const PATTERNS: PatternDefinition[] = [
         1,1,1,1,
       ],
     },
-    previewRepeatTime: 2,
+    previewRepeatTime: 3,
+    previewShiftX: 0,
+    previewShiftY: 0,
   },
   {
     id: "crosshatch",
@@ -119,7 +133,9 @@ export const PATTERNS: PatternDefinition[] = [
         0,0,0,1,
       ],
     },
-    previewRepeatTime: 2,
+    previewRepeatTime: 3,
+    previewShiftX: 0,
+    previewShiftY: 0,
   },
 ];
 

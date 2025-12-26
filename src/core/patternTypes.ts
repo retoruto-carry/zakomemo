@@ -10,4 +10,6 @@ export type PatternDefinition = {
   id: BrushPatternId;
   tile: PatternTile;
   previewRepeatTime: number;
+  previewShiftX: number;
+  previewShiftY: number;
 };
