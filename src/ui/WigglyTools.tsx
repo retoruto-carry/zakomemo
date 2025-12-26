@@ -1100,8 +1100,16 @@ export const WigglyTools = React.forwardRef<
                     </span>
                     <button
                       type="button"
-                      onClick={selectCustomPalette}
-                      onKeyDown={handleButtonKeyDown(selectCustomPalette)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        selectCustomPalette();
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.stopPropagation();
+                        }
+                        handleButtonKeyDown(selectCustomPalette)(e);
+                      }}
                       className={`px-3 py-1 text-xs font-black border-[2px] rounded-[4px] transition-all cursor-pointer ${
                         selectedPaletteName === CUSTOM_PALETTE_NAME
                           ? "border-black bg-white text-black"
