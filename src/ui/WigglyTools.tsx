@@ -1034,38 +1034,33 @@ export const WigglyTools = React.forwardRef<
                   <span className="font-black text-base mb-3 block text-center text-[#a67c52]">
                     カスタムパレット
                   </span>
-                  <div className="flex items-start gap-3">
-                    <div className="flex shrink-0 flex-col gap-2">
-                      <div className="relative flex items-center gap-2">
-                        <div className="w-10 h-10 relative">
-                          <div
-                            className="absolute inset-0 border-[2.5px] border-black/10 rounded-[4px]"
-                            style={{ backgroundColor }}
-                          />
-                          <div className="absolute inset-0 border-[1.5px] border-white/30 rounded-[3px] pointer-events-none" />
-                        </div>
-                        <span className="text-sm font-black text-[#a67c52] leading-none">
-                          {backgroundColor.toUpperCase()}
-                        </span>
-                        <input
-                          type="color"
-                          value={backgroundColor}
-                          onChange={(e) => {
-                            uiSoundManager.play("custom-palette-color", {
-                              stopPrevious: true,
-                            });
-                            setBackgroundColor(e.target.value);
-                            setSelectedPaletteName(null);
-                          }}
-                          className="absolute inset-0 w-full h-full cursor-pointer opacity-0"
+                  <div className="flex flex-col gap-2">
+                    <div className="relative flex items-center gap-2">
+                      <div className="w-10 h-10 relative">
+                        <div
+                          className="absolute inset-0 border-[2.5px] border-black/10 rounded-[4px]"
+                          style={{ backgroundColor }}
                         />
+                        <div className="absolute inset-0 border-[1.5px] border-white/30 rounded-[3px] pointer-events-none" />
                       </div>
+                      <span className="text-sm font-black text-[#a67c52] leading-none">
+                        {backgroundColor.toUpperCase()}
+                      </span>
+                      <input
+                        type="color"
+                        value={backgroundColor}
+                        onChange={(e) => {
+                          setBackgroundColor(e.target.value);
+                          setSelectedPaletteName(null);
+                        }}
+                        className="absolute inset-0 w-full h-full cursor-pointer opacity-0"
+                      />
                     </div>
                     <div
-                      className="self-stretch w-[3px] bg-[#e7d1b1] rounded-full"
+                      className="h-[3px] w-full bg-[#e7d1b1] rounded-full"
                       aria-hidden="true"
                     />
-                    <div className="flex flex-1 flex-col gap-2">
+                    <div className="flex flex-col gap-2">
                       {palette.map((c) => (
                         <div
                           key={`custom-palette-${c}`}
@@ -1085,9 +1080,6 @@ export const WigglyTools = React.forwardRef<
                             type="color"
                             value={c}
                             onChange={(e) => {
-                              uiSoundManager.play("custom-palette-color", {
-                                stopPrevious: true,
-                              });
                               const colorIndex = palette.indexOf(c);
                               if (colorIndex !== -1) {
                                 const newPalette = [...palette];

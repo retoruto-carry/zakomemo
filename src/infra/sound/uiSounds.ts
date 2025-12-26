@@ -61,9 +61,6 @@ export function initializeUISounds(): void {
   // パレットプリセット選択 - select1.mp3を使用
   uiSoundManager.registerSound("palette-preset-select", selectSound);
 
-  // カスタムパレット色選択 - select1.mp3を使用
-  uiSoundManager.registerSound("custom-palette-color", selectSound);
-
   // エクスポートモーダル閉じる - select1.mp3を使用
   uiSoundManager.registerSound("export-close", selectSound);
 
