@@ -17,7 +17,7 @@
 #### ソリッド/消しゴム描画
 - **Bresenhamアルゴリズム**: O(n)で効率的（nは点間の距離）
 - **重複排除**: `Map<number, Set<number>>`を使用して同じピクセルの重複描画を回避（最適化済み）
-- **太い線の最適化**: `calculateThickLinePixels`で領域を事前計算
+- **太い線の最適化**: `calculateThickLinePixels`/`calculateStampedLinePixels`でスタンプ領域を事前計算（円/線/四角）
 - **差分描画**: 新しいストロークやポイントだけを描画（約50倍高速化）
 
 #### パターン描画

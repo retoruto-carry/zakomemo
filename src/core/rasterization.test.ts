@@ -1,6 +1,9 @@
 import {
   bresenhamLine,
+  calculateStampedLinePixels,
   calculateThickLinePixels,
+  getLineStampOffsets,
+  getSquareStampOffsets,
   snapBrushWidth,
   snapToPixel,
 } from "@/core/rasterization";
@@ -373,6 +376,40 @@ describe("rasterization", () => {
       expect(width4.length).toBe(width5.length);
       // しかし、width=4/5はwidth=2/3より大きい
       expect(width4.length).toBeGreaterThan(width2.length);
+    });
+  });
+
+  describe("calculateStampedLinePixels", () => {
+    it("線スタンプは水平に広がる", () => {
+      const centerPixels = [{ x: 2, y: 2 }];
+      const stamp = getLineStampOffsets(1);
+      const result = calculateStampedLinePixels(centerPixels, stamp);
+      expect(result.length).toBe(3);
+      expect(result).toContainEqual({ x: 1, y: 2 });
+      expect(result).toContainEqual({ x: 2, y: 2 });
+      expect(result).toContainEqual({ x: 3, y: 2 });
+    });
+
+    it("四角スタンプはサイズ分のピクセルを返す", () => {
+      const centerPixels = [{ x: 0, y: 0 }];
+      const stamp = getSquareStampOffsets(2);
+      const result = calculateStampedLinePixels(centerPixels, stamp);
+      expect(result.length).toBe(4);
+      expect(result).toContainEqual({ x: -1, y: -1 });
+      expect(result).toContainEqual({ x: 0, y: -1 });
+      expect(result).toContainEqual({ x: -1, y: 0 });
+      expect(result).toContainEqual({ x: 0, y: 0 });
+    });
+
+    it("複数の中心線で重複排除される", () => {
+      const centerPixels = [
+        { x: 0, y: 0 },
+        { x: 1, y: 0 },
+      ];
+      const stamp = getSquareStampOffsets(3);
+      const result = calculateStampedLinePixels(centerPixels, stamp);
+      const uniquePixels = new Set(result.map((p) => `${p.x},${p.y}`));
+      expect(uniquePixels.size).toBe(result.length);
     });
   });
 });

@@ -93,12 +93,22 @@ export function bresenhamLine(
   return points;
 }
 
+export type StampOffsets = {
+  offsets: Array<{ dx: number; dy: number }>;
+  minX: number;
+  maxX: number;
+  minY: number;
+  maxY: number;
+};
+
 /**
  * 半径ごとの円オフセットテーブル（キャッシュ）
  * キー: 半径、値: その半径の円内のオフセット配列
  * ブラシサイズは実用範囲内を前提にし、キャッシュは上限を設けていない
  */
 const circleOffsetCache = new Map<number, Array<{ dx: number; dy: number }>>();
+const squareOffsetCache = new Map<number, StampOffsets>();
+const lineOffsetCache = new Map<number, StampOffsets>();
 
 /**
  * 指定半径の円内のオフセットを取得（テーブル化）
@@ -160,8 +170,19 @@ export function calculateThickLinePixels(
     return centerPixels;
   }
 
-  // テーブル化された円オフセットを取得（事前計算済み、キャッシュ済み）
-  const circleOffsets = getCircleOffsets(radius);
+  return calculateStampedLinePixels(
+    centerPixels,
+    getCircleStampOffsets(radius),
+  );
+}
+
+export function calculateStampedLinePixels(
+  centerPixels: Array<{ x: number; y: number }>,
+  stamp: StampOffsets,
+): Array<{ x: number; y: number }> {
+  if (centerPixels.length === 0) {
+    return [];
+  }
 
   const first = centerPixels[0];
   let minX = first.x;
@@ -176,10 +197,10 @@ export function calculateThickLinePixels(
     if (center.y > maxY) maxY = center.y;
   }
 
-  const maskMinX = minX - radius;
-  const maskMaxX = maxX + radius;
-  const maskMinY = minY - radius;
-  const maskMaxY = maxY + radius;
+  const maskMinX = minX + stamp.minX;
+  const maskMaxX = maxX + stamp.maxX;
+  const maskMinY = minY + stamp.minY;
+  const maskMaxY = maxY + stamp.maxY;
   const maskWidth = maskMaxX - maskMinX + 1;
   const maskHeight = maskMaxY - maskMinY + 1;
 
@@ -187,17 +208,14 @@ export function calculateThickLinePixels(
     return [];
   }
 
-  // 重複排除用のビットマスク
   const mask = new Uint8Array(maskWidth * maskHeight);
   const result: Array<{ x: number; y: number }> = [];
 
-  // 各中心点に対して円を描く（スタンプ方式）
   for (const center of centerPixels) {
     const cx = center.x;
     const cy = center.y;
 
-    // テーブルからオフセットを取得して円を描く
-    for (const { dx, dy } of circleOffsets) {
+    for (const { dx, dy } of stamp.offsets) {
       const x = cx + dx;
       const y = cy + dy;
       const index = (y - maskMinY) * maskWidth + (x - maskMinX);
@@ -210,6 +228,68 @@ export function calculateThickLinePixels(
   }
 
   return result;
+}
+
+export function getCircleStampOffsets(radius: number): StampOffsets {
+  const safeRadius = Math.max(0, Math.floor(radius));
+  return {
+    offsets: getCircleOffsets(safeRadius),
+    minX: -safeRadius,
+    maxX: safeRadius,
+    minY: -safeRadius,
+    maxY: safeRadius,
+  };
+}
+
+export function getSquareStampOffsets(size: number): StampOffsets {
+  const safeSize = Math.max(1, Math.round(size));
+  const cached = squareOffsetCache.get(safeSize);
+  if (cached) {
+    return cached;
+  }
+
+  const start = -Math.floor(safeSize / 2);
+  const end = start + safeSize - 1;
+  const offsets: Array<{ dx: number; dy: number }> = [];
+
+  for (let dy = start; dy <= end; dy++) {
+    for (let dx = start; dx <= end; dx++) {
+      offsets.push({ dx, dy });
+    }
+  }
+
+  const stamp = {
+    offsets,
+    minX: start,
+    maxX: end,
+    minY: start,
+    maxY: end,
+  };
+  squareOffsetCache.set(safeSize, stamp);
+  return stamp;
+}
+
+export function getLineStampOffsets(halfLength: number): StampOffsets {
+  const safeHalfLength = Math.max(0, Math.round(halfLength));
+  const cached = lineOffsetCache.get(safeHalfLength);
+  if (cached) {
+    return cached;
+  }
+
+  const offsets: Array<{ dx: number; dy: number }> = [];
+  for (let dx = -safeHalfLength; dx <= safeHalfLength; dx++) {
+    offsets.push({ dx, dy: 0 });
+  }
+
+  const stamp = {
+    offsets,
+    minX: -safeHalfLength,
+    maxX: safeHalfLength,
+    minY: 0,
+    maxY: 0,
+  };
+  lineOffsetCache.set(safeHalfLength, stamp);
+  return stamp;
 }
 
 /**

@@ -7,8 +7,11 @@ import { getPatternDefinition } from "@/core/patterns";
 import type { PatternTile } from "@/core/patternTypes";
 import {
   bresenhamLine,
+  calculateStampedLinePixels,
   calculateThickLinePixels,
   getCirclePixelOffsets,
+  getLineStampOffsets,
+  getSquareStampOffsets,
 } from "@/core/rasterization";
 import type { BrushVariant, Stroke } from "@/core/types";
 import type { ImageDataBuffer } from "@/infra/canvas/ImageDataBuffer";
@@ -86,19 +89,13 @@ function renderSolidStroke(
 
   if (isEraserVariant) {
     const centerPixels = buildCenterPixels(jitteredPoints);
-    for (const pixel of centerPixels) {
-      drawPixelToImageData(
-        context,
-        pixel.x,
-        pixel.y,
-        brushWidth,
-        variant,
-        stroke.kind,
-        r,
-        g,
-        b,
-        a,
-      );
+    const stamp =
+      variant === "eraserLine"
+        ? getLineStampOffsets(brushWidth)
+        : getSquareStampOffsets(brushWidth);
+    const stampedPixels = calculateStampedLinePixels(centerPixels, stamp);
+    for (const pixel of stampedPixels) {
+      context.setPixel({ x: pixel.x, y: pixel.y, r, g, b, a });
     }
     return;
   }
@@ -108,18 +105,7 @@ function renderSolidStroke(
     const p = jitteredPoints[0];
     const x = Math.round(p.x);
     const y = Math.round(p.y);
-    drawPixelToImageData(
-      context,
-      x,
-      y,
-      brushWidth,
-      variant,
-      stroke.kind,
-      r,
-      g,
-      b,
-      a,
-    );
+    drawPixelToImageData(context, x, y, brushWidth, r, g, b, a);
     return;
   }
 
@@ -175,40 +161,20 @@ function drawPixelToImageData(
   x: number,
   y: number,
   width: number,
-  variant: BrushVariant | undefined,
-  strokeKind: "draw" | "erase",
   r: number,
   g: number,
   b: number,
   a: number,
 ): void {
-  if (strokeKind === "erase" && variant === "eraserLine") {
-    // 消しゴム（横線）: 横方向に拡大
-    const halfLen = Math.round(width);
-    for (let dx = -halfLen; dx <= halfLen; dx++) {
-      context.setPixel({ x: x + dx, y, r, g, b, a });
-    }
-  } else if (strokeKind === "erase" && variant === "eraserSquare") {
-    // 消しゴム（四角）: 四角形で描画
-    const size = Math.max(1, Math.round(width));
-    const start = -Math.floor(size / 2);
-    const end = start + size - 1;
-    for (let dy = start; dy <= end; dy++) {
-      for (let dx = start; dx <= end; dx++) {
-        context.setPixel({ x: x + dx, y: y + dy, r, g, b, a });
-      }
-    }
+  // 円スタンプの単点描画
+  if (width === 1) {
+    context.setPixel({ x, y, r, g, b, a });
   } else {
-    // 通常のペン/消しゴム（円）: 円で描画
-    if (width === 1) {
-      context.setPixel({ x, y, r, g, b, a });
-    } else {
-      const radius = Math.floor(width / 2);
-      // テーブル化されたオフセットを使用（毎回計算しない）
-      const offsets = getCirclePixelOffsets(radius);
-      for (const { dx, dy } of offsets) {
-        context.setPixel({ x: x + dx, y: y + dy, r, g, b, a });
-      }
+    const radius = Math.floor(width / 2);
+    // テーブル化されたオフセットを使用（毎回計算しない）
+    const offsets = getCirclePixelOffsets(radius);
+    for (const { dx, dy } of offsets) {
+      context.setPixel({ x: x + dx, y: y + dy, r, g, b, a });
     }
   }
 }
