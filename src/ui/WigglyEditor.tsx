@@ -1,11 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  BACKGROUND_COLOR_PRESETS,
-  BODY_PRESETS,
-  PALETTE_PRESETS,
-} from "@/config/presets";
+import { BODY_PRESETS, PALETTE_PRESETS } from "@/config/presets";
 import type { JitterConfig } from "@/core/jitter";
 import type { BrushPatternId } from "@/core/types";
 import { exportDrawingAsGif } from "@/engine/exportGif";
@@ -19,8 +15,7 @@ import { MobileLayout } from "./layouts/MobileLayout";
 import { WigglyCanvas } from "./WigglyCanvas";
 import { WigglyTools, type WigglyToolsHandle } from "./WigglyTools";
 
-// デフォルトパレット: 黒、赤、緑、青、黄、紫
-const defaultPalette = PALETTE_PRESETS[0].colors;
+const defaultPalette = PALETTE_PRESETS[0];
 
 // 標準DSホワイト本体
 const defaultBodyColor = BODY_PRESETS[0].body;
@@ -55,12 +50,14 @@ export function WigglyEditor() {
   const [canRedo, setCanRedo] = useState(false);
 
   // パレット/本体色の状態
-  const [palette, setPalette] = useState(defaultPalette);
+  const [palette, setPalette] = useState(defaultPalette.colors);
   const [selectedPaletteName, setSelectedPaletteName] = useState<string | null>(
     PALETTE_PRESETS[0].name,
   );
   const [bodyColor, setBodyColor] = useState(defaultBodyColor);
-  const [backgroundColor, setBackgroundColor] = useState("#fdfbf7");
+  const [backgroundColor, setBackgroundColor] = useState(
+    defaultPalette.background,
+  );
   const [jitterConfig, setJitterConfig] = useState<JitterConfig>({
     amplitude: 1.2,
     frequency: 0.008,
@@ -202,34 +199,13 @@ export function WigglyEditor() {
 
   const handleDSButtonUp = useCallback(() => {
     uiSoundManager.play("ds-button-up", { stopPrevious: true });
-    const currentIndex = BACKGROUND_COLOR_PRESETS.indexOf(
-      backgroundColor as (typeof BACKGROUND_COLOR_PRESETS)[number],
-    );
-    if (currentIndex === -1) {
-      setBackgroundColor(BACKGROUND_COLOR_PRESETS[0]);
-    } else {
-      const nextIndex = (currentIndex + 1) % BACKGROUND_COLOR_PRESETS.length;
-      setBackgroundColor(BACKGROUND_COLOR_PRESETS[nextIndex]);
-    }
-  }, [backgroundColor]);
+    // TODO: 将来的に別機能を割り当てる
+  }, []);
 
   const handleDSButtonDown = useCallback(() => {
     uiSoundManager.play("ds-button-down", { stopPrevious: true });
-    const currentIndex = BACKGROUND_COLOR_PRESETS.indexOf(
-      backgroundColor as (typeof BACKGROUND_COLOR_PRESETS)[number],
-    );
-    if (currentIndex === -1) {
-      setBackgroundColor(
-        BACKGROUND_COLOR_PRESETS[BACKGROUND_COLOR_PRESETS.length - 1],
-      );
-    } else {
-      const prevIndex =
-        currentIndex === 0
-          ? BACKGROUND_COLOR_PRESETS.length - 1
-          : currentIndex - 1;
-      setBackgroundColor(BACKGROUND_COLOR_PRESETS[prevIndex]);
-    }
-  }, [backgroundColor]);
+    // TODO: 将来的に別機能を割り当てる
+  }, []);
 
   const handleDSButtonRight = useCallback(() => {
     uiSoundManager.play("ds-button-right", { stopPrevious: true });
@@ -238,10 +214,12 @@ export function WigglyEditor() {
       : -1;
     if (currentPaletteIndex === -1) {
       setPalette(PALETTE_PRESETS[0].colors);
+      setBackgroundColor(PALETTE_PRESETS[0].background);
       setSelectedPaletteName(PALETTE_PRESETS[0].name);
     } else {
       const nextIndex = (currentPaletteIndex + 1) % PALETTE_PRESETS.length;
       setPalette(PALETTE_PRESETS[nextIndex].colors);
+      setBackgroundColor(PALETTE_PRESETS[nextIndex].background);
       setSelectedPaletteName(PALETTE_PRESETS[nextIndex].name);
     }
   }, [selectedPaletteName]);
@@ -253,6 +231,9 @@ export function WigglyEditor() {
       : -1;
     if (currentPaletteIndex === -1) {
       setPalette(PALETTE_PRESETS[PALETTE_PRESETS.length - 1].colors);
+      setBackgroundColor(
+        PALETTE_PRESETS[PALETTE_PRESETS.length - 1].background,
+      );
       setSelectedPaletteName(PALETTE_PRESETS[PALETTE_PRESETS.length - 1].name);
     } else {
       const prevIndex =
@@ -260,6 +241,7 @@ export function WigglyEditor() {
           ? PALETTE_PRESETS.length - 1
           : currentPaletteIndex - 1;
       setPalette(PALETTE_PRESETS[prevIndex].colors);
+      setBackgroundColor(PALETTE_PRESETS[prevIndex].background);
       setSelectedPaletteName(PALETTE_PRESETS[prevIndex].name);
     }
   }, [selectedPaletteName]);

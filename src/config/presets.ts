@@ -47,66 +47,82 @@ export const BACKGROUND_COLOR_PRESETS = [
 export const PALETTE_PRESETS = [
   {
     name: "スタンダード",
+    background: "#fdfbf7",
     colors: ["#0b0b0b", "#ff3b30", "#34c759", "#007aff", "#fbbf24", "#9b51e0"],
   },
   {
     name: "ゲームボーイ",
+    background: "#e0f8d0",
     colors: ["#0f380f", "#306230", "#8bac0f", "#9bbc0f", "#cadc9f", "#e0f8d0"],
   },
   {
     name: "ノスタルジック",
+    background: "#f5e5d0",
     colors: ["#4a4a4a", "#8b4513", "#556b2f", "#4682b4", "#daa520", "#800080"],
   },
   {
     name: "パステル",
+    background: "#fff4f9",
     colors: ["#555555", "#ffb7b2", "#baffc9", "#bae1ff", "#ffffba", "#e0bbe4"],
   },
   {
     name: "サイバー",
+    background: "#0b0b0b",
     colors: ["#000000", "#ff00ff", "#00ffff", "#ffff00", "#00ff00", "#ff0000"],
   },
   {
     name: "モノクロ",
+    background: "#f5f5f5",
     colors: ["#000000", "#333333", "#666666", "#999999", "#cccccc", "#ffffff"],
   },
   {
     name: "フォレスト",
+    background: "#e8f0e1",
     colors: ["#1b3022", "#395442", "#5a7250", "#889668", "#a2b48c", "#c2d1b0"],
   },
   {
     name: "デザート",
+    background: "#f7e6c8",
     colors: ["#4a3728", "#7b5e43", "#a68069", "#d4a373", "#e9c46a", "#f4a261"],
   },
   {
     name: "オーシャン",
+    background: "#e0f7fa",
     colors: ["#03045e", "#023e8a", "#0077b6", "#0096c7", "#00b4d8", "#48cae4"],
   },
   {
     name: "サクラ",
+    background: "#fff0f8",
     colors: ["#594157", "#726a95", "#a0ced9", "#adeecf", "#e1ffbb", "#ffccf9"],
   },
   {
     name: "ベリー",
+    background: "#ffe5ec",
     colors: ["#4d081a", "#900c3f", "#c70039", "#ff1f5b", "#ff5e78", "#ff8fa3"],
   },
   {
     name: "トワイライト",
+    background: "#1a1a2e",
     colors: ["#1a1a2e", "#16213e", "#0f3460", "#533483", "#e94560", "#f9f1f0"],
   },
   {
     name: "ヴィンテージ",
+    background: "#f7f0e6",
     colors: ["#2c3e50", "#e74c3c", "#ecf0f1", "#3498db", "#f1c40f", "#8e44ad"],
   },
   {
     name: "アース",
+    background: "#fefae0",
     colors: ["#283618", "#606c38", "#fefae0", "#dda15e", "#bc6c25", "#4a2c2a"],
   },
   {
     name: "ネオン",
+    background: "#0b0b0b",
     colors: ["#000000", "#39ff14", "#ff073a", "#00d9ff", "#fff01f", "#bc13fe"],
   },
   {
     name: "レトロDS",
+    background: "#f2f2f2",
     colors: ["#080808", "#e60012", "#00a0e9", "#ffffff", "#848484", "#cccccc"],
   },
 ];

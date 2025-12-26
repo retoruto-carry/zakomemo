@@ -9,7 +9,6 @@ import React, {
   useState,
 } from "react";
 import {
-  BACKGROUND_COLOR_PRESETS,
   BODY_PRESETS,
   type BodyColor,
   generateBodyColorFromBase,
@@ -185,9 +184,9 @@ export const WigglyTools = React.forwardRef<
     () => getPatternDefinition(patternId),
     [patternId],
   );
-  const [settingsTab, setSettingsTab] = useState<
-    "palette" | "body" | "background" | "jitter"
-  >("palette");
+  const [settingsTab, setSettingsTab] = useState<"palette" | "body" | "jitter">(
+    "palette",
+  );
   const undoGifRef = useRef<AnimatedGifHandle>(null);
   const playWidthSliderSound = useRef(
     throttle(() => {
@@ -195,10 +194,10 @@ export const WigglyTools = React.forwardRef<
     }, 100),
   ).current;
 
-  // モバイルで「本体色」タブが選択されている場合、自動的に「背景色」タブに切り替え
+  // モバイルで「本体色」タブが選択されている場合、自動的に「パレット」タブに切り替え
   useEffect(() => {
     if (isMobile() && settingsTab === "body") {
-      setSettingsTab("background");
+      setSettingsTab("palette");
     }
   }, [settingsTab]);
 
@@ -731,6 +730,16 @@ export const WigglyTools = React.forwardRef<
       <div className="h-12 shrink-0 flex items-center justify-start gap-2 relative z-10">
         {/* 色 */}
         <div className="w-fit h-full bg-[#fffdeb] border-[3px] border-[#d2b48c] p-1 flex items-center justify-center gap-1 shadow-[3px_3px_0_rgba(210,180,140,0.2)] rounded-[4px]">
+          <div
+            className="h-8 w-8 rounded-[2px] shadow-sm shrink-0 relative border-black border-[3px]"
+            style={{ backgroundColor }}
+          >
+            <div className="absolute inset-0 border-2 border-white/40 opacity-80 pointer-events-none" />
+          </div>
+          <div
+            className="w-[3px] h-8 bg-[#d2b48c] rounded-full"
+            aria-hidden="true"
+          />
           {palette.map((_c, idx) => {
             const varName = `var(--palette-${idx})`;
             return (
@@ -915,20 +924,6 @@ export const WigglyTools = React.forwardRef<
                 type="button"
                 onClick={() => {
                   uiSoundManager.play("settings-tab", { stopPrevious: true });
-                  setSettingsTab("background");
-                }}
-                className={`px-3 py-1.5 rounded-t-[8px] font-black text-sm transition-all cursor-pointer ${
-                  settingsTab === "background"
-                    ? "bg-[#fdfbf7] text-[#ff6b00] translate-y-px border-t-[3px] border-l-[3px] border-r-[3px] border-[#e7d1b1]"
-                    : "bg-[#ff9d5c] text-white hover:bg-[#ff8c00]"
-                }`}
-              >
-                背景色
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  uiSoundManager.play("settings-tab", { stopPrevious: true });
                   setSettingsTab("palette");
                 }}
                 className={`px-3 py-1.5 rounded-t-[8px] font-black text-sm transition-all cursor-pointer ${
@@ -998,6 +993,7 @@ export const WigglyTools = React.forwardRef<
                           stopPrevious: true,
                         });
                         setPalette(p.colors);
+                        setBackgroundColor(p.background);
                         setSelectedPaletteName(p.name);
                       }}
                       className={`flex items-center justify-between p-2.5 rounded-[4px] border-[3px] transition-all relative overflow-hidden cursor-pointer ${
@@ -1011,10 +1007,19 @@ export const WigglyTools = React.forwardRef<
                       >
                         {p.name}
                       </span>
-                      <div className="flex gap-1.5">
+                      <div className="flex items-center gap-1.5">
+                        <div
+                          key={`preview-bg-${p.name}`}
+                          className="w-6 h-6 border-[2px] border-black/20 rounded-[3px] shrink-0"
+                          style={{ backgroundColor: p.background }}
+                        />
+                        <div
+                          className="w-[3px] h-6 bg-[#e7d1b1] rounded-full"
+                          aria-hidden="true"
+                        />
                         {p.colors.map((c) => (
                           <div
-                            key={`preview-${c}`}
+                            key={`preview-${p.name}-${c}`}
                             className="w-6 h-6 border-[2px] border-black/20 rounded-[3px] shrink-0"
                             style={{ backgroundColor: c }}
                           />
@@ -1029,103 +1034,71 @@ export const WigglyTools = React.forwardRef<
                   <span className="font-black text-base mb-3 block text-center text-[#a67c52]">
                     カスタムパレット
                   </span>
-                  <div className="grid grid-cols-6 gap-3">
-                    {palette.map((c) => (
-                      <div
-                        key={`custom-palette-${c}`}
-                        className="flex flex-col items-center gap-1.5 relative"
-                      >
-                        <div className="w-full aspect-square relative min-w-0">
-                          <div
-                            className="absolute inset-0 border-[2.5px] border-black/10 rounded-[4px]"
-                            style={{ backgroundColor: c }}
-                          />
-                          <div className="absolute inset-0 border-[1.5px] border-white/30 rounded-[3px] pointer-events-none" />
-                        </div>
-                        <span className="text-sm font-black text-[#a67c52] leading-none">
-                          {c.toUpperCase()}
-                        </span>
-                        <input
-                          type="color"
-                          value={c}
-                          onChange={(e) => {
-                            uiSoundManager.play("custom-palette-color", {
-                              stopPrevious: true,
-                            });
-                            const colorIndex = palette.indexOf(c);
-                            if (colorIndex !== -1) {
-                              const newPalette = [...palette];
-                              newPalette[colorIndex] = e.target.value;
-                              setPalette(newPalette);
-                              setSelectedPaletteName(null);
-                            }
-                          }}
-                          className="absolute inset-0 w-full h-full cursor-pointer opacity-0"
+                  <div className="flex items-start gap-3">
+                    <div className="flex flex-col items-center gap-1.5 relative">
+                      <div className="w-full aspect-square relative min-w-0">
+                        <div
+                          className="absolute inset-0 border-[2.5px] border-black/10 rounded-[4px]"
+                          style={{ backgroundColor }}
                         />
+                        <div className="absolute inset-0 border-[1.5px] border-white/30 rounded-[3px] pointer-events-none" />
                       </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ) : settingsTab === "background" ? (
-              <div className="flex flex-col gap-2.5">
-                <div className="grid grid-cols-6 gap-2 min-w-0">
-                  {BACKGROUND_COLOR_PRESETS.map((color) => (
-                    <button
-                      type="button"
-                      key={color}
-                      onClick={() => {
-                        uiSoundManager.play("color-select", {
-                          stopPrevious: true,
-                        });
-                        setBackgroundColor(color);
-                      }}
-                      className={`w-full aspect-square rounded-[4px] border-[3px] transition-all relative flex items-center justify-center p-1 cursor-pointer min-w-0 ${
-                        backgroundColor === color
-                          ? "border-black bg-[#ffff00] shadow-[3px_3px_0_rgba(0,0,0,0.15)] z-10"
-                          : "border-[#e7d1b1] bg-white hover:border-[#ff9d5c] shadow-[1px_1px_0_rgba(210,180,140,0.1)]"
-                      }`}
-                    >
-                      <div
-                        className="w-full h-full relative border-[2.5px] border-black/10 rounded-[3px] shadow-inner overflow-hidden"
-                        style={{ backgroundColor: color }}
-                      >
-                        <div className="absolute top-0 left-0 w-full h-[30%] bg-white/10" />
-                        <div className="absolute inset-0 border border-white/20" />
-                      </div>
-                    </button>
-                  ))}
-                </div>
-
-                {/* カスタム背景色 */}
-                <div className="p-2.5 bg-white border-[3px] border-[#e7d1b1] rounded-[6px] flex items-center gap-3 shadow-[2px_2px_0_rgba(210,180,140,0.1)]">
-                  <div className="flex-1">
-                    <span className="font-black text-xs block text-[#a67c52] leading-tight">
-                      カスタムカラー
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2.5 relative">
-                    <span className="font-black text-[10px] text-[#a67c52] font-mono">
-                      {backgroundColor.toUpperCase()}
-                    </span>
-                    <div className="w-14 h-8 shrink-0 relative">
-                      <div
-                        className="absolute inset-0 rounded-[4px] border-[3px] border-black/20 shadow-inner"
-                        style={{ backgroundColor }}
+                      <span className="text-sm font-black text-[#a67c52] leading-none">
+                        {backgroundColor.toUpperCase()}
+                      </span>
+                      <input
+                        type="color"
+                        value={backgroundColor}
+                        onChange={(e) => {
+                          uiSoundManager.play("custom-palette-color", {
+                            stopPrevious: true,
+                          });
+                          setBackgroundColor(e.target.value);
+                          setSelectedPaletteName(null);
+                        }}
+                        className="absolute inset-0 w-full h-full cursor-pointer opacity-0"
                       />
-                      <div className="absolute inset-0 border-[1.5px] border-white/20 rounded-[3px] pointer-events-none" />
                     </div>
-                    <input
-                      type="color"
-                      value={backgroundColor}
-                      onChange={(e) => {
-                        uiSoundManager.play("color-select", {
-                          stopPrevious: true,
-                        });
-                        setBackgroundColor(e.target.value);
-                      }}
-                      className="absolute inset-0 w-full h-full cursor-pointer opacity-0"
+                    <div
+                      className="self-stretch w-[3px] bg-[#e7d1b1] rounded-full"
+                      aria-hidden="true"
                     />
+                    <div className="grid grid-cols-6 gap-3 flex-1">
+                      {palette.map((c) => (
+                        <div
+                          key={`custom-palette-${c}`}
+                          className="flex flex-col items-center gap-1.5 relative"
+                        >
+                          <div className="w-full aspect-square relative min-w-0">
+                            <div
+                              className="absolute inset-0 border-[2.5px] border-black/10 rounded-[4px]"
+                              style={{ backgroundColor: c }}
+                            />
+                            <div className="absolute inset-0 border-[1.5px] border-white/30 rounded-[3px] pointer-events-none" />
+                          </div>
+                          <span className="text-sm font-black text-[#a67c52] leading-none">
+                            {c.toUpperCase()}
+                          </span>
+                          <input
+                            type="color"
+                            value={c}
+                            onChange={(e) => {
+                              uiSoundManager.play("custom-palette-color", {
+                                stopPrevious: true,
+                              });
+                              const colorIndex = palette.indexOf(c);
+                              if (colorIndex !== -1) {
+                                const newPalette = [...palette];
+                                newPalette[colorIndex] = e.target.value;
+                                setPalette(newPalette);
+                                setSelectedPaletteName(null);
+                              }
+                            }}
+                            className="absolute inset-0 w-full h-full cursor-pointer opacity-0"
+                          />
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
