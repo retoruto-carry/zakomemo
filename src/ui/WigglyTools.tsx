@@ -1149,7 +1149,7 @@ export const WigglyTools = React.forwardRef<
                       </div>
                       <label
                         htmlFor="custom-palette-bg"
-                        className="text-sm font-black text-[#a67c52] leading-none cursor-pointer"
+                        className="text-sm font-black text-[#a67c52] leading-none cursor-pointer flex-1"
                       >
                         {customBackgroundColor.toUpperCase()}
                       </label>
@@ -1196,7 +1196,7 @@ export const WigglyTools = React.forwardRef<
                             </div>
                             <label
                               htmlFor={`custom-palette-${index}`}
-                              className="text-sm font-black text-[#a67c52] leading-none cursor-pointer"
+                              className="text-sm font-black text-[#a67c52] leading-none cursor-pointer flex-1"
                             >
                               {color.toUpperCase()}
                             </label>
