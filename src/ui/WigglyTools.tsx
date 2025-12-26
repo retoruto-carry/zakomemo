@@ -21,6 +21,7 @@ import type { BrushPatternId } from "@/core/types";
 import type { EraserVariant } from "@/engine/variants";
 import type { Tool } from "@/engine/WigglyEngine";
 import { uiSoundManager } from "@/infra/sound/uiSounds";
+import { debounce } from "@/lib/debounce";
 import { isMobile } from "@/lib/share";
 import { throttle } from "@/lib/throttle";
 import { AnimatedGif, type AnimatedGifHandle } from "./components/AnimatedGif";
@@ -213,9 +214,9 @@ export const WigglyTools = React.forwardRef<
     }, 100),
   ).current;
   const playCustomPaletteSound = useRef(
-    throttle(() => {
+    debounce(() => {
       uiSoundManager.play("custom-palette-color", { stopPrevious: true });
-    }, 400),
+    }, 250),
   ).current;
 
   const selectCustomPalette = useCallback(() => {
@@ -293,7 +294,7 @@ export const WigglyTools = React.forwardRef<
   };
 
   return (
-    <div className="flex flex-col w-full bg-[#fdfbf7] select-none text-(--color-ugo-dark) font-sans p-2 gap-2 relative overflow-hidden">
+    <div className="flex flex-col w-full bg-[#fdfbf7] select-none text-(--color-ugo-dark) font-sans p-2 gap-2 relative">
       {/* 忠実な走査線・ピクセルテクスチャのオーバーレイ（ポップアップの背面にするためZを低く） */}
       <div
         className="absolute inset-0 pointer-events-none z-0 opacity-15"
