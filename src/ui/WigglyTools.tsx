@@ -1080,36 +1080,33 @@ export const WigglyTools = React.forwardRef<
                 </div>
 
                 {/* カスタムパレット */}
+                {/* biome-ignore lint/a11y/useSemanticElements: カラーピッカーを含むためdivで選択操作を扱う */}
                 <div
-                  className={`mt-1.5 p-3 border-[3px] rounded-[6px] transition-all cursor-pointer relative ${
+                  className={`mt-1.5 p-3 border-[3px] rounded-[6px] transition-all cursor-pointer ${
                     selectedPaletteName === CUSTOM_PALETTE_NAME
                       ? "border-black bg-[#ffff00] shadow-[4px_4px_0_rgba(0,0,0,0.1)] hover:brightness-95"
                       : "border-[#e7d1b1] bg-white shadow-[2px_2px_0_rgba(210,180,140,0.1)] hover:border-[#ff9d5c]"
                   }`}
+                  role="button"
+                  tabIndex={0}
+                  onClick={(e) => {
+                    if (e.target instanceof HTMLElement) {
+                      if (e.target.closest("button, input, a")) {
+                        return;
+                      }
+                    }
+                    selectCustomPalette();
+                  }}
+                  onKeyDown={handleButtonKeyDown(selectCustomPalette)}
                 >
-                  <button
-                    type="button"
-                    onClick={selectCustomPalette}
-                    aria-hidden="true"
-                    tabIndex={-1}
-                    className="absolute inset-0 cursor-pointer"
-                  />
-                  <div className="relative z-10 flex items-center justify-between mb-3">
+                  <div className="flex items-center justify-between mb-3">
                     <span className="font-black text-base text-left text-[#a67c52]">
                       カスタムパレット
                     </span>
                     <button
                       type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        selectCustomPalette();
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.stopPropagation();
-                        }
-                        handleButtonKeyDown(selectCustomPalette)(e);
-                      }}
+                      onClick={selectCustomPalette}
+                      onKeyDown={handleButtonKeyDown(selectCustomPalette)}
                       className={`px-3 py-1 text-xs font-black border-[2px] rounded-[4px] transition-all cursor-pointer ${
                         selectedPaletteName === CUSTOM_PALETTE_NAME
                           ? "border-black bg-white text-black"
@@ -1121,7 +1118,7 @@ export const WigglyTools = React.forwardRef<
                         : "選択"}
                     </button>
                   </div>
-                  <div className="relative z-10 flex flex-col gap-2">
+                  <div className="flex flex-col gap-2">
                     <div className="relative flex items-center gap-2">
                       <label
                         htmlFor="custom-palette-bg"
