@@ -242,9 +242,7 @@ export function getCircleStampOffsets(radius: number): StampOffsets {
 }
 
 export function getSquareStampOffsets(width: number): StampOffsets {
-  // 既存の四角消しゴムのサイズ感に合わせて偶数サイズに寄せる
-  const evenSize = Math.floor(width / 2) * 2;
-  const safeSize = Math.max(1, evenSize);
+  const safeSize = Math.max(1, Math.round(width));
   const cached = squareOffsetCache.get(safeSize);
   if (cached) {
     return cached;

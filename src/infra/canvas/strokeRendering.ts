@@ -61,11 +61,10 @@ function renderSolidStroke(
 ): void {
   const brushWidth = Math.round(stroke.brush.width);
   const variant = stroke.brush.variant as BrushVariant | undefined;
-  const eraserStampVariant =
-    stroke.kind === "erase" &&
-    (variant === "eraserLine" || variant === "eraserSquare")
-      ? variant
-      : null;
+  const eraserStampVariant = resolveEraserStampVariant({
+    strokeKind: stroke.kind,
+    variant,
+  });
 
   // 色を取得
   let r: number;
@@ -217,6 +216,32 @@ function resolveEraserStamp({
       return getLineStampOffsets(width);
     case "eraserSquare":
       return getSquareStampOffsets(width);
+    default:
+      return assertNever(variant);
+  }
+}
+
+function resolveEraserStampVariant({
+  strokeKind,
+  variant,
+}: {
+  strokeKind: "draw" | "erase";
+  variant: BrushVariant | undefined;
+}): "eraserLine" | "eraserSquare" | null {
+  if (strokeKind !== "erase") {
+    return null;
+  }
+
+  switch (variant) {
+    case "eraserLine":
+    case "eraserSquare":
+      return variant;
+    case "eraserCircle":
+    case "normal":
+    case "pressure":
+    case "noise":
+    case undefined:
+      return null;
     default:
       return assertNever(variant);
   }

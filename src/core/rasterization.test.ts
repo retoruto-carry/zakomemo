@@ -390,15 +390,20 @@ describe("rasterization", () => {
       expect(result).toContainEqual({ x: 3, y: 2 });
     });
 
-    it("四角スタンプは偶数サイズで生成される", () => {
+    it("四角スタンプはサイズ分のピクセルを返す", () => {
       const centerPixels = [{ x: 0, y: 0 }];
       const stamp = getSquareStampOffsets(3);
       const result = calculateStampedLinePixels(centerPixels, stamp);
-      expect(result.length).toBe(4);
+      expect(result.length).toBe(9);
       expect(result).toContainEqual({ x: -1, y: -1 });
       expect(result).toContainEqual({ x: 0, y: -1 });
+      expect(result).toContainEqual({ x: 1, y: -1 });
       expect(result).toContainEqual({ x: -1, y: 0 });
       expect(result).toContainEqual({ x: 0, y: 0 });
+      expect(result).toContainEqual({ x: 1, y: 0 });
+      expect(result).toContainEqual({ x: -1, y: 1 });
+      expect(result).toContainEqual({ x: 0, y: 1 });
+      expect(result).toContainEqual({ x: 1, y: 1 });
     });
 
     it("複数の中心線で重複排除される", () => {
