@@ -18,8 +18,7 @@ export function PatternPreview({
   repeat,
   className,
 }: PatternPreviewProps): React.ReactElement {
-  const { tile, previewShiftX, previewShiftY } =
-    getPatternDefinition(patternId);
+  const { tile } = getPatternDefinition(patternId);
   const repeatWidth = tile.width * repeat;
   const repeatHeight = tile.height * repeat;
   const cells = useMemo(() => {
@@ -43,31 +42,18 @@ export function PatternPreview({
     return result;
   }, [patternId, pixelSize, repeatWidth, repeatHeight, tile]);
 
-  const shiftX = previewShiftX * pixelSize;
-  const shiftY = previewShiftY * pixelSize;
-
   return (
     <div
-      className={className}
+      className={`grid ${className ?? ""}`}
       style={{
+        gridTemplateColumns: `repeat(${repeatWidth}, ${pixelSize}px)`,
+        gridTemplateRows: `repeat(${repeatHeight}, ${pixelSize}px)`,
         width: repeatWidth * pixelSize,
         height: repeatHeight * pixelSize,
-        overflow: "hidden",
       }}
       aria-hidden="true"
     >
-      <div
-        className="grid"
-        style={{
-          gridTemplateColumns: `repeat(${repeatWidth}, ${pixelSize}px)`,
-          gridTemplateRows: `repeat(${repeatHeight}, ${pixelSize}px)`,
-          width: repeatWidth * pixelSize,
-          height: repeatHeight * pixelSize,
-          transform: `translate(${shiftX}px, ${shiftY}px)`,
-        }}
-      >
-        {cells}
-      </div>
+      {cells}
     </div>
   );
 }
