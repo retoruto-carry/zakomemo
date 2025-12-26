@@ -43,4 +43,4 @@
 ## 追加確認メモ
 - [x] 既存のテストが通ることを確認（format/lint/typecheck/test）
 - [x] 変更後に同様のテストが通ることを確認
-- [ ] Docstring Coverageの警告が解消されているか確認
+- [x] Docstring Coverageの警告が解消されているか確認（98.39%）
