@@ -75,4 +75,5 @@ export interface StrokeSound {
   onStrokeStart(info: StrokeSoundInfo): void;
   onStrokeUpdate(info: StrokeSoundInfo): void;
   onStrokeEnd(info: StrokeSoundInfo): void;
+  destroy?: () => void;
 }
