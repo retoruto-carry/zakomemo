@@ -1,186 +1,308 @@
 import type { StrokeSound, StrokeSoundInfo } from "@/engine/ports";
 
+type ToolId = StrokeSoundInfo["tool"];
+
+type ToolProfile = {
+  bandpassFrequency: number;
+  bandpassQ: number;
+  lowpassFrequency: number;
+  highpassFrequency: number;
+  minGain: number;
+  gainScale: number;
+  freqMinMultiplier: number;
+  freqMaxMultiplier: number;
+};
+
+type ToolState = {
+  profile: ToolProfile;
+  gain: GainNode;
+  bandpass: BiquadFilterNode;
+  lowpass: BiquadFilterNode;
+  highpass: BiquadFilterNode;
+  source: AudioBufferSourceNode | AudioWorkletNode | null;
+  sourceKind: "buffer" | "worklet" | null;
+  smoothSpeed: number;
+  lastUpdateAt: number;
+  lastLength: number;
+  lastTimeSinceStart: number;
+  lastInputAt: number;
+  // ゲートを使って「ほぼ停止中」のノイズを確実に無音化する
+  gateOpen: boolean;
+  // ゲートを閉じる前のホールド期限（チラつきを防止）
+  gateHoldUntil: number;
+  strokeActive: boolean;
+  idleTimeoutId: ReturnType<typeof setTimeout> | null;
+  stopTimeoutId: ReturnType<typeof setTimeout> | null;
+};
+
 /**
- * Web Audio APIを使用した描画音の動的生成
- *
- * 設計:
- * - 移動平均速度 = 直近の数サンプルの平均速度（滑らかな変化のため）
- * - 速度が低い場合は音量を0に（音は自然にフェードアウト）
- * - 速度に応じて音量と周波数を調整
- * - パラメータ更新をスロットルしてプツプツノイズを防止
- * - ノイズバッファを最適化してループノイズと遅延を削減
- * - exponentialRampToValueAtTimeでより滑らかな変化を実現
+ * Web Audio APIを使った描画音の実装（安定したノイズ生成・スムージング重視）
  */
 export class WebAudioStrokeSound implements StrokeSound {
   private audioContext: AudioContext | null = null;
-  private gainNodes: Map<"pen" | "pattern" | "eraser", GainNode> = new Map();
-  private filterNodes: Map<"pen" | "pattern" | "eraser", BiquadFilterNode> =
-    new Map();
-  // 超高音域を絞るための追加ローパスフィルター（プツプツノイズ抑制）
-  private lowpassNodes: Map<"pen" | "pattern" | "eraser", BiquadFilterNode> =
-    new Map();
-  private noiseNodes: Map<
-    "pen" | "pattern" | "eraser",
-    AudioBufferSourceNode | null
-  > = new Map();
-
-  // ノイズバッファを事前生成して書き始めの遅延を削減
-  private noiseBuffers: Map<"pen" | "pattern" | "eraser", AudioBuffer | null> =
-    new Map();
-
-  // 移動平均速度計算用: 直近のサンプルを保持（滑らかな速度計算のため）
-  private speedSamples: Array<{ length: number; time: number }> = [];
-  private currentTool: "pen" | "pattern" | "eraser" | null = null;
-  private smoothedSpeed = 0;
-
-  // パラメータ更新のスロットル用（プツプツノイズ防止）
-  private lastUpdateTime = 0;
-  private pendingSpeed = 0;
-  private updateScheduled = false;
-  private updateTimeoutId: ReturnType<typeof setTimeout> | null = null;
-
-  // 書き始めの時間を記録（最初の一筆で音が出るようにするため）
-  private strokeStartTime = 0;
-
-  // イベントリスナーのクリーンアップ用
+  private noiseBuffer: AudioBuffer | null = null;
+  private toolStates: Map<ToolId, ToolState> = new Map();
   private interactionHandlers: Array<{
     event: string;
     handler: () => void;
   }> = [];
+  // AudioWorkletは動的生成し、環境未対応ならバッファループにフォールバック
+  private workletUrl: string | null = null;
+  private workletLoaded = false;
+  private workletLoadPromise: Promise<void> | null = null;
 
-  private static readonly MAX_SAMPLES = 8; // 移動平均のサンプル数（増加）
-  private static readonly UPDATE_INTERVAL_MS = 16; // 約60fpsで更新（16ms間隔）
-  private static readonly NOISE_BUFFER_DURATION = 0.3; // ノイズバッファの長さ（秒）- バッファ作成の遅延を最小化（0.3秒でもループノイズは発生しにくい）
-  private static readonly SMOOTH_TIME = 0.2; // パラメータ変化のスムージング時間（秒）
-  private static readonly FADE_IN_TIME = 0.03; // フェードイン時間（秒）- 書き始めの遅延を削減
-  private static readonly FADE_IN_INITIAL_VOLUME = 0.3; // フェードイン時の初期音量
-  private static readonly FADE_OUT_TIME = 0.05; // フェードアウト時間（秒）- 早めのフェードアウトでプツプツノイズを防止
-  private static readonly INITIAL_SOUND_GUARANTEE_MS = 150; // 書き始めの音を保証する時間（ミリ秒）
-  private static readonly INITIAL_MIN_VOLUME = 0.2; // 書き始めの最小音量
-  private static readonly MIN_STOP_DELAY_MS = 60; // ノイズ停止の最小遅延時間（ミリ秒）
+  private static readonly TOOL_PROFILES: Record<ToolId, ToolProfile> = {
+    pen: {
+      bandpassFrequency: 2800,
+      bandpassQ: 0.6,
+      lowpassFrequency: 8000,
+      highpassFrequency: 60,
+      minGain: 0.12,
+      gainScale: 0.25,
+      freqMinMultiplier: 0.9,
+      freqMaxMultiplier: 2.1,
+    },
+    pattern: {
+      bandpassFrequency: 2400,
+      bandpassQ: 0.4,
+      lowpassFrequency: 8000,
+      highpassFrequency: 60,
+      minGain: 0.12,
+      gainScale: 0.22,
+      freqMinMultiplier: 0.9,
+      freqMaxMultiplier: 1.9,
+    },
+    eraser: {
+      bandpassFrequency: 4000,
+      bandpassQ: 0.5,
+      lowpassFrequency: 8000,
+      highpassFrequency: 90,
+      minGain: 0.1,
+      gainScale: 0.2,
+      freqMinMultiplier: 0.9,
+      freqMaxMultiplier: 2.1,
+    },
+  };
+
+  private static readonly NOISE_DURATION_SEC = 8;
+  private static readonly LOOP_CROSSFADE_SEC = 0.05;
+  private static readonly NOISE_GAIN = 0.22;
+  private static readonly SPEED_REFERENCE = 1.2;
+  // GATE系は「ほぼ停止中」を判定して音を素早く止めるための閾値/タイミング
+  // ON/OFFを揃えて、ホールド時間でデバウンスする設計
+  private static readonly GATE_ON_SPEED = 0.004;
+  private static readonly GATE_OFF_SPEED = 0.004;
+  private static readonly GATE_HOLD_MS = 60;
+  // 指が離れるまで音を切らないモード（停止時はminGainまで下げる）
+  private static readonly ALWAYS_SOUND_WHILE_DRAWING = true;
+  // 書き始めの極小移動は「始点保持」として音を維持する
+  private static readonly INITIAL_HOLD_LENGTH_PX = 2;
+  private static readonly SPEED_SMOOTH_SEC = 0.08;
+  private static readonly PARAM_SMOOTH_SEC = 0.06;
+  // ゲートが閉じた瞬間の素早いフェードアウト
+  private static readonly GATE_RELEASE_SEC = 0.01;
+  private static readonly ATTACK_SEC = 0.02;
+  private static readonly RELEASE_SEC = 0.05;
+  private static readonly SWITCH_RELEASE_SEC = 0.05;
+  private static readonly INITIAL_GUARANTEE_MS = 140;
+  // pointermoveが止まった時の強制無音化までの時間
+  private static readonly IDLE_TIMEOUT_MS = 55;
+  private static readonly STOP_AFTER_IDLE_MS = 220;
 
   constructor() {
     this.initializeAudioContext();
-    // AudioContextを事前にresumeして書き始めの遅延を削減
-    this.preloadAudioContext();
+    this.setupInteractionResume();
   }
 
   /**
-   * AudioContextを初期化する
-   * ブラウザの互換性を考慮して、webkitAudioContextにも対応
+   * ストローク開始時に呼ばれる。
+   * ノイズソースを起動し、初期ゲインを設定して描画音を立ち上げる。
    */
+  onStrokeStart(info: StrokeSoundInfo): void {
+    const context = this.ensureAudioContext();
+    if (!context) return;
+
+    const tool = info.tool;
+    this.fadeOutOtherTools(tool);
+
+    const state = this.ensureToolState(tool, context);
+    this.cancelStop(state);
+    this.ensureNoiseSource(state, context);
+
+    this.resetStrokeState(state, info, context);
+
+    const initialGain = state.profile.minGain;
+    this.scheduleGain(state, initialGain, WebAudioStrokeSound.ATTACK_SEC);
+    this.applySpeed(info, state, context, true);
+  }
+
+  /**
+   * ストローク更新時に呼ばれる。
+   * 速度に応じてゲインとフィルター周波数を更新する。
+   */
+  onStrokeUpdate(info: StrokeSoundInfo): void {
+    const context = this.ensureAudioContext();
+    if (!context) return;
+    const state = this.toolStates.get(info.tool);
+    if (!state) return;
+    const instantSpeed = this.calculateInstantSpeed(info, state);
+    this.refreshInputState(state, info, context);
+    this.applySpeed(info, state, context, false, instantSpeed);
+  }
+
+  /**
+   * ストローク終了時に呼ばれる。
+   * フェードアウト後にノイズソースを停止する。
+   */
+  onStrokeEnd(info: StrokeSoundInfo): void {
+    const context = this.ensureAudioContext();
+    if (!context) return;
+    const state = this.toolStates.get(info.tool);
+    if (!state) return;
+
+    state.strokeActive = false;
+    this.clearIdleCheck(state);
+    this.scheduleGain(state, 0, WebAudioStrokeSound.RELEASE_SEC);
+    this.scheduleStop(state, WebAudioStrokeSound.STOP_AFTER_IDLE_MS);
+  }
+
+  private fadeOutOtherTools(activeTool: ToolId): void {
+    for (const [tool, state] of this.toolStates) {
+      if (tool !== activeTool) {
+        this.scheduleGain(state, 0, WebAudioStrokeSound.SWITCH_RELEASE_SEC);
+      }
+    }
+  }
+
+  private resetStrokeState(
+    state: ToolState,
+    info: StrokeSoundInfo,
+    context: AudioContext,
+  ): void {
+    state.smoothSpeed = 0;
+    state.lastUpdateAt = context.currentTime;
+    state.gateOpen = true;
+    state.gateHoldUntil =
+      context.currentTime + WebAudioStrokeSound.INITIAL_GUARANTEE_MS / 1000;
+    state.strokeActive = true;
+    this.refreshInputState(state, info, context);
+  }
+
+  private refreshInputState(
+    state: ToolState,
+    info: StrokeSoundInfo,
+    context: AudioContext,
+  ): void {
+    state.lastLength = info.length;
+    state.lastTimeSinceStart = info.timeSinceStart;
+    state.lastInputAt = context.currentTime;
+    this.scheduleIdleCheck(state, context);
+  }
+
+  /**
+   * リソースをクリーンアップする。
+   * ノードとタイマーを停止し、AudioContextを閉じる。
+   */
+  destroy(): void {
+    for (const { event, handler } of this.interactionHandlers) {
+      document.removeEventListener(event, handler);
+    }
+    this.interactionHandlers = [];
+
+    for (const state of this.toolStates.values()) {
+      if (state.stopTimeoutId !== null) {
+        clearTimeout(state.stopTimeoutId);
+      }
+      if (state.idleTimeoutId !== null) {
+        clearTimeout(state.idleTimeoutId);
+      }
+      if (state.source) {
+        if (state.sourceKind === "buffer") {
+          try {
+            (state.source as AudioBufferSourceNode).stop();
+          } catch {
+            // 無視
+          }
+        }
+        state.source.disconnect();
+        state.source = null;
+        state.sourceKind = null;
+      }
+      state.highpass.disconnect();
+      state.bandpass.disconnect();
+      state.lowpass.disconnect();
+      state.gain.disconnect();
+    }
+    this.toolStates.clear();
+
+    if (this.audioContext) {
+      this.audioContext.close();
+      this.audioContext = null;
+    }
+
+    this.noiseBuffer = null;
+    this.workletLoaded = false;
+    this.workletLoadPromise = null;
+
+    if (this.workletUrl && typeof URL !== "undefined") {
+      URL.revokeObjectURL(this.workletUrl);
+      this.workletUrl = null;
+    }
+  }
+
   private initializeAudioContext(): void {
+    if (this.audioContext) return;
+    if (typeof window === "undefined") return;
     try {
-      // Safari互換性のためwebkitAudioContextもチェック
       const AudioContextClass =
         window.AudioContext ||
         (window as unknown as { webkitAudioContext?: typeof AudioContext })
           .webkitAudioContext;
       if (!AudioContextClass) return;
-      this.audioContext = new AudioContextClass();
+      this.audioContext = new AudioContextClass({ latencyHint: "interactive" });
     } catch {
       // AudioContext初期化失敗は無視
     }
   }
 
-  /**
-   * AudioContextを事前にresumeして書き始めの遅延を削減
-   */
-  private preloadAudioContext(): void {
-    // ユーザーインタラクション後にAudioContextをresume
-    const resumeContext = () => {
-      if (this.audioContext?.state === "suspended") {
-        this.audioContext.resume().catch(() => {
+  private setupInteractionResume(): void {
+    if (typeof window === "undefined") return;
+
+    const resume = () => {
+      const context = this.ensureAudioContext();
+      if (!context) return;
+      if (context.state === "suspended") {
+        context.resume().catch(() => {
           // 無視
         });
       }
-      // ノイズバッファを事前生成
-      this.preloadNoiseBuffers();
-    };
-
-    // 既にユーザーインタラクションが発生している場合は即座に実行
-    if (document.readyState === "complete") {
-      resumeContext();
-    } else {
-      // ページロード後に実行
-      window.addEventListener("load", resumeContext, { once: true });
-    }
-
-    // ユーザーインタラクション（クリック、タッチなど）でresume
-    const events = ["mousedown", "touchstart", "pointerdown"];
-    const handleInteraction = () => {
-      resumeContext();
-      events.forEach((event) => {
-        document.removeEventListener(event, handleInteraction);
-      });
-      // クリーンアップリストから削除
-      this.interactionHandlers = this.interactionHandlers.filter(
-        (h) => h.handler !== handleInteraction,
-      );
-    };
-    events.forEach((event) => {
-      document.addEventListener(event, handleInteraction, { once: true });
-      this.interactionHandlers.push({ event, handler: handleInteraction });
-    });
-  }
-
-  /**
-   * ノイズバッファを事前生成して書き始めの遅延を削減
-   * 非同期でバックグラウンド生成し、メインスレッドをブロックしない
-   */
-  private preloadNoiseBuffers(): void {
-    const context = this.ensureAudioContext();
-    if (!context) return;
-
-    // 非同期でバックグラウンド生成（メインスレッドをブロックしない）
-    // 最初の1つ（pen）は優先的に生成、残りはバックグラウンドで
-    const generateBuffer = (
-      tool: "pen" | "pattern" | "eraser",
-      priority: boolean = false,
-    ) => {
-      if (this.noiseBuffers.has(tool)) return;
-
-      const generate = () => {
-        try {
-          const buffer = this.createPinkNoiseBuffer(
-            WebAudioStrokeSound.NOISE_BUFFER_DURATION,
-            context.sampleRate,
-          );
-          this.noiseBuffers.set(tool, buffer);
-        } catch {
-          // エラーは無視
-        }
-      };
-
-      if (priority) {
-        // 優先（pen）は即座に生成
-        generate();
-      } else {
-        // その他はバックグラウンドで生成（requestIdleCallbackまたはsetTimeout）
-        if (typeof requestIdleCallback !== "undefined") {
-          requestIdleCallback(generate, { timeout: 1000 });
-        } else {
-          setTimeout(generate, 0);
-        }
+      this.preloadWorklet(context);
+      if (!context.audioWorklet) {
+        this.ensureNoiseBuffer(context);
       }
     };
 
-    // penを優先的に生成、残りはバックグラウンドで
-    generateBuffer("pen", true);
-    generateBuffer("pattern", false);
-    generateBuffer("eraser", false);
+    if (document.readyState === "complete") {
+      resume();
+    } else {
+      window.addEventListener("load", resume, { once: true });
+    }
+
+    const events = ["pointerdown", "touchstart", "mousedown"];
+    const handler = () => resume();
+
+    for (const event of events) {
+      document.addEventListener(event, handler, { once: true });
+      // destroy()で明示的に解除できるように保持
+      this.interactionHandlers.push({ event, handler });
+    }
   }
 
-  /**
-   * AudioContextを取得し、必要に応じて初期化・再開する
-   * @returns AudioContext、または利用できない場合はnull
-   */
   private ensureAudioContext(): AudioContext | null {
     if (!this.audioContext) {
       this.initializeAudioContext();
     }
     if (this.audioContext?.state === "suspended") {
-      // 非同期でresume（エラーは無視）
       this.audioContext.resume().catch(() => {
         // 無視
       });
@@ -188,35 +310,107 @@ export class WebAudioStrokeSound implements StrokeSound {
     return this.audioContext;
   }
 
-  /**
-   * ピンクノイズのAudioBufferを生成する
-   * 2段階のローパスフィルターでプツプツノイズを抑制
-   * @param duration バッファの長さ（秒）
-   * @param sampleRate サンプルレート
-   * @returns ピンクノイズのAudioBuffer
-   */
+  private ensureNoiseBuffer(context: AudioContext): AudioBuffer {
+    if (this.noiseBuffer) return this.noiseBuffer;
+    this.noiseBuffer = this.createPinkNoiseBuffer(
+      WebAudioStrokeSound.NOISE_DURATION_SEC,
+      context,
+    );
+    return this.noiseBuffer;
+  }
+
+  private ensureToolState(tool: ToolId, context: AudioContext): ToolState {
+    const existing = this.toolStates.get(tool);
+    if (existing) return existing;
+
+    const profile = WebAudioStrokeSound.TOOL_PROFILES[tool];
+
+    const gain = context.createGain();
+    gain.gain.value = 0;
+    gain.connect(context.destination);
+
+    const bandpass = context.createBiquadFilter();
+    bandpass.type = "bandpass";
+    bandpass.frequency.value = profile.bandpassFrequency;
+    bandpass.Q.value = profile.bandpassQ;
+
+    const lowpass = context.createBiquadFilter();
+    lowpass.type = "lowpass";
+    lowpass.frequency.value = profile.lowpassFrequency;
+    lowpass.Q.value = 0.7;
+
+    const highpass = context.createBiquadFilter();
+    highpass.type = "highpass";
+    highpass.frequency.value = profile.highpassFrequency;
+    highpass.Q.value = 0.4;
+
+    highpass.connect(bandpass);
+    bandpass.connect(lowpass);
+    lowpass.connect(gain);
+
+    const state: ToolState = {
+      profile,
+      gain,
+      bandpass,
+      lowpass,
+      highpass,
+      source: null,
+      sourceKind: null,
+      smoothSpeed: 0,
+      lastUpdateAt: context.currentTime,
+      lastLength: 0,
+      lastTimeSinceStart: 0,
+      lastInputAt: context.currentTime,
+      gateOpen: false,
+      gateHoldUntil: 0,
+      strokeActive: false,
+      idleTimeoutId: null,
+      stopTimeoutId: null,
+    };
+    this.toolStates.set(tool, state);
+    return state;
+  }
+
+  private ensureNoiseSource(state: ToolState, context: AudioContext): void {
+    if (state.source) return;
+    this.preloadWorklet(context);
+    if (this.workletLoaded && context.audioWorklet) {
+      const node = new AudioWorkletNode(context, "pink-noise-processor", {
+        outputChannelCount: [1],
+      });
+      node.connect(state.highpass);
+      state.source = node;
+      state.sourceKind = "worklet";
+      return;
+    }
+
+    const buffer = this.ensureNoiseBuffer(context);
+    const source = context.createBufferSource();
+    source.buffer = buffer;
+    source.loop = true;
+    source.loopStart = 0;
+    source.loopEnd = buffer.duration;
+    source.connect(state.highpass);
+    source.start();
+    state.source = source;
+    state.sourceKind = "buffer";
+  }
+
   private createPinkNoiseBuffer(
     duration: number,
-    sampleRate: number,
+    context: AudioContext,
   ): AudioBuffer {
-    const context = this.ensureAudioContext();
-    if (!context) throw new Error("AudioContext unavailable");
-
-    const buffer = context.createBuffer(1, duration * sampleRate, sampleRate);
+    const length = Math.floor(duration * context.sampleRate);
+    const buffer = context.createBuffer(1, length, context.sampleRate);
     const data = buffer.getChannelData(0);
 
-    let b0 = 0,
-      b1 = 0,
-      b2 = 0,
-      b3 = 0,
-      b4 = 0,
-      b5 = 0,
-      b6 = 0;
-    // 複数のローパスフィルターでより滑らかに（プツプツノイズを抑制）
-    let lpState1 = 0;
-    let lpState2 = 0;
-    const lpAlpha1 = 0.15; // 第1段階のスムージング
-    const lpAlpha2 = 0.2; // 第2段階のスムージング（より強力）
+    let b0 = 0;
+    let b1 = 0;
+    let b2 = 0;
+    let b3 = 0;
+    let b4 = 0;
+    let b5 = 0;
+    let b6 = 0;
 
     for (let i = 0; i < data.length; i++) {
       const white = Math.random() * 2 - 1;
@@ -228,422 +422,311 @@ export class WebAudioStrokeSound implements StrokeSound {
       b5 = -0.7616 * b5 - white * 0.016898;
       const pink = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
       b6 = white * 0.115926;
-      // 2段階のローパスフィルターでプツプツノイズを抑制
-      lpState1 = lpState1 * (1 - lpAlpha1) + pink * lpAlpha1;
-      lpState2 = lpState2 * (1 - lpAlpha2) + lpState1 * lpAlpha2;
-      data[i] = lpState2 * 0.11;
+      data[i] = pink * WebAudioStrokeSound.NOISE_GAIN;
     }
+
+    this.applyLoopCrossfade(
+      data,
+      Math.min(
+        Math.floor(WebAudioStrokeSound.LOOP_CROSSFADE_SEC * context.sampleRate),
+        Math.floor(data.length / 2),
+      ),
+    );
 
     return buffer;
   }
 
-  /**
-   * ツールごとのフィルター設定を取得する
-   * @param tool ツールの種類
-   * @returns フィルターの設定（タイプ、周波数、Q値）
-   */
-  private getFilterSettings(tool: "pen" | "pattern" | "eraser"): {
-    type: BiquadFilterType;
-    frequency: number;
-    Q: number;
-  } {
-    switch (tool) {
-      case "pen":
-        return { type: "bandpass", frequency: 2800, Q: 0.6 };
-      case "pattern":
-        return { type: "bandpass", frequency: 2400, Q: 0.4 };
-      case "eraser":
-        return { type: "bandpass", frequency: 4000, Q: 0.5 };
+  private applyLoopCrossfade(data: Float32Array, fadeSamples: number): void {
+    if (fadeSamples <= 0) return;
+    const tailStart = data.length - fadeSamples;
+    for (let i = 0; i < fadeSamples; i++) {
+      const fadeIn = i / fadeSamples;
+      const fadeOut = 1 - fadeIn;
+      const head = data[i];
+      const tail = data[tailStart + i];
+      data[i] = head * fadeIn + tail * fadeOut;
+      data[tailStart + i] = tail * fadeIn + head * fadeOut;
     }
   }
 
-  /**
-   * ノイズを生成して再生する
-   * フィルターチェーン（bandpass → lowpass → gain）を構築し、ピンクノイズをループ再生
-   * @param tool ツールの種類
-   */
-  private createAndPlayNoise(tool: "pen" | "pattern" | "eraser"): void {
-    const context = this.ensureAudioContext();
-    if (!context) return;
-
-    // 既存ノイズを停止
-    const existing = this.noiseNodes.get(tool);
-    if (existing) {
-      try {
-        existing.stop();
-      } catch {
-        // 無視
-      }
-    }
-
-    // ノードを取得または作成
-    let gainNode = this.gainNodes.get(tool);
-    let filterNode = this.filterNodes.get(tool);
-    let lowpassNode = this.lowpassNodes.get(tool);
-
-    if (!gainNode) {
-      gainNode = context.createGain();
-      gainNode.gain.value = 0;
-      gainNode.connect(context.destination);
-      this.gainNodes.set(tool, gainNode);
-    }
-
-    if (!filterNode) {
-      filterNode = context.createBiquadFilter();
-      const settings = this.getFilterSettings(tool);
-      filterNode.type = settings.type;
-      filterNode.frequency.value = settings.frequency;
-      filterNode.Q.value = settings.Q;
-      this.filterNodes.set(tool, filterNode);
-    }
-
-    // 超高音域を絞る追加ローパスフィルター（プツプツノイズ抑制）
-    if (!lowpassNode) {
-      lowpassNode = context.createBiquadFilter();
-      lowpassNode.type = "lowpass";
-      lowpassNode.frequency.value = 8000; // 8kHz以上をカット（超高音域を絞る）
-      lowpassNode.Q.value = 0.7; // 滑らかなカットオフ
-      lowpassNode.connect(gainNode);
-      this.lowpassNodes.set(tool, lowpassNode);
-    }
-
-    // フィルターチェーン: source -> filterNode -> lowpassNode -> gainNode
-    filterNode.connect(lowpassNode);
-
-    // ノイズバッファを取得（事前生成済みの場合はそれを使用、なければ生成）
-    let buffer = this.noiseBuffers.get(tool);
-    if (!buffer) {
-      buffer = this.createPinkNoiseBuffer(
-        WebAudioStrokeSound.NOISE_BUFFER_DURATION,
-        context.sampleRate,
-      );
-      this.noiseBuffers.set(tool, buffer);
-    }
-
-    const source = context.createBufferSource();
-    source.buffer = buffer;
-    source.loop = true;
-    source.connect(filterNode);
-    source.start(0);
-
-    this.noiseNodes.set(tool, source);
-  }
-
-  /**
-   * 移動平均速度を計算（滑らかな速度変化のため）
-   * 直近の数サンプルの速度を平均化することで、急激な変動を防ぐ
-   * 書き始めでも音が出るように、サンプルが少ない場合でも直近の2サンプルから速度を計算
-   */
-  private calculateSmoothedSpeed(
-    currentLength: number,
-    currentTime: number,
-  ): number {
-    // 新しいサンプルを追加
-    this.speedSamples.push({ length: currentLength, time: currentTime });
-
-    // 古いサンプルを削除（最大サンプル数を超える場合）
-    if (this.speedSamples.length > WebAudioStrokeSound.MAX_SAMPLES) {
-      this.speedSamples.shift();
-    }
-
-    // サンプルが2つ未満の場合は、直近の2サンプルから速度を計算（書き始めでも音が出るように）
-    if (this.speedSamples.length < 2) {
-      return 0;
-    }
-
-    // 書き始めの場合は、直近の2サンプルから速度を計算（最初のサンプルがlength: 0でも正しく計算）
-    if (this.speedSamples.length === 2) {
-      const first = this.speedSamples[0];
-      const last = this.speedSamples[1];
-      const dt = last.time - first.time;
-      const dx = last.length - first.length;
-
-      if (dt <= 0) return 0;
-      // 書き始めでも最小速度を保証
-      const speed = dx / dt;
-      return Math.max(speed, 0.05); // 最小速度0.05を保証
-    }
-
-    // サンプルが3つ以上の場合は、最初と最後のサンプルから速度を計算（移動平均）
-    const first = this.speedSamples[0];
-    const last = this.speedSamples[this.speedSamples.length - 1];
-    const dt = last.time - first.time;
-    const dx = last.length - first.length;
-
-    if (dt <= 0) return 0;
-    return dx / dt;
-  }
-
-  /**
-   * 音量と周波数を速度に応じて更新する
-   * 速度が閾値以下の場合は音量を0にし、それ以外は速度に応じて音量と周波数を調整
-   * exponentialRampToValueAtTimeを使用してより滑らかな変化を実現
-   * 書き始めでも音が出るように、速度が0でも最小音量を保証
-   * @param tool ツールの種類
-   * @param speed 描画速度（ピクセル/ミリ秒）
-   */
-  private updateVolumeAndFrequency(
-    tool: "pen" | "pattern" | "eraser",
-    speed: number,
+  private applySpeed(
+    info: StrokeSoundInfo,
+    state: ToolState,
+    context: AudioContext,
+    forceInitial: boolean,
+    overrideSpeed?: number,
   ): void {
-    const context = this.ensureAudioContext();
+    const profile = state.profile;
+    const now = context.currentTime;
+    const speed = overrideSpeed ?? info.speed;
+
+    const dt = Math.max(0, now - state.lastUpdateAt);
+    const speedBlend = 1 - Math.exp(-dt / WebAudioStrokeSound.SPEED_SMOOTH_SEC);
+    state.smoothSpeed += (speed - state.smoothSpeed) * speedBlend;
+    state.lastUpdateAt = now;
+
+    const normalized = Math.min(
+      Math.max(state.smoothSpeed / WebAudioStrokeSound.SPEED_REFERENCE, 0),
+      1,
+    );
+    const curve = Math.sqrt(normalized);
+    const freqMultiplier =
+      profile.freqMinMultiplier +
+      (profile.freqMaxMultiplier - profile.freqMinMultiplier) * curve;
+    const targetFreq = Math.min(
+      profile.bandpassFrequency * freqMultiplier,
+      profile.lowpassFrequency * 0.95,
+    );
+    this.scheduleParam(
+      state.bandpass.frequency,
+      Math.max(targetFreq, 60),
+      WebAudioStrokeSound.PARAM_SMOOTH_SEC,
+      now,
+    );
+
+    let targetGain = profile.minGain + state.smoothSpeed * profile.gainScale;
+    targetGain = Math.min(Math.max(targetGain, 0), 1);
+    const isInitial =
+      forceInitial ||
+      info.timeSinceStart < WebAudioStrokeSound.INITIAL_GUARANTEE_MS ||
+      info.length <= WebAudioStrokeSound.INITIAL_HOLD_LENGTH_PX;
+
+    // 速度ゲート（ヒステリシス＋ホールド）で停止付近のノイズを確実にカット
+    const wasGateOpen = state.gateOpen;
+    this.updateGateState(state, now, isInitial);
+
+    if (!state.gateOpen) {
+      targetGain = 0;
+    } else {
+      targetGain = Math.max(targetGain, profile.minGain);
+    }
+    const gateJustClosed = wasGateOpen && !state.gateOpen;
+    const gainTimeConstant = gateJustClosed
+      ? WebAudioStrokeSound.GATE_RELEASE_SEC
+      : WebAudioStrokeSound.PARAM_SMOOTH_SEC;
+    this.scheduleGain(state, targetGain, gainTimeConstant);
+  }
+
+  private calculateInstantSpeed(
+    info: StrokeSoundInfo,
+    state: ToolState,
+  ): number {
+    const dtMs = info.timeSinceStart - state.lastTimeSinceStart;
+    if (dtMs <= 0) return 0;
+    const dx = info.length - state.lastLength;
+    if (dx <= 0) return 0;
+    return dx / dtMs;
+  }
+
+  private scheduleGain(
+    state: ToolState,
+    gain: number,
+    timeConstant: number,
+  ): void {
+    const context = this.audioContext;
     if (!context) return;
+    const now = context.currentTime;
+    this.scheduleParam(state.gain.gain, gain, timeConstant, now);
+  }
 
-    const gainNode = this.gainNodes.get(tool);
-    const filterNode = this.filterNodes.get(tool);
-    if (!gainNode || !filterNode) return;
+  private updateGateState(
+    state: ToolState,
+    now: number,
+    isInitial: boolean,
+  ): void {
+    const gateHoldSec = WebAudioStrokeSound.GATE_HOLD_MS / 1000;
+    if (WebAudioStrokeSound.ALWAYS_SOUND_WHILE_DRAWING && state.strokeActive) {
+      state.gateOpen = true;
+      state.gateHoldUntil = now + gateHoldSec;
+      return;
+    }
 
-    const currentTime = context.currentTime;
-    const smoothTime = WebAudioStrokeSound.SMOOTH_TIME;
+    if (isInitial) {
+      state.gateOpen = true;
+      state.gateHoldUntil = now + gateHoldSec;
+      return;
+    }
 
-    // 書き始めの一定時間は、速度に関係なく最小音量を保証（最初の一筆で音が出るように）
-    const timeSinceStart = performance.now() - this.strokeStartTime;
-    const isInitialPeriod =
-      timeSinceStart < WebAudioStrokeSound.INITIAL_SOUND_GUARANTEE_MS;
+    if (state.gateOpen) {
+      if (state.smoothSpeed > WebAudioStrokeSound.GATE_OFF_SPEED) {
+        // 動いている間はホールド期限を更新し、減速時の短い揺れで切れないようにする
+        state.gateHoldUntil = now + gateHoldSec;
+      } else if (now >= state.gateHoldUntil) {
+        state.gateOpen = false;
+      }
+      return;
+    }
 
-    // 速度が閾値以下の場合
-    if (speed <= 0.01) {
-      // 書き始めの一定時間内は、速度が0でも最小音量を保証
-      if (isInitialPeriod) {
-        const minVolume = WebAudioStrokeSound.INITIAL_MIN_VOLUME;
-        gainNode.gain.cancelScheduledValues(currentTime);
-        gainNode.gain.setValueAtTime(gainNode.gain.value, currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(
-          Math.max(minVolume, 0.001),
-          currentTime + smoothTime,
+    if (state.smoothSpeed >= WebAudioStrokeSound.GATE_ON_SPEED) {
+      state.gateOpen = true;
+      state.gateHoldUntil = now + gateHoldSec;
+    }
+  }
+
+  private scheduleParam(
+    param: AudioParam,
+    value: number,
+    timeConstant: number,
+    now: number,
+  ): void {
+    const paramWithHold = param as AudioParam & {
+      cancelAndHoldAtTime?: (time: number) => void;
+    };
+    if (paramWithHold.cancelAndHoldAtTime) {
+      paramWithHold.cancelAndHoldAtTime(now);
+    } else {
+      param.cancelScheduledValues(now);
+      param.setValueAtTime(param.value, now);
+    }
+    param.setTargetAtTime(value, now, timeConstant);
+  }
+
+  private scheduleStop(state: ToolState, delayMs: number): void {
+    this.cancelStop(state);
+    state.stopTimeoutId = setTimeout(() => {
+      if (!state.source) return;
+      if (state.sourceKind === "buffer") {
+        try {
+          (state.source as AudioBufferSourceNode).stop();
+        } catch {
+          // 無視
+        }
+      }
+      state.source.disconnect();
+      state.source = null;
+      state.sourceKind = null;
+      state.stopTimeoutId = null;
+    }, delayMs);
+  }
+
+  private cancelStop(state: ToolState): void {
+    if (state.stopTimeoutId !== null) {
+      clearTimeout(state.stopTimeoutId);
+      state.stopTimeoutId = null;
+    }
+  }
+
+  private scheduleIdleCheck(state: ToolState, context: AudioContext): void {
+    this.clearIdleCheck(state);
+    state.idleTimeoutId = setTimeout(() => {
+      state.idleTimeoutId = null;
+      if (!state.strokeActive) return;
+      const now = context.currentTime;
+      if (
+        now - state.lastInputAt <
+        WebAudioStrokeSound.IDLE_TIMEOUT_MS / 1000
+      ) {
+        // 入力が継続している場合は再スケジュール
+        this.scheduleIdleCheck(state, context);
+        return;
+      }
+      if (state.lastLength <= WebAudioStrokeSound.INITIAL_HOLD_LENGTH_PX) {
+        // 書き始めの極小移動は音を維持する
+        this.scheduleIdleCheck(state, context);
+        return;
+      }
+      state.smoothSpeed = 0;
+      this.scheduleParam(
+        state.bandpass.frequency,
+        state.profile.bandpassFrequency,
+        WebAudioStrokeSound.PARAM_SMOOTH_SEC,
+        now,
+      );
+      if (WebAudioStrokeSound.ALWAYS_SOUND_WHILE_DRAWING) {
+        state.gateOpen = true;
+        state.gateHoldUntil = now + WebAudioStrokeSound.GATE_HOLD_MS / 1000;
+        this.scheduleGain(
+          state,
+          state.profile.minGain,
+          WebAudioStrokeSound.PARAM_SMOOTH_SEC,
         );
         return;
       }
-      // 書き始めの期間を過ぎた後は、完全に停止している場合のみ音量を0に
-      const volume = 0;
-      gainNode.gain.cancelScheduledValues(currentTime);
-      gainNode.gain.setValueAtTime(gainNode.gain.value, currentTime);
-      // exponentialRampToValueAtTimeでより滑らかなフェードアウト
-      gainNode.gain.exponentialRampToValueAtTime(
-        Math.max(volume, 0.001), // 0に近い値で指数カーブを適用
-        currentTime + smoothTime,
-      );
-      return;
-    }
-
-    // 音量: 0.2 + speed * 0.6 (最大1.0)
-    const volume = Math.min(0.2 + speed * 0.6, 1.0);
-    gainNode.gain.cancelScheduledValues(currentTime);
-    // exponentialRampToValueAtTimeは0から開始できないため、最小値0.001を保証
-    gainNode.gain.setValueAtTime(
-      Math.max(gainNode.gain.value, 0.001),
-      currentTime,
-    );
-    // exponentialRampToValueAtTimeでより滑らかな変化
-    gainNode.gain.exponentialRampToValueAtTime(
-      Math.max(volume, 0.001),
-      currentTime + smoothTime,
-    );
-
-    // 周波数: 基本周波数 * (0.9 + speed * 0.65) (平方根カーブ)
-    const baseSettings = this.getFilterSettings(tool);
-    const normalizedSpeed = Math.max(0.01, Math.min(speed, 2.0));
-    const normalized = (normalizedSpeed - 0.01) / 1.99;
-    const curveValue = Math.sqrt(normalized);
-    const multiplier = 0.9 + curveValue * 1.3; // 0.9 ～ 2.2
-    const targetFreq = baseSettings.frequency * multiplier;
-
-    filterNode.frequency.cancelScheduledValues(currentTime);
-    // exponentialRampToValueAtTimeは0から開始できないため、最小値20Hzを保証
-    const currentFreq = filterNode.frequency.value;
-    filterNode.frequency.setValueAtTime(Math.max(currentFreq, 20), currentTime);
-    // exponentialRampToValueAtTimeでより滑らかな変化
-    filterNode.frequency.exponentialRampToValueAtTime(
-      Math.max(targetFreq, 20), // 20Hz以下は避ける
-      currentTime + smoothTime,
-    );
+      state.gateOpen = false;
+      state.gateHoldUntil = now;
+      this.scheduleGain(state, 0, WebAudioStrokeSound.GATE_RELEASE_SEC);
+    }, WebAudioStrokeSound.IDLE_TIMEOUT_MS);
   }
 
-  /**
-   * ストローク開始時に呼ばれる
-   * ノイズを生成して再生を開始し、フェードインを適用
-   * @param info ストローク情報
-   */
-  onStrokeStart(info: StrokeSoundInfo): void {
-    const context = this.ensureAudioContext();
-    if (!context) return;
-
-    this.currentTool = info.tool;
-    this.speedSamples = [];
-    this.smoothedSpeed = 0;
-    this.pendingSpeed = 0;
-    this.updateScheduled = false;
-    // 書き始めの時間を記録（最初の一筆で音が出るようにするため）
-    const now = performance.now();
-    this.lastUpdateTime = now;
-    this.strokeStartTime = now;
-    this.speedSamples.push({ length: info.length, time: now });
-
-    // 他のツールの音を停止
-    const currentTime = context.currentTime;
-    for (const [tool, gainNode] of this.gainNodes) {
-      if (tool !== info.tool) {
-        gainNode.gain.cancelScheduledValues(currentTime);
-        const currentGain = gainNode.gain.value;
-        // exponentialRampToValueAtTimeは0から開始できないため、現在の値が0の場合は0.001から開始
-        const startGain = currentGain > 0 ? currentGain : 0.001;
-        gainNode.gain.setValueAtTime(startGain, currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, currentTime + 0.05);
-      }
-    }
-
-    // ノイズを開始
-    this.createAndPlayNoise(info.tool);
-
-    // フェードイン（短い時間で即座に音が出るように）
-    const gainNode = this.gainNodes.get(info.tool);
-    if (gainNode) {
-      gainNode.gain.cancelScheduledValues(currentTime);
-      // 初期音量を少し上げて即座に音が出るようにする
-      // exponentialRampToValueAtTimeは0から開始できないため、0.001から開始
-      const initialVolume = WebAudioStrokeSound.FADE_IN_INITIAL_VOLUME;
-      gainNode.gain.setValueAtTime(0.001, currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(
-        initialVolume,
-        currentTime + WebAudioStrokeSound.FADE_IN_TIME,
-      );
-    }
-
-    // 速度に応じた音量を即座に設定（書き始めでも音が出るように最小速度を保証）
-    this.updateVolumeAndFrequency(info.tool, 0.1);
-  }
-
-  /**
-   * ストローク更新時に呼ばれる
-   * 移動平均速度を計算し、音量と周波数を更新（スロットル適用）
-   * @param info ストローク情報
-   */
-  onStrokeUpdate(info: StrokeSoundInfo): void {
-    const now = performance.now();
-    this.smoothedSpeed = this.calculateSmoothedSpeed(info.length, now);
-    this.pendingSpeed = this.smoothedSpeed;
-
-    // スロットル: 前回の更新から一定時間経過していない場合はスキップ
-    const timeSinceLastUpdate = now - this.lastUpdateTime;
-    if (timeSinceLastUpdate < WebAudioStrokeSound.UPDATE_INTERVAL_MS) {
-      // スケジュールされていない場合のみスケジュール
-      if (!this.updateScheduled) {
-        this.updateScheduled = true;
-        const delay =
-          WebAudioStrokeSound.UPDATE_INTERVAL_MS - timeSinceLastUpdate;
-        this.updateTimeoutId = setTimeout(() => {
-          this.lastUpdateTime = performance.now();
-          this.updateScheduled = false;
-          this.updateTimeoutId = null;
-          // ストロークが終了していない場合のみ更新
-          if (this.currentTool) {
-            this.updateVolumeAndFrequency(this.currentTool, this.pendingSpeed);
-          }
-        }, delay);
-      }
-      return;
-    }
-
-    // 即座に更新
-    this.lastUpdateTime = now;
-    if (this.currentTool) {
-      this.updateVolumeAndFrequency(this.currentTool, this.smoothedSpeed);
+  private clearIdleCheck(state: ToolState): void {
+    if (state.idleTimeoutId !== null) {
+      clearTimeout(state.idleTimeoutId);
+      state.idleTimeoutId = null;
     }
   }
 
-  /**
-   * ストローク終了時に呼ばれる
-   * 早めのフェードアウトを適用し、プツプツノイズを防止
-   * @param _info ストローク情報
-   */
-  onStrokeEnd(_info: StrokeSoundInfo): void {
-    const context = this.ensureAudioContext();
-    if (!context) return;
-
-    const tool = _info.tool;
-
-    const gainNode = this.gainNodes.get(tool);
-    if (!gainNode) return;
-
-    const currentTime = context.currentTime;
-    const fadeOutTime = WebAudioStrokeSound.FADE_OUT_TIME;
-
-    // すべてのスケジュールされた音量変更をキャンセル
-    gainNode.gain.cancelScheduledValues(currentTime);
-    // 現在の音量から即座にフェードアウト開始
-    // exponentialRampToValueAtTimeは0から開始できないため、最小値0.001を保証
-    gainNode.gain.setValueAtTime(
-      Math.max(gainNode.gain.value, 0.001),
-      currentTime,
-    );
-    // exponentialRampToValueAtTimeで滑らかなフェードアウト（早めに）
-    gainNode.gain.exponentialRampToValueAtTime(
-      0.001,
-      currentTime + fadeOutTime,
-    );
-
-    // フェードアウト完了後にノイズを停止（少し余裕を持たせる）
-    const stopDelay = Math.max(
-      fadeOutTime * 1000 + 10,
-      WebAudioStrokeSound.MIN_STOP_DELAY_MS,
-    );
-    setTimeout(() => {
-      const noiseNode = this.noiseNodes.get(tool);
-      if (noiseNode) {
-        try {
-          noiseNode.stop();
-        } catch {
-          // 無視
-        }
-        this.noiseNodes.set(tool, null);
-      }
-      this.speedSamples = [];
-      this.smoothedSpeed = 0;
-      this.currentTool = null;
-      this.updateScheduled = false;
-    }, stopDelay);
+  private preloadWorklet(context: AudioContext): void {
+    if (!context.audioWorklet) return;
+    if (this.workletLoadPromise) return;
+    const url = this.getWorkletUrl();
+    if (!url) return;
+    this.workletLoadPromise = context.audioWorklet
+      .addModule(url)
+      .then(() => {
+        this.workletLoaded = true;
+      })
+      .catch(() => {
+        this.workletLoaded = false;
+        this.workletLoadPromise = null;
+      });
   }
 
-  /**
-   * リソースをクリーンアップする
-   * すべてのノイズを停止し、オーディオノードを切断し、AudioContextを閉じる
-   */
-  destroy(): void {
-    // スロットルされた更新コールバックをキャンセル
-    if (this.updateTimeoutId !== null) {
-      clearTimeout(this.updateTimeoutId);
-      this.updateTimeoutId = null;
+  private getWorkletUrl(): string | null {
+    if (this.workletUrl) return this.workletUrl;
+    if (typeof Blob === "undefined" || typeof URL === "undefined") {
+      return null;
     }
+    const noiseGain = WebAudioStrokeSound.NOISE_GAIN;
+    const source = `
+class PinkNoiseProcessor extends AudioWorkletProcessor {
+  constructor() {
+    super();
+    this.b0 = 0;
+    this.b1 = 0;
+    this.b2 = 0;
+    this.b3 = 0;
+    this.b4 = 0;
+    this.b5 = 0;
+    this.b6 = 0;
+  }
 
-    // イベントリスナーをクリーンアップ
-    for (const { event, handler } of this.interactionHandlers) {
-      document.removeEventListener(event, handler);
+  process(_inputs, outputs) {
+    const output = outputs[0];
+    if (!output || output.length === 0) return true;
+    const channel = output[0];
+    for (let i = 0; i < channel.length; i++) {
+      const white = Math.random() * 2 - 1;
+      this.b0 = 0.99886 * this.b0 + white * 0.0555179;
+      this.b1 = 0.99332 * this.b1 + white * 0.0750759;
+      this.b2 = 0.969 * this.b2 + white * 0.153852;
+      this.b3 = 0.8665 * this.b3 + white * 0.3104856;
+      this.b4 = 0.55 * this.b4 + white * 0.5329522;
+      this.b5 = -0.7616 * this.b5 - white * 0.016898;
+      const pink =
+        this.b0 +
+        this.b1 +
+        this.b2 +
+        this.b3 +
+        this.b4 +
+        this.b5 +
+        this.b6 +
+        white * 0.5362;
+      this.b6 = white * 0.115926;
+      channel[i] = pink * ${noiseGain};
     }
-    this.interactionHandlers = [];
-
-    for (const noiseNode of this.noiseNodes.values()) {
-      if (noiseNode) {
-        try {
-          noiseNode.stop();
-        } catch {
-          // 無視
-        }
+    if (output.length > 1) {
+      for (let c = 1; c < output.length; c++) {
+        output[c].set(channel);
       }
     }
+    return true;
+  }
+}
 
-    for (const gainNode of this.gainNodes.values()) {
-      gainNode.disconnect();
-    }
-    for (const filterNode of this.filterNodes.values()) {
-      filterNode.disconnect();
-    }
-    for (const lowpassNode of this.lowpassNodes.values()) {
-      lowpassNode.disconnect();
-    }
-
-    if (this.audioContext) {
-      this.audioContext.close();
-      this.audioContext = null;
-    }
+registerProcessor("pink-noise-processor", PinkNoiseProcessor);
+`;
+    const blob = new Blob([source], { type: "application/javascript" });
+    this.workletUrl = URL.createObjectURL(blob);
+    return this.workletUrl;
   }
 }
