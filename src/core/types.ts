@@ -20,6 +20,7 @@ export type BrushColor =
 /** ブラシのバリアント */
 export type BrushVariant =
   | "normal"
+  | "penSquare"
   | "eraserCircle"
   | "eraserSquare"
   | "eraserLine";

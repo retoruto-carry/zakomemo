@@ -39,8 +39,7 @@ export function WigglyEditor() {
   const [tool, setTool] = useState<Tool>("pen");
   const [colorIndex, setColorIndex] = useState(0);
   const [brushWidth, setBrushWidth] = useState(DEFAULT_PEN_WIDTH);
-  // penVariantは現在"normal"のみなので定数として扱う
-  const penVariant: PenVariant = "normal";
+  const [penVariant, setPenVariant] = useState<PenVariant>("normal");
   const [eraserVariant, setEraserVariant] =
     useState<EraserVariant>("eraserCircle");
   const [patternId, setPatternId] = useState<BrushPatternId>("dot_sparse");
@@ -388,6 +387,8 @@ export function WigglyEditor() {
             setColorIndex={setColorIndex}
             brushWidth={brushWidth}
             setBrushWidth={setBrushWidth}
+            penVariant={penVariant}
+            setPenVariant={setPenVariant}
             eraserVariant={eraserVariant}
             setEraserVariant={setEraserVariant}
             patternId={patternId}

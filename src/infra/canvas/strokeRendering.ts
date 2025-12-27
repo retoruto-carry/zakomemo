@@ -107,6 +107,16 @@ function renderSolidStroke(
     return;
   }
 
+  if (stroke.kind === "draw" && variant === "penSquare") {
+    const centerPixels = buildCenterPixels(jitteredPoints);
+    const stamp = getSquareStampOffsets(brushWidth);
+    const stampedPixels = calculateStampedLinePixels(centerPixels, stamp);
+    for (const pixel of stampedPixels) {
+      context.setPixel({ x: pixel.x, y: pixel.y, r, g, b, a });
+    }
+    return;
+  }
+
   // 1点だけのとき
   if (jitteredPoints.length === 1) {
     const p = jitteredPoints[0];
@@ -250,6 +260,7 @@ function resolveEraserStampVariant({
       return variant;
     case "eraserCircle":
     case "normal":
+    case "penSquare":
       return null;
     default:
       return assertNever(variant);
@@ -274,6 +285,7 @@ function renderPatternStroke(
     resolveBrushColor({ color: stroke.brush.color, palette }),
   );
   const brushWidth = Math.round(stroke.brush.width);
+  const useSquareStamp = stroke.brush.variant === "penSquare";
 
   let areaPixels: Array<{ x: number; y: number }>;
 
@@ -283,7 +295,12 @@ function renderPatternStroke(
     const x = Math.round(p.x);
     const y = Math.round(p.y);
     if (brushWidth > 1) {
-      areaPixels = calculateThickLinePixels([{ x, y }], brushWidth);
+      areaPixels = useSquareStamp
+        ? calculateStampedLinePixels(
+            [{ x, y }],
+            getSquareStampOffsets(brushWidth),
+          )
+        : calculateThickLinePixels([{ x, y }], brushWidth);
     } else {
       areaPixels = [{ x, y }];
     }
@@ -293,7 +310,12 @@ function renderPatternStroke(
 
     // 太い線の場合は領域を計算（重複排除済み）
     if (brushWidth > 1) {
-      areaPixels = calculateThickLinePixels(centerPixels, brushWidth);
+      areaPixels = useSquareStamp
+        ? calculateStampedLinePixels(
+            centerPixels,
+            getSquareStampOffsets(brushWidth),
+          )
+        : calculateThickLinePixels(centerPixels, brushWidth);
     } else {
       areaPixels = centerPixels;
     }
