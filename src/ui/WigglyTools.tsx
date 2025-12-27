@@ -1052,7 +1052,7 @@ export const WigglyTools = React.forwardRef<
           </div>
 
           {/* コンテンツ領域（カスタムスクロールバー） */}
-          <div className="flex-1 overflow-y-auto zako-scrollbar p-3 relative z-10">
+          <div className="flex-1 overflow-y-auto zako-settings-scrollbar p-3 relative z-10">
             {settingsTab === "palette" ? (
               <div className="flex flex-col gap-2.5">
                 {/* パレットプリセット */}

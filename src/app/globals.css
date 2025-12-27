@@ -101,21 +101,21 @@ body {
 }
 
 /* 設定モーダル用のカスタムスクロールバー */
-.zako-scrollbar {
+.zako-settings-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: var(--color-zako-tan) var(--color-zako-cream-soft);
 }
 
-.zako-scrollbar::-webkit-scrollbar {
+.zako-settings-scrollbar::-webkit-scrollbar {
   width: 10px;
 }
 
-.zako-scrollbar::-webkit-scrollbar-track {
+.zako-settings-scrollbar::-webkit-scrollbar-track {
   background: var(--color-zako-cream-soft);
   border-radius: 9999px;
 }
 
-.zako-scrollbar::-webkit-scrollbar-thumb {
+.zako-settings-scrollbar::-webkit-scrollbar-thumb {
   background: var(--color-zako-tan);
   border-radius: 9999px;
   border: 2px solid var(--color-zako-cream-soft);
