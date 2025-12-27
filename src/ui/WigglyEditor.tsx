@@ -202,49 +202,57 @@ export function WigglyEditor() {
 
   const handleDSButtonY = useCallback(() => {
     uiSoundManager.play("ds-button-y", { stopPrevious: true });
-    const nextIndex = (colorIndex + 1) % palette.length;
-    setColorIndex(nextIndex);
-  }, [colorIndex, palette.length]);
+    const toolCycle: Tool[] = ["pen", "pattern", "eraser"];
+    const currentIndex = toolCycle.indexOf(tool);
+    const nextIndex =
+      (currentIndex - 1 + toolCycle.length) % toolCycle.length;
+    setTool(toolCycle[nextIndex]);
+  }, [tool]);
 
   const handleDSButtonUp = useCallback(() => {
     uiSoundManager.play("ds-button-up", { stopPrevious: true });
-    // TODO: 将来的に別機能を割り当てる（例: ブラシサイズ変更、ツール切り替えなど）
-  }, []);
-
-  const handleDSButtonDown = useCallback(() => {
-    uiSoundManager.play("ds-button-down", { stopPrevious: true });
-    // TODO: 将来的に別機能を割り当てる（例: ブラシサイズ変更、ツール切り替えなど）
-  }, []);
-
-  const handleDSButtonRight = useCallback(() => {
-    uiSoundManager.play("ds-button-right", { stopPrevious: true });
     const currentPaletteIndex = selectedPaletteName
       ? PALETTE_PRESETS.findIndex((p) => p.name === selectedPaletteName)
       : -1;
-    const safeIndex = currentPaletteIndex === -1 ? 0 : currentPaletteIndex;
-    const nextIndex = (safeIndex + 1) % PALETTE_PRESETS.length;
-    const nextPreset = PALETTE_PRESETS[nextIndex];
+    const nextPreset =
+      currentPaletteIndex === -1
+        ? PALETTE_PRESETS[0]
+        : PALETTE_PRESETS[(currentPaletteIndex + 1) % PALETTE_PRESETS.length];
     setPalette(nextPreset.colors);
     setBackgroundColor(nextPreset.background);
     setSelectedPaletteName(nextPreset.name);
   }, [selectedPaletteName]);
 
-  const handleDSButtonLeft = useCallback(() => {
-    uiSoundManager.play("ds-button-left", { stopPrevious: true });
+  const handleDSButtonDown = useCallback(() => {
+    uiSoundManager.play("ds-button-down", { stopPrevious: true });
     const currentPaletteIndex = selectedPaletteName
       ? PALETTE_PRESETS.findIndex((p) => p.name === selectedPaletteName)
       : -1;
-    const safeIndex =
+    const prevPreset =
       currentPaletteIndex === -1
-        ? PALETTE_PRESETS.length - 1
-        : currentPaletteIndex;
-    const prevIndex =
-      safeIndex === 0 ? PALETTE_PRESETS.length - 1 : safeIndex - 1;
-    const prevPreset = PALETTE_PRESETS[prevIndex];
+        ? PALETTE_PRESETS[PALETTE_PRESETS.length - 1]
+        : PALETTE_PRESETS[
+            (currentPaletteIndex - 1 + PALETTE_PRESETS.length) %
+              PALETTE_PRESETS.length
+          ];
     setPalette(prevPreset.colors);
     setBackgroundColor(prevPreset.background);
     setSelectedPaletteName(prevPreset.name);
   }, [selectedPaletteName]);
+
+  const handleDSButtonRight = useCallback(() => {
+    uiSoundManager.play("ds-button-right", { stopPrevious: true });
+    if (palette.length === 0) return;
+    const nextIndex = (colorIndex + 1) % palette.length;
+    setColorIndex(nextIndex);
+  }, [colorIndex, palette.length]);
+
+  const handleDSButtonLeft = useCallback(() => {
+    uiSoundManager.play("ds-button-left", { stopPrevious: true });
+    if (palette.length === 0) return;
+    const prevIndex = (colorIndex - 1 + palette.length) % palette.length;
+    setColorIndex(prevIndex);
+  }, [colorIndex, palette.length]);
 
   const handleDSButtonStart = useCallback(() => {
     uiSoundManager.play("ds-button-start", { stopPrevious: true });
