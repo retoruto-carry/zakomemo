@@ -1,6 +1,6 @@
 import type { StrokeSound, StrokeSoundInfo } from "@/engine/ports";
 
-type ToolId = "pen" | "pattern" | "eraser";
+type ToolId = StrokeSoundInfo["tool"];
 
 type ToolProfile = {
   bandpassFrequency: number;
@@ -89,6 +89,7 @@ export class WebAudioStrokeSound implements StrokeSound {
   private static readonly NOISE_GAIN = 0.22;
   private static readonly SPEED_REFERENCE = 1.2;
   // GATE系は「ほぼ停止中」を判定して音を素早く止めるための閾値/タイミング
+  // ON/OFFを揃えて、ホールド時間でデバウンスする設計
   private static readonly GATE_ON_SPEED = 0.004;
   private static readonly GATE_OFF_SPEED = 0.004;
   private static readonly GATE_HOLD_MS = 60;
@@ -216,9 +217,9 @@ export class WebAudioStrokeSound implements StrokeSound {
         clearTimeout(state.idleTimeoutId);
       }
       if (state.source) {
-        if (this.isBufferSource(state.source)) {
+        if (state.sourceKind === "buffer") {
           try {
-            state.source.stop();
+            (state.source as AudioBufferSourceNode).stop();
           } catch {
             // 無視
           }
@@ -588,9 +589,9 @@ export class WebAudioStrokeSound implements StrokeSound {
     this.cancelStop(state);
     state.stopTimeoutId = setTimeout(() => {
       if (!state.source) return;
-      if (this.isBufferSource(state.source)) {
+      if (state.sourceKind === "buffer") {
         try {
-          state.source.stop();
+          (state.source as AudioBufferSourceNode).stop();
         } catch {
           // 無視
         }
@@ -607,14 +608,6 @@ export class WebAudioStrokeSound implements StrokeSound {
       clearTimeout(state.stopTimeoutId);
       state.stopTimeoutId = null;
     }
-  }
-
-  private isBufferSource(
-    source: AudioBufferSourceNode | AudioWorkletNode | null,
-  ): source is AudioBufferSourceNode {
-    return Boolean(
-      source && typeof (source as AudioBufferSourceNode).stop === "function",
-    );
   }
 
   private scheduleIdleCheck(state: ToolState, context: AudioContext): void {
