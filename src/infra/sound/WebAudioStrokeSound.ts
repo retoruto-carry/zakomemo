@@ -57,7 +57,7 @@ export class WebAudioStrokeSound implements StrokeSound {
       lowpassFrequency: 8000,
       highpassFrequency: 60,
       minGain: 0.12,
-      gainScale: 0.6,
+      gainScale: 0.25,
       freqMinMultiplier: 0.9,
       freqMaxMultiplier: 2.1,
     },
@@ -67,7 +67,7 @@ export class WebAudioStrokeSound implements StrokeSound {
       lowpassFrequency: 8000,
       highpassFrequency: 60,
       minGain: 0.12,
-      gainScale: 0.55,
+      gainScale: 0.22,
       freqMinMultiplier: 0.9,
       freqMaxMultiplier: 1.9,
     },
@@ -77,7 +77,7 @@ export class WebAudioStrokeSound implements StrokeSound {
       lowpassFrequency: 8000,
       highpassFrequency: 90,
       minGain: 0.1,
-      gainScale: 0.5,
+      gainScale: 0.2,
       freqMinMultiplier: 0.9,
       freqMaxMultiplier: 2.1,
     },
@@ -91,6 +91,8 @@ export class WebAudioStrokeSound implements StrokeSound {
   private static readonly GATE_ON_SPEED = 0.004;
   private static readonly GATE_OFF_SPEED = 0.004;
   private static readonly GATE_HOLD_MS = 60;
+  // 指が離れるまで音を切らないモード（停止時はminGainまで下げる）
+  private static readonly ALWAYS_SOUND_WHILE_DRAWING = true;
   // 書き始めの極小移動は「始点保持」として音を維持する
   private static readonly INITIAL_HOLD_LENGTH_PX = 2;
   private static readonly SPEED_SMOOTH_SEC = 0.08;
@@ -134,7 +136,7 @@ export class WebAudioStrokeSound implements StrokeSound {
     state.gateHoldUntil =
       context.currentTime + WebAudioStrokeSound.INITIAL_GUARANTEE_MS / 1000;
     state.strokeActive = true;
-    this.scheduleIdleCheck(state, context);
+    this.scheduleIdleCheck(state, context, info.tool);
 
     const initialGain = WebAudioStrokeSound.TOOL_PROFILES[tool].minGain;
     this.scheduleGain(state, initialGain, WebAudioStrokeSound.ATTACK_SEC);
@@ -150,7 +152,7 @@ export class WebAudioStrokeSound implements StrokeSound {
     state.lastLength = info.length;
     state.lastTimeSinceStart = info.timeSinceStart;
     state.lastInputAt = context.currentTime;
-    this.scheduleIdleCheck(state, context);
+    this.scheduleIdleCheck(state, context, info.tool);
     this.applySpeed(info, state, context, false, instantSpeed);
   }
 
@@ -462,7 +464,13 @@ export class WebAudioStrokeSound implements StrokeSound {
     // 速度ゲート（ヒステリシス＋ホールド）で停止付近のノイズを確実にカット
     const wasGateOpen = state.gateOpen;
     const gateHoldSec = WebAudioStrokeSound.GATE_HOLD_MS / 1000;
-    if (isInitial) {
+    if (
+      WebAudioStrokeSound.ALWAYS_SOUND_WHILE_DRAWING &&
+      state.strokeActive
+    ) {
+      state.gateOpen = true;
+      state.gateHoldUntil = now + gateHoldSec;
+    } else if (isInitial) {
       state.gateOpen = true;
       state.gateHoldUntil = now + gateHoldSec;
     } else if (state.gateOpen) {
@@ -554,21 +562,36 @@ export class WebAudioStrokeSound implements StrokeSound {
     }
   }
 
-  private scheduleIdleCheck(state: ToolState, context: AudioContext): void {
+  private scheduleIdleCheck(
+    state: ToolState,
+    context: AudioContext,
+    tool: ToolId,
+  ): void {
     this.clearIdleCheck(state);
     state.idleTimeoutId = setTimeout(() => {
       state.idleTimeoutId = null;
       if (!state.strokeActive) return;
       const now = context.currentTime;
       if (now - state.lastInputAt < WebAudioStrokeSound.IDLE_TIMEOUT_MS / 1000) {
-        this.scheduleIdleCheck(state, context);
+        this.scheduleIdleCheck(state, context, tool);
         return;
       }
       if (state.lastLength <= WebAudioStrokeSound.INITIAL_HOLD_LENGTH_PX) {
-        this.scheduleIdleCheck(state, context);
+        this.scheduleIdleCheck(state, context, tool);
         return;
       }
       state.smoothSpeed = 0;
+      if (WebAudioStrokeSound.ALWAYS_SOUND_WHILE_DRAWING) {
+        const profile = WebAudioStrokeSound.TOOL_PROFILES[tool];
+        state.gateOpen = true;
+        state.gateHoldUntil = now + WebAudioStrokeSound.GATE_HOLD_MS / 1000;
+        this.scheduleGain(
+          state,
+          profile.minGain,
+          WebAudioStrokeSound.PARAM_SMOOTH_SEC,
+        );
+        return;
+      }
       state.gateOpen = false;
       state.gateHoldUntil = now;
       this.scheduleGain(state, 0, WebAudioStrokeSound.GATE_RELEASE_SEC);
