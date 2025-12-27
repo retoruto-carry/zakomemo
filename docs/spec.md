@@ -1,4 +1,4 @@
-# Wiggly Ugomemo 仕様書
+# Zakomemo 仕様書
 
 ## コンセプト
 

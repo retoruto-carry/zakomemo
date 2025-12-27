@@ -61,7 +61,7 @@ export function ShareButton({
       await shareToTwitter({
         text,
         imageUrl,
-        imageName: "wiggly-ugomemo.gif",
+        imageName: "wiggly-zakomemo.gif",
       });
     } catch (error) {
       console.error("Share failed:", error);
@@ -80,8 +80,8 @@ export function ShareButton({
       disabled={isSharing}
       className={`
         bg-black text-white 
-        border-t-[3px] border-l-[3px] border-t-[#333] border-l-[#333] 
-        border-b-[3px] border-r-[3px] border-b-[#000] border-r-[#000] 
+        border-t-[3px] border-l-[3px] border-t-(--color-zako-border) border-l-(--color-zako-border) 
+        border-b-[3px] border-r-[3px] border-b-(--color-zako-black) border-r-(--color-zako-black) 
         rounded-[6px] py-2.5 px-4
         flex items-center justify-center gap-2
         active:translate-y-0.5 transition-all 

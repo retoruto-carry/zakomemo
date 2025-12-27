@@ -1,4 +1,4 @@
-# Wiggly Ugomemo ドキュメント
+# Zakomemo ドキュメント
 
 ## ドキュメント一覧
 
@@ -23,5 +23,3 @@
 2. **キャッシュシステムの理解**: `rendering-system.md`
 3. **アルゴリズムの理解**: `bresenham-algorithm.md`
 4. **パフォーマンス最適化**: `pixel-art-performance.md`
-
-
