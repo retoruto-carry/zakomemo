@@ -22,6 +22,15 @@ type ToolState = {
   sourceKind: "buffer" | "worklet" | null;
   smoothSpeed: number;
   lastUpdateAt: number;
+  lastLength: number;
+  lastTimeSinceStart: number;
+  lastInputAt: number;
+  // ゲートを使って「ほぼ停止中」のノイズを確実に無音化する
+  gateOpen: boolean;
+  // ゲートを閉じる前のホールド期限（チラつきを防止）
+  gateHoldUntil: number;
+  strokeActive: boolean;
+  idleTimeoutId: ReturnType<typeof setTimeout> | null;
   stopTimeoutId: ReturnType<typeof setTimeout> | null;
 };
 
@@ -36,6 +45,7 @@ export class WebAudioStrokeSound implements StrokeSound {
     event: string;
     handler: () => void;
   }> = [];
+  // AudioWorkletは動的生成し、環境未対応ならバッファループにフォールバック
   private workletUrl: string | null = null;
   private workletLoaded = false;
   private workletLoadPromise: Promise<void> | null = null;
@@ -77,13 +87,20 @@ export class WebAudioStrokeSound implements StrokeSound {
   private static readonly LOOP_CROSSFADE_SEC = 0.05;
   private static readonly NOISE_GAIN = 0.22;
   private static readonly SPEED_REFERENCE = 1.2;
-  private static readonly SPEED_GATE = 0.01;
+  // GATE系は「ほぼ停止中」を判定して音を素早く止めるための閾値/タイミング
+  private static readonly GATE_ON_SPEED = 0.015;
+  private static readonly GATE_OFF_SPEED = 0.015;
+  private static readonly GATE_HOLD_MS = 60;
   private static readonly SPEED_SMOOTH_SEC = 0.08;
   private static readonly PARAM_SMOOTH_SEC = 0.06;
+  // ゲートが閉じた瞬間の素早いフェードアウト
+  private static readonly GATE_RELEASE_SEC = 0.01;
   private static readonly ATTACK_SEC = 0.02;
   private static readonly RELEASE_SEC = 0.05;
   private static readonly SWITCH_RELEASE_SEC = 0.05;
   private static readonly INITIAL_GUARANTEE_MS = 140;
+  // pointermoveが止まった時の強制無音化までの時間
+  private static readonly IDLE_TIMEOUT_MS = 55;
   private static readonly STOP_AFTER_IDLE_MS = 220;
 
   constructor() {
@@ -108,6 +125,14 @@ export class WebAudioStrokeSound implements StrokeSound {
 
     state.smoothSpeed = 0;
     state.lastUpdateAt = context.currentTime;
+    state.lastLength = info.length;
+    state.lastTimeSinceStart = info.timeSinceStart;
+    state.lastInputAt = context.currentTime;
+    state.gateOpen = true;
+    state.gateHoldUntil =
+      context.currentTime + WebAudioStrokeSound.INITIAL_GUARANTEE_MS / 1000;
+    state.strokeActive = true;
+    this.scheduleIdleCheck(state, context);
 
     const initialGain = WebAudioStrokeSound.TOOL_PROFILES[tool].minGain;
     this.scheduleGain(state, initialGain, WebAudioStrokeSound.ATTACK_SEC);
@@ -119,7 +144,12 @@ export class WebAudioStrokeSound implements StrokeSound {
     if (!context) return;
     const state = this.toolStates.get(info.tool);
     if (!state) return;
-    this.applySpeed(info, state, context, false);
+    const instantSpeed = this.calculateInstantSpeed(info, state);
+    state.lastLength = info.length;
+    state.lastTimeSinceStart = info.timeSinceStart;
+    state.lastInputAt = context.currentTime;
+    this.scheduleIdleCheck(state, context);
+    this.applySpeed(info, state, context, false, instantSpeed);
   }
 
   onStrokeEnd(info: StrokeSoundInfo): void {
@@ -128,6 +158,8 @@ export class WebAudioStrokeSound implements StrokeSound {
     const state = this.toolStates.get(info.tool);
     if (!state) return;
 
+    state.strokeActive = false;
+    this.clearIdleCheck(state);
     this.scheduleGain(state, 0, WebAudioStrokeSound.RELEASE_SEC);
     this.scheduleStop(state, WebAudioStrokeSound.STOP_AFTER_IDLE_MS);
   }
@@ -141,6 +173,9 @@ export class WebAudioStrokeSound implements StrokeSound {
     for (const state of this.toolStates.values()) {
       if (state.stopTimeoutId !== null) {
         clearTimeout(state.stopTimeoutId);
+      }
+      if (state.idleTimeoutId !== null) {
+        clearTimeout(state.idleTimeoutId);
       }
       if (state.source) {
         if (state.sourceKind === "buffer") {
@@ -284,6 +319,13 @@ export class WebAudioStrokeSound implements StrokeSound {
       sourceKind: null,
       smoothSpeed: 0,
       lastUpdateAt: context.currentTime,
+      lastLength: 0,
+      lastTimeSinceStart: 0,
+      lastInputAt: context.currentTime,
+      gateOpen: false,
+      gateHoldUntil: 0,
+      strokeActive: false,
+      idleTimeoutId: null,
       stopTimeoutId: null,
     };
     this.toolStates.set(tool, state);
@@ -378,13 +420,15 @@ export class WebAudioStrokeSound implements StrokeSound {
     state: ToolState,
     context: AudioContext,
     forceInitial: boolean,
+    overrideSpeed?: number,
   ): void {
     const profile = WebAudioStrokeSound.TOOL_PROFILES[info.tool];
     const now = context.currentTime;
+    const speed = overrideSpeed ?? info.speed;
 
     const dt = Math.max(0, now - state.lastUpdateAt);
     const speedBlend = 1 - Math.exp(-dt / WebAudioStrokeSound.SPEED_SMOOTH_SEC);
-    state.smoothSpeed += (info.speed - state.smoothSpeed) * speedBlend;
+    state.smoothSpeed += (speed - state.smoothSpeed) * speedBlend;
     state.lastUpdateAt = now;
 
     const normalized = Math.min(
@@ -411,12 +455,46 @@ export class WebAudioStrokeSound implements StrokeSound {
     const isInitial =
       forceInitial ||
       info.timeSinceStart < WebAudioStrokeSound.INITIAL_GUARANTEE_MS;
-    if (!isInitial && state.smoothSpeed <= WebAudioStrokeSound.SPEED_GATE) {
+
+    // 速度ゲート（ヒステリシス＋ホールド）で停止付近のノイズを確実にカット
+    const wasGateOpen = state.gateOpen;
+    const gateHoldSec = WebAudioStrokeSound.GATE_HOLD_MS / 1000;
+    if (isInitial) {
+      state.gateOpen = true;
+      state.gateHoldUntil = now + gateHoldSec;
+    } else if (state.gateOpen) {
+      if (state.smoothSpeed > WebAudioStrokeSound.GATE_OFF_SPEED) {
+        // 動いている間はホールド期限を更新し、減速時の短い揺れで切れないようにする
+        state.gateHoldUntil = now + gateHoldSec;
+      } else if (now >= state.gateHoldUntil) {
+        state.gateOpen = false;
+      }
+    } else if (state.smoothSpeed >= WebAudioStrokeSound.GATE_ON_SPEED) {
+      state.gateOpen = true;
+      state.gateHoldUntil = now + gateHoldSec;
+    }
+
+    if (!state.gateOpen) {
       targetGain = 0;
     } else {
       targetGain = Math.max(targetGain, profile.minGain);
     }
-    this.scheduleGain(state, targetGain, WebAudioStrokeSound.PARAM_SMOOTH_SEC);
+    const gateJustClosed = wasGateOpen && !state.gateOpen;
+    const gainTimeConstant = gateJustClosed
+      ? WebAudioStrokeSound.GATE_RELEASE_SEC
+      : WebAudioStrokeSound.PARAM_SMOOTH_SEC;
+    this.scheduleGain(state, targetGain, gainTimeConstant);
+  }
+
+  private calculateInstantSpeed(
+    info: StrokeSoundInfo,
+    state: ToolState,
+  ): number {
+    const dtMs = info.timeSinceStart - state.lastTimeSinceStart;
+    if (dtMs <= 0) return 0;
+    const dx = info.length - state.lastLength;
+    if (dx <= 0) return 0;
+    return dx / dtMs;
   }
 
   private scheduleGain(
@@ -470,6 +548,30 @@ export class WebAudioStrokeSound implements StrokeSound {
     if (state.stopTimeoutId !== null) {
       clearTimeout(state.stopTimeoutId);
       state.stopTimeoutId = null;
+    }
+  }
+
+  private scheduleIdleCheck(state: ToolState, context: AudioContext): void {
+    this.clearIdleCheck(state);
+    state.idleTimeoutId = setTimeout(() => {
+      state.idleTimeoutId = null;
+      if (!state.strokeActive) return;
+      const now = context.currentTime;
+      if (now - state.lastInputAt < WebAudioStrokeSound.IDLE_TIMEOUT_MS / 1000) {
+        this.scheduleIdleCheck(state, context);
+        return;
+      }
+      state.smoothSpeed = 0;
+      state.gateOpen = false;
+      state.gateHoldUntil = now;
+      this.scheduleGain(state, 0, WebAudioStrokeSound.GATE_RELEASE_SEC);
+    }, WebAudioStrokeSound.IDLE_TIMEOUT_MS);
+  }
+
+  private clearIdleCheck(state: ToolState): void {
+    if (state.idleTimeoutId !== null) {
+      clearTimeout(state.idleTimeoutId);
+      state.idleTimeoutId = null;
     }
   }
 
