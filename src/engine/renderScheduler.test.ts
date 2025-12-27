@@ -1,8 +1,8 @@
 import type { Drawing, Stroke } from "@/core/types";
 import type { DrawingRenderer } from "@/engine/ports";
 import {
-  invalidateRendererCache,
   invalidatePendingRequests,
+  invalidateRendererCache,
   renderDrawingAtTime,
 } from "@/engine/renderScheduler";
 

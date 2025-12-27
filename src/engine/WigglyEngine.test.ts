@@ -1,11 +1,11 @@
 import * as renderScheduler from "@/engine/renderScheduler";
 import { WigglyEngine } from "@/engine/WigglyEngine";
 import {
+  createTestEngine,
   DEFAULT_TEST_DRAWING,
   MockRaf,
   MockRenderer,
   MockTime,
-  createTestEngine,
 } from "@/testUtils/engineMocks";
 
 const initialDrawing = DEFAULT_TEST_DRAWING;
@@ -124,10 +124,7 @@ describe("WigglyEngine", () => {
       raf,
       jitterConfig: { amplitude: 0, frequency: 1 },
     });
-    const invalidateSpy = vi.spyOn(
-      renderScheduler,
-      "invalidateRendererCache",
-    );
+    const invalidateSpy = vi.spyOn(renderScheduler, "invalidateRendererCache");
     const cacheSpy = vi.spyOn(renderer, "invalidateRenderCache");
 
     const palette = ["#000000", "#ffffff"];
