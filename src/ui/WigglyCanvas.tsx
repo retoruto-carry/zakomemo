@@ -84,6 +84,7 @@ export function WigglyCanvas({
 }: WigglyCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const primaryPointerIdRef = useRef<number | null>(null);
+  const penPointerIdRef = useRef<number | null>(null);
   const activePointersRef = useRef<Map<number, PointerInfo>>(new Map());
   const isMultiTouchRef = useRef(false);
   const [eraserPos, setEraserPos] = useState<{ x: number; y: number } | null>(
@@ -146,12 +147,29 @@ export function WigglyCanvas({
       // Apple Pencilの初期pointerdownイベントではpressure=0になることがあるため、
       // pointerdownでは筆圧をチェックせず、すべてのペン入力を処理します。
       // 軽い筆圧でも描画を開始できるようにするためです。
+      const isPen = ev.pointerType === "pen";
+
+      if (isPen) {
+        isMultiTouchRef.current = false;
+        penPointerIdRef.current = ev.pointerId;
+        if (
+          primaryPointerIdRef.current !== null &&
+          primaryPointerIdRef.current !== ev.pointerId
+        ) {
+          activePointersRef.current.delete(primaryPointerIdRef.current);
+          engine.pointerUp();
+          primaryPointerIdRef.current = null;
+        }
+      } else if (penPointerIdRef.current !== null) {
+        // ペン入力中はタッチ/マウス入力を無視して誤描画を防ぐ。
+        return;
+      }
 
       // マルチタッチ（2本指以上）の検出
       // pointerdownイベントが発火した時点で、既にアクティブなポインターが1本以上ある場合、
       // マルチタッチと判断して描画を無効にし、ピンチジェスチャーを優先します
       const activePointerCount = activePointersRef.current.size;
-      if (activePointerCount >= 1) {
+      if (!isPen && ev.pointerType === "touch" && activePointerCount >= 1) {
         // マルチタッチ状態を記録
         isMultiTouchRef.current = true;
         // 描画を開始せず、ピンチジェスチャーを優先
@@ -194,6 +212,9 @@ export function WigglyCanvas({
 
     /** 描画中のポインター移動処理 */
     const handlePointerMove = (ev: PointerEvent) => {
+      if (penPointerIdRef.current !== null && ev.pointerType !== "pen") {
+        return;
+      }
       const info = activePointersRef.current.get(ev.pointerId);
       const { visual, internal } = toCanvasPos(ev);
 
@@ -211,7 +232,7 @@ export function WigglyCanvas({
       }
 
       // マルチタッチ状態の場合は描画を無効化
-      if (isMultiTouchRef.current) {
+      if (isMultiTouchRef.current && penPointerIdRef.current === null) {
         return;
       }
 
@@ -234,8 +255,11 @@ export function WigglyCanvas({
       ev: PointerEvent,
       isCancel: boolean = false,
     ): void => {
+      const hasInfo = activePointersRef.current.has(ev.pointerId);
       const info = activePointersRef.current.get(ev.pointerId);
       const isPrimaryPointer = ev.pointerId === primaryPointerIdRef.current;
+
+      if (!hasInfo && !isPrimaryPointer) return;
 
       if (info) {
         activePointersRef.current.delete(ev.pointerId);
@@ -265,6 +289,9 @@ export function WigglyCanvas({
         if (isCancel && !isPrimaryPointer) {
           setEraserPos(null);
         }
+      }
+      if (penPointerIdRef.current === ev.pointerId) {
+        penPointerIdRef.current = null;
       }
       canvas.releasePointerCapture(ev.pointerId);
     };
