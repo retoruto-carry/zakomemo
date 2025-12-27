@@ -378,7 +378,7 @@ export const WigglyTools = React.forwardRef<
     }
     setTool("pen");
     setActivePopup(activePopup === "pen" ? "none" : "pen");
-  }, [activePopup, setActivePopup, setTool]);
+  }, [activePopup, setTool]);
 
   return (
     <div className="flex flex-col w-full bg-zako-cream select-none text-zako-dark font-sans p-2 gap-2 relative">
@@ -585,7 +585,7 @@ export const WigglyTools = React.forwardRef<
                 className="absolute bg-white border-[3px] border-black p-0.5 grid grid-cols-2 gap-0.5 shadow-[8px_8px_0_var(--color-zako-black-20)] z-[150] h-fit rounded-[4px]"
                 style={{
                   top: "calc(100% - 54px)",
-                  left: "8px",
+                  right: "8px",
                   width: "100px",
                 }}
               >
@@ -611,7 +611,7 @@ export const WigglyTools = React.forwardRef<
                       aria-label={`ペン: ${v.label}`}
                     >
                       <div
-                        className={`${getPenShapeClass(v.id, "grid")} bg-white border-[1.5px] ${penVariant === v.id ? "border-black" : "border-zako-brown"}`}
+                        className={`${getPenShapeClass(v.id, "grid")} ${penVariant === v.id ? "bg-black border-black" : "bg-white border-zako-brown"} border-[1.5px]`}
                       />
                     </button>
                   );

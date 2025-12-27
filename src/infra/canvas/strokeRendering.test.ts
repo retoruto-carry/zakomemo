@@ -244,7 +244,7 @@ describe("renderStroke", () => {
       elapsedTimeMs: 0,
     });
 
-    expect(getPixel(buffer, 5, 6)).toEqual({
+    expect(getPixel(buffer, 5, 5)).toEqual({
       r: 255,
       g: 0,
       b: 0,
