@@ -611,10 +611,12 @@ export class WebAudioStrokeSound implements StrokeSound {
         now - state.lastInputAt <
         WebAudioStrokeSound.IDLE_TIMEOUT_MS / 1000
       ) {
+        // 入力が継続している場合は再スケジュール
         this.scheduleIdleCheck(state, context);
         return;
       }
       if (state.lastLength <= WebAudioStrokeSound.INITIAL_HOLD_LENGTH_PX) {
+        // 書き始めの極小移動は音を維持する
         this.scheduleIdleCheck(state, context);
         return;
       }
