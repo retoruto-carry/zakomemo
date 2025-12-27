@@ -671,6 +671,7 @@ export class WebAudioStrokeSound implements StrokeSound {
       })
       .catch(() => {
         this.workletLoaded = false;
+        this.workletLoadPromise = null;
       });
   }
 
