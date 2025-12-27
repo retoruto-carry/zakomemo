@@ -268,14 +268,14 @@ export const WigglyTools = React.forwardRef<
   const [activePopup, setActivePopup] = useState<
     "none" | "pen" | "pattern" | "eraser" | "settings"
   >("none");
-  const penWidthPercentage = useMemo(() => {
-    return MAX_PEN_WIDTH > MIN_PEN_WIDTH
-      ? ((brushWidth - MIN_PEN_WIDTH) / (MAX_PEN_WIDTH - MIN_PEN_WIDTH)) * 100
-      : 0;
-  }, [brushWidth]);
+  // Memoize slider fill to avoid recalculating the gradient each render.
   const penWidthFill = useMemo(() => {
-    return buildSliderFill(penWidthPercentage);
-  }, [penWidthPercentage]);
+    const percentage =
+      MAX_PEN_WIDTH > MIN_PEN_WIDTH
+        ? ((brushWidth - MIN_PEN_WIDTH) / (MAX_PEN_WIDTH - MIN_PEN_WIDTH)) * 100
+        : 0;
+    return buildSliderFill(percentage);
+  }, [brushWidth]);
   const currentPattern = useMemo(
     () => getPatternDefinition(patternId),
     [patternId],
