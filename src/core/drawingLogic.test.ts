@@ -1,5 +1,5 @@
-import { appendPoint, clearDrawing, startStroke } from "./drawingLogic";
-import type { BrushSettings, Drawing } from "./types";
+import { appendPoint, clearDrawing, startStroke } from "@/core/drawingLogic";
+import type { BrushSettings, Drawing } from "@/core/types";
 
 const baseDrawing: Drawing = {
   width: 100,
@@ -9,9 +9,10 @@ const baseDrawing: Drawing = {
 
 const brush: BrushSettings = {
   kind: "solid",
-  color: "#000000",
+  color: { kind: "palette", index: 0 },
   width: 4,
   opacity: 1,
+  variant: "normal",
 };
 
 describe("drawingLogic", () => {

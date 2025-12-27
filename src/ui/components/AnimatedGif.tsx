@@ -8,6 +8,7 @@ import {
   useState,
 } from "react";
 
+/** AnimatedGifの入力 */
 interface AnimatedGifProps {
   /** 定常状態で表示するPNG画像のパス */
   staticSrc: string;
@@ -19,6 +20,7 @@ interface AnimatedGifProps {
   animationDuration?: number;
 }
 
+/** AnimatedGifの外部操作用ハンドル */
 export interface AnimatedGifHandle {
   playAnimation: () => void;
 }
@@ -57,6 +59,7 @@ export const AnimatedGif = forwardRef<AnimatedGifHandle, AnimatedGifProps>(
       };
     }, [isAnimating, staticSrc, animationDuration]);
 
+    /** アニメーション再生を開始する */
     const playAnimation = () => {
       if (!isAnimating) {
         setIsAnimating(true);

@@ -1,8 +1,9 @@
 import type { Drawing, Stroke } from "@/core/types";
-import { exportDrawingAsGif } from "@/engine/exportGif";
 import type { DrawingRenderer, GifEncoder } from "@/engine/ports";
 import { CYCLE_COUNT, CYCLE_INTERVAL_MS } from "@/engine/renderingConstants";
+import { exportDrawingAsGif } from "@/infra/exportGif";
 
+/** GIFテスト用のレンダラー */
 class MockRenderer implements DrawingRenderer {
   clears: { width: number; height: number }[] = [];
   renders: Array<{ stroke: Stroke; time: number }> = [];
@@ -40,20 +41,26 @@ class MockRenderer implements DrawingRenderer {
   }
 }
 
+/** GIFエンコーダーのテスト用モック */
 class MockGifEncoder implements GifEncoder {
   frames: ImageData[] = [];
   beginArgs: { width: number; height: number; fps: number } | null = null;
+  backgroundColor: string | null = null;
   begin(width: number, height: number, fps: number): void {
     this.beginArgs = { width, height, fps };
   }
   addFrame(imageData: ImageData): void {
     this.frames.push(imageData);
   }
+  setBackgroundColor(backgroundColor: string): void {
+    this.backgroundColor = backgroundColor;
+  }
   async finish(): Promise<Blob> {
     return new Blob(["gif"]);
   }
 }
 
+/** cycleBitmap取得を検証するためのレンダラー */
 class MockCycleRenderer implements DrawingRenderer {
   revisions: number[] = [];
   closeSpy = vi.fn();
@@ -106,7 +113,13 @@ const drawing: Drawing = {
     {
       id: "s1",
       kind: "draw",
-      brush: { kind: "solid", color: "#000", width: 2, opacity: 1 },
+      brush: {
+        kind: "solid",
+        color: { kind: "palette", index: 0 },
+        width: 2,
+        opacity: 1,
+        variant: "normal",
+      },
       points: [
         { x: 0, y: 0, t: 0 },
         { x: 10, y: 0, t: 10 },
@@ -122,6 +135,7 @@ describe("exportDrawingAsGif", () => {
 
     const blob = await exportDrawingAsGif({
       drawing,
+      drawingRevision: 0,
       renderer,
       gif,
       jitterConfig: { amplitude: 0, frequency: 1 },

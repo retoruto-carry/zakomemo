@@ -6,6 +6,17 @@
 - 1tick 内の重い処理を避け、45fps 目安で安定させる
 - キャッシュの責務を分割し、差分/全再生成の判断を明確化する
 
+## engine / infra の責務境界
+
+- engine
+  - 「いつ」「何を描くか」を決める
+  - 入力や履歴の解釈、描画順序の制御
+  - 古い非同期結果の破棄（requestIdなど）
+- infra
+  - 「どう描くか」を実装する
+  - Canvas/ImageData/Bitmap の具体的な生成
+  - キャッシュ（LRUや差分生成）の運用
+
 ## これだけ覚えれば OK
 
 - 描画は RAF ループの tick で更新される（`minFrameIntervalMs = 1000/45` で間引き）
@@ -78,15 +89,21 @@
 ## 非同期と古い結果の破棄
 
 - `createImageBitmap` は Promise を返すので生成は非同期で完了する
-- `frameRenderer` の `requestId` が最新かどうかで flush を制御
+- `renderScheduler` の `requestId` が最新かどうかで flush を制御
 - `CycleBitmapCache` は `renderCacheEpoch` が違う結果を捨てる
 - これにより「古い Drawing が表示される」問題を回避する
 
 ## コンポーネント責務
 
+- `renderScheduler`（engine）
+  - 描画スケジューラ（時間と描画要求の整合を取る）
+  - キャッシュ対応レンダラーかの判定とフォールバック制御
+  - `requestId` で古い非同期結果を弾く
 - `ImageDataBuffer`
   - ImageData と offscreenCanvas の管理
   - 背景塗りつぶし、`setPixel`、`putImageData`
+- `strokeJitter`
+  - ジッター適用と整数スナップの純粋関数
 - `StrokeChangeTracker`
   - ストローク ID とポイント数を保持
   - 追加のみなら差分、削除/順序変更なら全再生成
@@ -97,8 +114,28 @@
   - `cacheKey -> ImageBitmap` の LRU と in-flight を保持
   - Drawing 状態を最大 6 件まで保持（18 枚上限）
 - `CanvasRenderer`
-  - 判断と I/O のみ（オーケストレーション）
-  - 実描画は上記に委譲
+  - ImageData/Bitmap の生成・差分・キャッシュ運用
+  - cycle ごとのバッファと LRU を管理
+  - 実描画は `FrameBuilder` / `strokeRendering` に委譲
+
+## 責務境界の整理（現状）
+
+- engine 側 (`renderScheduler`)
+  - 「いつ」「どのフレームを」描画するかを決める
+  - 非同期結果の安全な反映（古い結果を捨てる）
+  - キャッシュ非対応レンダラーのフォールバック
+- infra 側 (`CanvasRenderer`)
+  - 「どう作るか」（差分/全再生成、Bitmap生成、LRU）
+  - キャッシュの世代/整合性の担保（renderCacheEpoch など）
+
+## 改善方針（提案）
+
+- `renderScheduler` は「スケジュールと安全な描画反映」に集中
+- `CanvasRenderer` は「描画生成とキャッシュ運用」に集中
+- 依存関係は `DrawingRenderer` の契約で明確化
+- どちらが「時間（cycle）」を持つかは整理対象
+  - 現状は `renderScheduler` が `cycleIndex` を決め、`CanvasRenderer` が時間を固定化して生成
+  - ここを一本化すると責務境界が読みやすくなる
 
 ## 代表的なシナリオ
 

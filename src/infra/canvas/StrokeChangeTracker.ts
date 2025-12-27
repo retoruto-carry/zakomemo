@@ -1,6 +1,7 @@
 import type { Drawing, Stroke } from "@/core/types";
 import type { StrokeWithNewPoints } from "@/infra/canvas/types";
 
+/** ストローク差分の判定結果 */
 export type StrokeDiff =
   | {
       mode: "diff";

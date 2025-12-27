@@ -15,8 +15,8 @@
 - 消しゴム: 背景色で描画（ImageDataに直接書き込み）。太さはペン設定と連動。プレビューは白抜きで表示。形状は円/四角/横線の 3 種。jitterは適用しない。
 - Undo/Redo: 「やり直し」「進む」ボタンおよび 2 本指タップで操作可能。履歴がある場合のみ有効（disabled 状態で表示）。
 - 全消し: 「消す」ボタンで履歴に push した上でクリア。
-- 設定: 下画面を覆うフルスクリーンモーダル。「背景色」「パレット」「本体色」「ぶるぶる」のタブ切り替え。カスタムスクロールバー実装。
-  - 背景色: プリセット色またはカスタムカラーを選択可能。
+- 設定: 下画面を覆うフルスクリーンモーダル。「パレット」「本体色」「ぶるぶる」のタブ切り替え。カスタムスクロールバー実装。
+  - 背景色: パレットプリセット/カスタムパレットに含めて選択。
   - ぶるぶる: 揺れの振幅と周波数をスライダーで調整可能。
 - GIF 出力: jitterアニメーションは3フレーム固定で10fps（100ms間隔）を1ループ分だけ出力。GIFは無限ループ。保存後、X（Twitter）へのシェア機能あり。
   - モバイル: Web Share API 対応時は画像付きシェア、非対応時は Intent URL でテキストシェア。
@@ -24,11 +24,13 @@
 
 ## 技術仕様：動的カラーシステム
 
-- **CSS 変数による管理**:
+- **パレット参照の保持**:
+  - ストロークは「パレットの色インデックス」を保持し、描画時にパレット配列から実色を解決する。
+  - そのため、設定でパレットを切り替えると**描画済みの線の色も動的に変化**する。
+- **UIのCSS変数**:
   - カラーパレットの色（`--palette-0`〜`--palette-5`）および本体各部位の色（`--ugo-body-bg`等）は CSS 変数として管理。
-  - ストローク描画時に変数を参照するため、設定でパレットを切り替えると**描画済みの線の色も動的に変化**する。
 - **レンダラーのキャッシュ整合性**:
-  - パレット変更時、CanvasRenderer 内のパターンキャッシュをクリアし、新しい色で模様が再生成されるように制御。
+  - パレット変更時は engine/renderer 側でキャッシュを無効化し、新しい色で再生成する。
 - **筐体テーマの反映**:
   - `DesktopLayout` / `MobileLayout` は筐体各部の色を CSS 変数経由で参照し、設定変更を即座に反映。
 
@@ -75,7 +77,7 @@
   - RafScheduler(request/cancel)
   - GifEncoder(begin/addFrame/finish)
   - StrokeSound(onStrokeStart/Update/End)
-- frameRenderer: `renderDrawingAtTime({ drawing, drawingRevision, renderer, jitterConfig, elapsedTimeMs })` で任意時刻の描画を共通化。`elapsedTimeMs`はエンジン開始からの経過時間（ミリ秒）。
+- renderScheduler: `renderDrawingAtTime({ drawing, drawingRevision, renderer, jitterConfig, elapsedTimeMs })` で任意時刻の描画を共通化。`elapsedTimeMs`はエンジン開始からの経過時間（ミリ秒）。
 - WigglyEngine:
   - History<Drawing> を保持し、tool/color/width の現在値を管理。
   - pointerDown/move/up で core を更新し、stroke 完了時のみ履歴に push。
@@ -92,7 +94,7 @@
 
 ## UI 層
 
-- `createWigglyEngine` が canvas・初期 Drawing を受け取り、Renderer/Time/Raf/Sound を注入してエンジン生成。
+- `createWigglyEngine` が canvas・初期 Drawing を受け取り、Renderer/Time/Raf/Sound を注入してエンジン生成（`src/infra/createWigglyEngine.ts`）。
 - React `WigglyEditor`（例）: ツール切替ボタン、カラーパレット、太さスライダー、キャンバス。pointerdown/move/up を engine に渡し、2 本指タップで Undo。touchAction: none でスクロール抑止。
 
 ## アニメーション/モーション指針

@@ -1,20 +1,24 @@
 import type { JitterConfig } from "@/core/jitter";
+import { applyJitterToStroke } from "@/core/strokeJitter";
 import type { Drawing, Stroke } from "@/core/types";
-import { applyJitterToStroke } from "@/engine/frameRenderer";
 import type { ImageDataBuffer } from "@/infra/canvas/ImageDataBuffer";
 import { renderStroke } from "@/infra/canvas/strokeRendering";
 import type { StrokeWithNewPoints } from "@/infra/canvas/types";
 
+/** フレーム全再生成の入力 */
 export type BuildFromScratchParams = {
   drawing: Drawing;
   cycleElapsedTimeMs: number;
   jitterConfig: JitterConfig;
+  palette: string[];
 };
 
+/** フレーム差分生成の入力 */
 export type BuildWithDiffParams = {
   drawing: Drawing;
   cycleElapsedTimeMs: number;
   jitterConfig: JitterConfig;
+  palette: string[];
   newStrokes: Stroke[];
   strokesWithNewPoints: StrokeWithNewPoints[];
   baseBitmap: ImageBitmap;
@@ -27,6 +31,7 @@ export type BuildWithDiffParams = {
 export class FrameBuilder {
   private buffer: ImageDataBuffer;
 
+  /** バッファを受け取って初期化する */
   constructor({ buffer }: { buffer: ImageDataBuffer }) {
     this.buffer = buffer;
   }
@@ -36,6 +41,7 @@ export class FrameBuilder {
     drawing,
     cycleElapsedTimeMs,
     jitterConfig,
+    palette,
   }: BuildFromScratchParams): Promise<ImageBitmap> {
     this.buffer.clear({ width: drawing.width, height: drawing.height });
 
@@ -47,6 +53,7 @@ export class FrameBuilder {
       });
       renderStroke({
         context: this.buffer,
+        palette,
         stroke,
         jitteredPoints: jittered,
         elapsedTimeMs: cycleElapsedTimeMs,
@@ -61,6 +68,7 @@ export class FrameBuilder {
     drawing,
     cycleElapsedTimeMs,
     jitterConfig,
+    palette,
     newStrokes,
     strokesWithNewPoints,
     baseBitmap,
@@ -79,6 +87,7 @@ export class FrameBuilder {
       });
       renderStroke({
         context: this.buffer,
+        palette,
         stroke,
         jitteredPoints: jittered,
         elapsedTimeMs: cycleElapsedTimeMs,
@@ -101,6 +110,7 @@ export class FrameBuilder {
       });
       renderStroke({
         context: this.buffer,
+        palette,
         stroke: tempStroke,
         jitteredPoints: jittered,
         elapsedTimeMs: cycleElapsedTimeMs,

@@ -1,21 +1,32 @@
-import type { Point } from "./types";
+import type { Point } from "@/core/types";
 
+/** ジッターの設定値 */
 export type JitterConfig = {
   amplitude: number;
   frequency: number;
 };
 
+/** ジッターのオフセット量 */
 export type JitterOffset = {
   dx: number;
   dy: number;
 };
 
+/**
+ * 簡易な決定性ハッシュを生成する
+ */
 function hashNoise(a: number, b: number, c: number): number {
   // 簡易な決定性ハッシュで0..1に正規化
   const n = Math.sin(a * 12.9898 + b * 78.233 + c * 37.719) * 43758.5453;
   return n - Math.floor(n);
 }
 
+/**
+ * 点ごとのジッターを計算（point.tを使用）
+ * @param point 対象ポイント
+ * @param elapsedTimeMs 経過時間（ミリ秒）
+ * @param config ジッター設定
+ */
 export function computeJitter(
   point: Point,
   elapsedTimeMs: number,

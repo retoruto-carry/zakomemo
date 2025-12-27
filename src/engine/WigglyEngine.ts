@@ -8,22 +8,30 @@ import {
 } from "@/core/history";
 import type { JitterConfig } from "@/core/jitter";
 import { snapBrushWidth, snapToPixel } from "@/core/rasterization";
-import type { BrushSettings, Drawing, StrokeKind } from "@/core/types";
-import {
-  invalidatePendingRequests,
-  renderDrawingAtTime,
-} from "@/engine/frameRenderer";
+import type {
+  BrushColor,
+  BrushPatternId,
+  BrushSettings,
+  Drawing,
+  StrokeKind,
+} from "@/core/types";
 import type {
   DrawingRenderer,
   RafScheduler,
   StrokeSound,
   TimeProvider,
 } from "@/engine/ports";
+import {
+  invalidatePendingRequests,
+  renderDrawingAtTime,
+} from "@/engine/renderScheduler";
 import type { EraserVariant, PenVariant } from "@/engine/variants";
 import { defaultPenWidth, resolveWidthVariant } from "@/engine/variants";
 
+/** ツール種別 */
 export type Tool = "pen" | "pattern" | "eraser";
 
+/** WigglyEngineの初期化パラメータ */
 export type EngineOptions = {
   initialDrawing: Drawing;
   renderer: DrawingRenderer;
@@ -47,11 +55,11 @@ export class WigglyEngine {
   private drawingRevision = 0;
 
   private currentTool: Tool = "pen";
-  private pendingColor = "#000000";
+  private pendingColor: BrushColor = { kind: "palette", index: 0 };
   private pendingWidth = defaultPenWidth.normal;
   private penVariant: PenVariant = "normal";
   private eraserVariant: EraserVariant = "eraserCircle";
-  private pendingPattern: BrushSettings["patternId"] = "dot_sparse";
+  private pendingPattern: BrushPatternId = "dot_sparse";
 
   private currentStrokeId: string | null = null;
   private strokeStartTime = 0;
@@ -65,6 +73,7 @@ export class WigglyEngine {
 
   private onHistoryChange?: () => void;
 
+  /** エンジンを初期化する */
   constructor(options: EngineOptions) {
     this.history = createHistory(options.initialDrawing);
     this.renderer = options.renderer;
@@ -78,27 +87,47 @@ export class WigglyEngine {
     this.loopId = this.raf.request(this.loop);
   }
 
+  /** 現在のツールを設定する */
   setTool(tool: Tool): void {
     this.currentTool = tool;
   }
 
-  setBrushColor(color: string): void {
+  /** ブラシ色を設定する */
+  setBrushColor(color: BrushColor): void {
     this.pendingColor = color;
   }
 
+  /**
+   * パレット変更をレンダラーへ同期する
+   */
+  setPaletteColors(palette: string[]): void {
+    if (
+      "setPaletteColors" in this.renderer &&
+      typeof this.renderer.setPaletteColors === "function"
+    ) {
+      this.renderer.setPaletteColors(palette);
+      this.clearRendererCache();
+      this.lastRenderAt = 0;
+    }
+  }
+
+  /** ブラシ幅を設定する（整数化済み） */
   setBrushWidth(width: number): void {
     this.pendingWidth = snapBrushWidth(width);
   }
 
+  /** ペンのバリアントを設定する */
   setPenVariant(variant: PenVariant): void {
     this.penVariant = variant;
   }
 
+  /** 消しゴムのバリアントを設定する */
   setEraserVariant(variant: EraserVariant): void {
     this.eraserVariant = variant;
   }
 
-  setPattern(patternId: BrushSettings["patternId"]): void {
+  /** パターンIDを設定する */
+  setPattern(patternId: BrushPatternId): void {
     this.pendingPattern = patternId;
   }
 
@@ -132,6 +161,7 @@ export class WigglyEngine {
     this.lastRenderAt = 0;
   }
 
+  /** 履歴変更時の通知を設定する */
   setHistoryChangeListener(listener: () => void): void {
     this.onHistoryChange = listener;
   }
@@ -146,14 +176,17 @@ export class WigglyEngine {
     invalidatePendingRequests(this.renderer);
   }
 
+  /** undo可能かどうか */
   canUndo(): boolean {
     return this.history.past.length > 0;
   }
 
+  /** redo可能かどうか */
   canRedo(): boolean {
     return this.history.future.length > 0;
   }
 
+  /** 描画開始（ポインターダウン） */
   pointerDown(x: number, y: number): void {
     // 座標を整数ピクセルにスナップ
     const snapped = snapToPixel(x, y);
@@ -168,20 +201,29 @@ export class WigglyEngine {
     const variant: PenVariant | EraserVariant =
       strokeKind === "erase" ? this.eraserVariant : this.penVariant;
 
-    const updated = startStroke(
-      drawing,
-      strokeId,
-      strokeKind,
-      {
-        kind: brushKind,
-        color: this.pendingColor,
-        width: this.pendingWidth,
-        opacity: 1,
-        patternId: brushKind === "pattern" ? this.pendingPattern : undefined,
-        variant,
-      },
-      { x: snapped.x, y: snapped.y, t: now - this.startedAt },
-    );
+    const brush: BrushSettings =
+      brushKind === "pattern"
+        ? {
+            kind: "pattern",
+            color: this.pendingColor,
+            width: this.pendingWidth,
+            opacity: 1,
+            patternId: this.pendingPattern,
+            variant,
+          }
+        : {
+            kind: "solid",
+            color: this.pendingColor,
+            width: this.pendingWidth,
+            opacity: 1,
+            variant,
+          };
+
+    const updated = startStroke(drawing, strokeId, strokeKind, brush, {
+      x: snapped.x,
+      y: snapped.y,
+      t: now - this.startedAt,
+    });
 
     this.history = { ...this.history, present: updated };
     this.bumpDrawingRevision();
@@ -205,6 +247,7 @@ export class WigglyEngine {
     });
   }
 
+  /** 描画中のポイント追加（ポインタームーブ） */
   pointerMove(x: number, y: number): void {
     if (!this.currentStrokeId) return;
 
@@ -264,6 +307,7 @@ export class WigglyEngine {
     });
   }
 
+  /** 描画終了（ポインターアップ） */
   pointerUp(): void {
     if (!this.currentStrokeId) return;
     const now = this.time.now();
@@ -294,6 +338,7 @@ export class WigglyEngine {
     this.onHistoryChange?.();
   }
 
+  /** undoを実行する */
   undo(): void {
     this.history = undoHistory(this.history);
     // やり直し/進む時はキャッシュをクリア（全ストロークから再生成が必要）
@@ -302,6 +347,7 @@ export class WigglyEngine {
     this.onHistoryChange?.();
   }
 
+  /** redoを実行する */
   redo(): void {
     this.history = redoHistory(this.history);
     // やり直し/進む時はキャッシュをクリア（全ストロークから再生成が必要）
@@ -310,17 +356,17 @@ export class WigglyEngine {
     this.onHistoryChange?.();
   }
 
+  /** 現在の描画データを取得する */
   getDrawing(): Drawing {
     return this.history.present;
   }
 
-  /**
-   * Drawingの版番号を返す
-   */
+  /** 描画の版番号を取得する */
   getDrawingRevision(): number {
     return this.drawingRevision;
   }
 
+  /** 描画を全消去する */
   clear(): void {
     const cleared = clearDrawing(this.history.present);
     this.history = pushHistory(this.history, cleared);
@@ -328,6 +374,7 @@ export class WigglyEngine {
     this.onHistoryChange?.();
   }
 
+  /** ループを停止して後片付けする */
   destroy(): void {
     if (this.loopId !== null) {
       this.raf.cancel(this.loopId);
@@ -335,7 +382,7 @@ export class WigglyEngine {
   }
 
   /**
-   * 約45fpsで描画を再レンダリング
+   * 約45fpsで描画を再レンダリングするループ
    */
   private loop(): void {
     const now = this.time.now();
@@ -356,7 +403,8 @@ export class WigglyEngine {
   }
 
   /**
-   * crypto.randomUUIDが利用可能な場合はそれを使用、そうでなければランダム文字列を生成
+   * ユニークなストロークIDを生成する
+   * crypto.randomUUIDが使えない場合はランダム文字列を使用する
    */
   private createStrokeId(): string {
     if (
@@ -368,6 +416,7 @@ export class WigglyEngine {
     return `stroke-${Math.random().toString(36).slice(2)}`;
   }
 
+  /** 描画の版番号を進める */
   private bumpDrawingRevision(): void {
     this.drawingRevision += 1;
     invalidatePendingRequests(this.renderer);

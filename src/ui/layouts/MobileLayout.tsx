@@ -2,11 +2,13 @@
 
 import type { ReactNode } from "react";
 
+/** レイアウトに渡す表示要素 */
 interface LayoutProps {
   canvas: ReactNode;
   tools: ReactNode;
 }
 
+/** モバイル向けの本体レイアウト */
 export function MobileLayout({ canvas, tools }: LayoutProps) {
   return (
     <div className="fixed inset-0 flex flex-col bg-(--ugo-body-bg) touch-none transition-colors duration-300">

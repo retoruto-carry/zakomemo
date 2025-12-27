@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { LoadingScreen } from "@/ui/components/LoadingScreen";
 import { WigglyEditor } from "@/ui/WigglyEditor";
 
+/** アプリのホーム画面 */
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [isExiting, setIsExiting] = useState(false);

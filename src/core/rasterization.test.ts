@@ -1,6 +1,10 @@
 import {
   bresenhamLine,
+  calculateStampedLinePixels,
   calculateThickLinePixels,
+  getCircleStampOffsets,
+  getLineStampOffsets,
+  getSquareStampOffsets,
   snapBrushWidth,
   snapToPixel,
 } from "@/core/rasterization";
@@ -211,15 +215,18 @@ describe("rasterization", () => {
     it("width=3の場合は中心線の周囲のピクセルを計算", () => {
       const centerPixels = [{ x: 5, y: 5 }];
       const result = calculateThickLinePixels(centerPixels, 3);
-      // 半径1の円内のピクセルを計算（距離の2乗が1以下）
-      // (5,5)を中心に、半径1の円内のピクセル: (4,5), (5,4), (5,5), (5,6), (6,5)
-      // これは十字形の5ピクセル（斜めのピクセルは距離の2乗が2になるため除外）
-      expect(result.length).toBe(5);
+      // 半径1.5の円内のピクセルを計算（距離の2乗が2.25以下）
+      // (5,5)を中心に、3x3の9ピクセルが含まれる
+      expect(result.length).toBe(9);
+      expect(result).toContainEqual({ x: 4, y: 4 });
       expect(result).toContainEqual({ x: 4, y: 5 });
+      expect(result).toContainEqual({ x: 4, y: 6 });
       expect(result).toContainEqual({ x: 5, y: 4 });
       expect(result).toContainEqual({ x: 5, y: 5 });
       expect(result).toContainEqual({ x: 5, y: 6 });
+      expect(result).toContainEqual({ x: 6, y: 4 });
       expect(result).toContainEqual({ x: 6, y: 5 });
+      expect(result).toContainEqual({ x: 6, y: 6 });
     });
 
     it("複数の中心線ピクセルで重複排除される", () => {
@@ -233,12 +240,12 @@ describe("rasterization", () => {
       expect(uniquePixels.size).toBe(result.length);
     });
 
-    it("width=5の場合は半径2の円内のピクセルを計算", () => {
+    it("width=5の場合は半径2.5の円内のピクセルを計算", () => {
       const centerPixels = [{ x: 10, y: 10 }];
       const result = calculateThickLinePixels(centerPixels, 5);
-      // 半径2の円内のピクセル数: 距離の2乗が4以下のピクセル
-      // これは13ピクセル（中心点から距離2以内のピクセル）
-      expect(result.length).toBe(13);
+      // 半径2.5の円内のピクセル数: 距離の2乗が6.25以下のピクセル
+      // これは21ピクセル
+      expect(result.length).toBe(21);
       // 中心点は含まれる
       expect(result).toContainEqual({ x: 10, y: 10 });
       // 端の点も含まれる
@@ -246,6 +253,8 @@ describe("rasterization", () => {
       expect(result).toContainEqual({ x: 12, y: 10 });
       expect(result).toContainEqual({ x: 10, y: 8 });
       expect(result).toContainEqual({ x: 10, y: 12 });
+      expect(result).toContainEqual({ x: 8, y: 9 });
+      expect(result).toContainEqual({ x: 9, y: 8 });
     });
 
     it("空の配列を渡すと空の配列を返す", () => {
@@ -359,20 +368,64 @@ describe("rasterization", () => {
       expect(width1.length).toBe(1);
       // width=2: radius=1, 5ピクセル（十字形）
       expect(width2.length).toBe(5);
-      // width=3: radius=1, 5ピクセル（十字形、width=2と同じ）
-      expect(width3.length).toBe(5);
+      // width=3: radius=1.5, 9ピクセル
+      expect(width3.length).toBe(9);
       // width=4: radius=2, 13ピクセル
       expect(width4.length).toBe(13);
-      // width=5: radius=2, 13ピクセル（width=4と同じ）
-      expect(width5.length).toBe(13);
+      // width=5: radius=2.5, 21ピクセル
+      expect(width5.length).toBe(21);
 
-      // 偶数と奇数の太さで、同じ半径になる場合がある
-      // width=2とwidth=3は同じradius=1なので、同じピクセル数
-      expect(width2.length).toBe(width3.length);
-      // width=4とwidth=5は同じradius=2なので、同じピクセル数
-      expect(width4.length).toBe(width5.length);
-      // しかし、width=4/5はwidth=2/3より大きい
-      expect(width4.length).toBeGreaterThan(width2.length);
+      expect(width1.length).toBeLessThan(width2.length);
+      expect(width2.length).toBeLessThan(width3.length);
+      expect(width3.length).toBeLessThan(width4.length);
+      expect(width4.length).toBeLessThan(width5.length);
+    });
+  });
+
+  describe("getCircleStampOffsets", () => {
+    it("半径1.5のスタンプは(1,1)を含み、(2,0)は含まない", () => {
+      const stamp = getCircleStampOffsets(1.5);
+      expect(stamp.offsets).toContainEqual({ dx: 1, dy: 1 });
+      expect(stamp.offsets).not.toContainEqual({ dx: 2, dy: 0 });
+    });
+  });
+
+  describe("calculateStampedLinePixels", () => {
+    it("線スタンプは水平に広がる", () => {
+      const centerPixels = [{ x: 2, y: 2 }];
+      const stamp = getLineStampOffsets(3);
+      const result = calculateStampedLinePixels(centerPixels, stamp);
+      expect(result.length).toBe(3);
+      expect(result).toContainEqual({ x: 1, y: 2 });
+      expect(result).toContainEqual({ x: 2, y: 2 });
+      expect(result).toContainEqual({ x: 3, y: 2 });
+    });
+
+    it("四角スタンプはサイズ分のピクセルを返す", () => {
+      const centerPixels = [{ x: 0, y: 0 }];
+      const stamp = getSquareStampOffsets(3);
+      const result = calculateStampedLinePixels(centerPixels, stamp);
+      expect(result.length).toBe(9);
+      expect(result).toContainEqual({ x: -1, y: -1 });
+      expect(result).toContainEqual({ x: 0, y: -1 });
+      expect(result).toContainEqual({ x: 1, y: -1 });
+      expect(result).toContainEqual({ x: -1, y: 0 });
+      expect(result).toContainEqual({ x: 0, y: 0 });
+      expect(result).toContainEqual({ x: 1, y: 0 });
+      expect(result).toContainEqual({ x: -1, y: 1 });
+      expect(result).toContainEqual({ x: 0, y: 1 });
+      expect(result).toContainEqual({ x: 1, y: 1 });
+    });
+
+    it("複数の中心線で重複排除される", () => {
+      const centerPixels = [
+        { x: 0, y: 0 },
+        { x: 1, y: 0 },
+      ];
+      const stamp = getSquareStampOffsets(3);
+      const result = calculateStampedLinePixels(centerPixels, stamp);
+      const uniquePixels = new Set(result.map((p) => `${p.x},${p.y}`));
+      expect(uniquePixels.size).toBe(result.length);
     });
   });
 });

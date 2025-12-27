@@ -2,11 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import { DEFAULT_DRAWING } from "@/config/presets";
+import { assertNever } from "@/core/assertNever";
 import type { JitterConfig } from "@/core/jitter";
-import type { BrushPatternId } from "@/core/types";
-import { createWigglyEngine } from "@/engine/createWigglyEngine";
-import type { EraserVariant, PenVariant } from "@/engine/variants";
+import type { EraserVariant } from "@/engine/variants";
 import type { Tool, WigglyEngine } from "@/engine/WigglyEngine";
+import { createWigglyEngine } from "@/infra/createWigglyEngine";
 
 const ERASER_GUIDE = {
   minSize: 12,
@@ -25,73 +25,85 @@ type PointerInfo = {
   moved: boolean;
 };
 
+type EraserGuideStyle = {
+  width: number;
+  height: number;
+  borderRadius: string;
+};
+
+/** 消しゴムガイドの表示スタイルを解決する */
+function resolveEraserGuideStyle(params: {
+  variant: EraserVariant;
+  brushWidth: number;
+}): EraserGuideStyle {
+  const { variant, brushWidth } = params;
+  const size = Math.max(brushWidth, ERASER_GUIDE.minSize);
+
+  switch (variant) {
+    case "eraserCircle":
+      return {
+        width: size,
+        height: size,
+        borderRadius: "9999px",
+      };
+    case "eraserSquare":
+      return {
+        width: size,
+        height: size,
+        borderRadius: `${ERASER_GUIDE.squareRadius}px`,
+      };
+    case "eraserLine":
+      return {
+        width: Math.max(
+          brushWidth * ERASER_GUIDE.line.lengthMult,
+          ERASER_GUIDE.minSize,
+        ),
+        height: ERASER_GUIDE.line.height,
+        borderRadius: "0px",
+      };
+    default:
+      return assertNever(variant);
+  }
+}
+
+/** WigglyCanvasの入力プロパティ */
 interface WigglyCanvasProps {
   tool: Tool;
-  color: string;
   brushWidth: number;
-  penVariant: PenVariant;
   eraserVariant: EraserVariant;
-  patternId: BrushPatternId;
+  paletteColors: string[];
   backgroundColor: string;
   jitterConfig: JitterConfig;
   onEngineInit: (engine: WigglyEngine) => void;
 }
 
+/** 描画キャンバス本体 */
 export function WigglyCanvas({
   tool,
-  color,
   brushWidth,
-  penVariant,
   eraserVariant,
-  patternId,
+  paletteColors,
   backgroundColor,
   jitterConfig,
   onEngineInit,
 }: WigglyCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const engineRef = useRef<WigglyEngine | null>(null);
   const primaryPointerIdRef = useRef<number | null>(null);
   const activePointersRef = useRef<Map<number, PointerInfo>>(new Map());
   const isMultiTouchRef = useRef(false);
   const [eraserPos, setEraserPos] = useState<{ x: number; y: number } | null>(
     null,
   );
+  const eraserGuideStyle = resolveEraserGuideStyle({
+    variant: eraserVariant,
+    brushWidth,
+  });
 
   // イベントハンドラ内で再バインドせずに現在のツールを参照する
   const toolRef = useRef(tool);
   useEffect(() => {
     toolRef.current = tool;
   }, [tool]);
-
-  // 入力プロパティをエンジンに同期
-  useEffect(() => {
-    engineRef.current?.setTool(tool);
-  }, [tool]);
-  useEffect(() => {
-    engineRef.current?.setBrushColor(color);
-  }, [color]);
-  useEffect(() => {
-    engineRef.current?.setBrushWidth(brushWidth);
-  }, [brushWidth]);
-  useEffect(() => {
-    engineRef.current?.setPattern(patternId);
-  }, [patternId]);
-  useEffect(() => {
-    engineRef.current?.setPenVariant(penVariant);
-  }, [penVariant]);
-  useEffect(() => {
-    engineRef.current?.setEraserVariant(eraserVariant);
-  }, [eraserVariant]);
-
-  // 背景色をレンダラーに同期
-  useEffect(() => {
-    engineRef.current?.setBackgroundColor(backgroundColor);
-  }, [backgroundColor]);
-
-  // ジッター設定をエンジンに同期
-  useEffect(() => {
-    engineRef.current?.setJitterConfig(jitterConfig);
-  }, [jitterConfig]);
 
   // エンジンとイベントリスナーを初期化
   // biome-ignore lint/correctness/useExhaustiveDependencies: マウント時に1回だけ実行するため
@@ -102,10 +114,10 @@ export function WigglyCanvas({
     const engine = createWigglyEngine(
       canvas,
       DEFAULT_DRAWING,
+      paletteColors,
       backgroundColor,
       jitterConfig,
     );
-    engineRef.current = engine;
     onEngineInit(engine);
 
     // ピンチジェスチャーを許可しつつ、描画のためにパンも制御
@@ -114,6 +126,7 @@ export function WigglyCanvas({
     canvas.style.touchAction = "pan-x pan-y pinch-zoom";
 
     // 座標変換: client座標→キャンバス論理座標
+    /** ポインター座標をキャンバスの論理座標へ変換する */
     const toCanvasPos = (ev: PointerEvent) => {
       const rect = canvas.getBoundingClientRect();
       const visualX = ev.clientX - rect.left;
@@ -133,6 +146,7 @@ export function WigglyCanvas({
       };
     };
 
+    /** 描画開始のポインター処理 */
     const handlePointerDown = (ev: PointerEvent) => {
       // Apple Pencilの初期pointerdownイベントではpressure=0になることがあるため、
       // pointerdownでは筆圧をチェックせず、すべてのペン入力を処理します。
@@ -183,6 +197,7 @@ export function WigglyCanvas({
       }
     };
 
+    /** 描画中のポインター移動処理 */
     const handlePointerMove = (ev: PointerEvent) => {
       const info = activePointersRef.current.get(ev.pointerId);
       const { visual, internal } = toCanvasPos(ev);
@@ -219,6 +234,7 @@ export function WigglyCanvas({
       }
     };
 
+    /** ポインター終了時の後片付け */
     const cleanupPointer = (
       ev: PointerEvent,
       isCancel: boolean = false,
@@ -258,10 +274,12 @@ export function WigglyCanvas({
       canvas.releasePointerCapture(ev.pointerId);
     };
 
+    /** 描画終了のポインター処理 */
     const handlePointerUp = (ev: PointerEvent) => {
       cleanupPointer(ev, false);
     };
 
+    /** ポインターキャンセル時の処理 */
     const handlePointerCancel = (ev: PointerEvent) => {
       // ポインターがキャンセルされた場合（例: 共有ダイアログが開いた後など）
       // すべての状態をリセット
@@ -269,6 +287,7 @@ export function WigglyCanvas({
     };
 
     // pointercaptureを使うため、move/upはcanvasで処理する
+    /** キャンバス外へ出た時のホバー処理 */
     const handlePointerLeave = () => {
       // ドラッグ中でない場合、ペンがキャンバス外に出たら消しゴムを隠す
       if (toolRef.current === "eraser" && !primaryPointerIdRef.current) {
@@ -319,24 +338,12 @@ export function WigglyCanvas({
         <div
           className="pointer-events-none absolute border border-black/70 z-10"
           style={{
-            width:
-              eraserVariant === "eraserLine"
-                ? Math.max(
-                    brushWidth * ERASER_GUIDE.line.lengthMult,
-                    ERASER_GUIDE.minSize,
-                  )
-                : Math.max(brushWidth, ERASER_GUIDE.minSize),
-            height:
-              eraserVariant === "eraserLine"
-                ? ERASER_GUIDE.line.height
-                : Math.max(brushWidth, ERASER_GUIDE.minSize),
+            width: eraserGuideStyle.width,
+            height: eraserGuideStyle.height,
             left: eraserPos.x,
             top: eraserPos.y,
             transform: "translate(-50%, -50%)",
-            borderRadius:
-              eraserVariant === "eraserSquare"
-                ? `${ERASER_GUIDE.squareRadius}px`
-                : "9999px",
+            borderRadius: eraserGuideStyle.borderRadius,
             boxShadow: "0 0 0 1px rgba(255,255,255,0.9)",
           }}
         />

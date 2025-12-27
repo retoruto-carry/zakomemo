@@ -15,6 +15,7 @@ import {
   generateBodyColorFromBase,
   PALETTE_PRESETS,
 } from "@/config/presets";
+import { assertNever } from "@/core/assertNever";
 import type { JitterConfig } from "@/core/jitter";
 import { getPatternDefinition, PATTERNS } from "@/core/patterns";
 import type { BrushPatternId } from "@/core/types";
@@ -24,15 +25,20 @@ import { uiSoundManager } from "@/infra/sound/uiSounds";
 import { debounce } from "@/lib/debounce";
 import { isMobile } from "@/lib/share";
 import { throttle } from "@/lib/throttle";
-import { AnimatedGif, type AnimatedGifHandle } from "./components/AnimatedGif";
-import { PatternPreview } from "./components/PatternPreview";
-import { ShareButton } from "./components/ShareButton";
-import { eraserVariants } from "./variants";
+import {
+  AnimatedGif,
+  type AnimatedGifHandle,
+} from "@/ui/components/AnimatedGif";
+import { PatternPreview } from "@/ui/components/PatternPreview";
+import { ShareButton } from "@/ui/components/ShareButton";
+import { eraserVariants } from "@/ui/variants";
 
+/** WigglyToolsの外部操作用ハンドル */
 export interface WigglyToolsHandle {
   playUndoAnimation: () => void;
 }
 
+/** ジッター設定スライダーの入力 */
 interface JitterControlSliderProps {
   label: string;
   value: number;
@@ -43,6 +49,7 @@ interface JitterControlSliderProps {
   onChange: (value: number) => void;
 }
 
+/** ジッター設定用のスライダー */
 function JitterControlSlider({
   label,
   value,
@@ -90,6 +97,7 @@ function JitterControlSlider({
 }
 
 // キーボードアクセシビリティ: Enter/Space で onClick を発火
+/** Enter/SpaceでonClick相当の操作を行う */
 const handleButtonKeyDown = (callback: () => void) => (e: KeyboardEvent) => {
   if (e.key === "Enter" || e.key === " ") {
     e.preventDefault();
@@ -117,11 +125,40 @@ const CUSTOM_PALETTE_SOUND_DEBOUNCE_MS = 250;
 /** カスタムパレットの色反映を間引く間隔(ms) */
 const CUSTOM_PALETTE_APPLY_THROTTLE_MS = 50;
 
+/** 消しゴムのインジケータ形状を取得する */
+function getEraserIndicatorClass(variant: EraserVariant): string {
+  switch (variant) {
+    case "eraserCircle":
+      return "rounded-full w-5 h-5";
+    case "eraserSquare":
+      return "rounded-none w-5 h-5";
+    case "eraserLine":
+      return "rounded-none w-6 h-1.5";
+    default:
+      return assertNever(variant);
+  }
+}
+
+/** 消しゴムグリッドの形状を取得する */
+function getEraserGridClass(variant: EraserVariant): string {
+  switch (variant) {
+    case "eraserCircle":
+      return "rounded-full w-5 h-5";
+    case "eraserSquare":
+      return "rounded-none w-5 h-5";
+    case "eraserLine":
+      return "rounded-none w-7 h-2";
+    default:
+      return assertNever(variant);
+  }
+}
+
+/** WigglyToolsの入力プロパティ */
 interface WigglyToolsProps {
   tool: Tool;
   setTool: (tool: Tool) => void;
-  color: string;
-  setColor: (color: string) => void;
+  colorIndex: number;
+  setColorIndex: (colorIndex: number) => void;
   brushWidth: number;
   setBrushWidth: (brushWidth: number) => void;
   eraserVariant: EraserVariant;
@@ -131,8 +168,8 @@ interface WigglyToolsProps {
 
   onUndo: () => void;
   onRedo: () => void;
-  canUndo?: boolean;
-  canRedo?: boolean;
+  canUndo: boolean;
+  canRedo: boolean;
   onClear: () => void;
   onExport: () => void;
   isExporting: boolean;
@@ -158,6 +195,7 @@ interface WigglyToolsProps {
 
 const CUSTOM_PALETTE_NAME = "カスタム";
 
+/** 描画ツール・設定UIのメインパネル */
 export const WigglyTools = React.forwardRef<
   WigglyToolsHandle,
   WigglyToolsProps
@@ -165,8 +203,8 @@ export const WigglyTools = React.forwardRef<
   {
     tool,
     setTool,
-    color,
-    setColor,
+    colorIndex,
+    setColorIndex,
     brushWidth,
     setBrushWidth,
     eraserVariant,
@@ -258,6 +296,7 @@ export const WigglyTools = React.forwardRef<
     },
   }));
 
+  /** undoボタン処理 */
   const handleUndo = () => {
     uiSoundManager.play("button-undo", { stopPrevious: true });
     undoGifRef.current?.playAnimation();
@@ -265,6 +304,7 @@ export const WigglyTools = React.forwardRef<
   };
 
   // トグル処理
+  /** ツール切り替えとポップアップ制御 */
   const handleToolClick = (t: Tool) => {
     // すでに選択中のツールをクリックした場合
     if (tool === t) {
@@ -681,18 +721,7 @@ export const WigglyTools = React.forwardRef<
               className={`absolute bottom-1.5 right-1.5 w-9 h-9 border-[3px] rounded-[3px] flex items-center justify-center transition-all hover:scale-105 active:scale-95 z-[90] focus:outline-none focus-visible:ring-2 focus-visible:ring-black cursor-pointer ${tool === "eraser" ? "border-black bg-white" : "border-[#d2b48c] bg-white"}`}
             >
               <div
-                className={`${
-                  eraserVariant === "eraserCircle"
-                    ? "rounded-full"
-                    : eraserVariant === "eraserSquare"
-                      ? "rounded-none"
-                      : "rounded-none w-6 h-1.5"
-                } ${
-                  eraserVariant === "eraserCircle" ||
-                  eraserVariant === "eraserSquare"
-                    ? "w-5 h-5"
-                    : ""
-                } bg-white border-[1.5px] ${tool === "eraser" ? "border-black" : "border-[#d2b48c]"} shadow-inner`}
+                className={`${getEraserIndicatorClass(eraserVariant)} bg-white border-[1.5px] ${tool === "eraser" ? "border-black" : "border-[#d2b48c]"} shadow-inner`}
               />
             </button>
 
@@ -727,21 +756,7 @@ export const WigglyTools = React.forwardRef<
                                     }`}
                     >
                       <div
-                        className={`${
-                          v.id === "eraserCircle"
-                            ? "rounded-full"
-                            : v.id === "eraserSquare"
-                              ? "rounded-none"
-                              : "rounded-none w-7 h-2"
-                        } bg-white border-[1.5px] ${
-                          eraserVariant === v.id
-                            ? "border-black"
-                            : "border-[#a67c52]"
-                        } ${
-                          v.id === "eraserCircle" || v.id === "eraserSquare"
-                            ? "w-5 h-5"
-                            : ""
-                        }`}
+                        className={`${getEraserGridClass(v.id)} bg-white border-[1.5px] ${eraserVariant === v.id ? "border-black" : "border-[#a67c52]"}`}
                       />
                     </button>
                   );
@@ -793,25 +808,26 @@ export const WigglyTools = React.forwardRef<
           />
           {palette.map((_c, idx) => {
             const varName = `var(--palette-${idx})`;
+            const isSelected = colorIndex === idx;
             return (
               <button
                 type="button"
                 key={varName}
                 onClick={() => {
                   uiSoundManager.play("color-select", { stopPrevious: true });
-                  setColor(varName);
+                  setColorIndex(idx);
                 }}
                 style={{ backgroundColor: varName }}
                 className={`
                               h-8 w-8 rounded-[2px] transition-transform shadow-sm shrink-0 relative cursor-pointer
                               ${
-                                color === varName
+                                isSelected
                                   ? "border-black border-[3px] scale-110 z-10 shadow-[0_0_0_2px_rgba(255,255,255,0.8)]"
                                   : "border-white border-[2px] hover:scale-105"
                               }
                           `}
               >
-                {color === varName && (
+                {isSelected && (
                   <div className="absolute inset-0 border-2 border-white opacity-80 pointer-events-none" />
                 )}
               </button>
@@ -1097,14 +1113,7 @@ export const WigglyTools = React.forwardRef<
                   }`}
                   role="button"
                   tabIndex={0}
-                  onClick={(e) => {
-                    if (e.target instanceof HTMLElement) {
-                      if (e.target.closest("button, input, a")) {
-                        return;
-                      }
-                    }
-                    selectCustomPalette();
-                  }}
+                  onClick={selectCustomPalette}
                   onKeyDown={handleButtonKeyDown(selectCustomPalette)}
                 >
                   <div className="flex items-center justify-between mb-3">
@@ -1113,8 +1122,17 @@ export const WigglyTools = React.forwardRef<
                     </span>
                     <button
                       type="button"
-                      onClick={selectCustomPalette}
-                      onKeyDown={handleButtonKeyDown(selectCustomPalette)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        selectCustomPalette();
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          selectCustomPalette();
+                        }
+                      }}
                       className={`px-3 py-1 text-xs font-black border-[2px] rounded-[4px] transition-all cursor-pointer ${
                         selectedPaletteName === CUSTOM_PALETTE_NAME
                           ? "border-black bg-white text-black"
@@ -1144,6 +1162,10 @@ export const WigglyTools = React.forwardRef<
                           id="custom-palette-bg"
                           type="color"
                           value={customBackgroundColor}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            selectCustomPalette();
+                          }}
                           onChange={(e) => {
                             const nextBackground = e.target.value;
                             setCustomBackgroundColor(nextBackground);
@@ -1192,6 +1214,10 @@ export const WigglyTools = React.forwardRef<
                                 id={`custom-palette-${index}`}
                                 type="color"
                                 value={color}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  selectCustomPalette();
+                                }}
                                 onChange={(e) => {
                                   const newPalette = [...customPalette];
                                   newPalette[index] = e.target.value;

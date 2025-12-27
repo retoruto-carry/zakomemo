@@ -8,6 +8,8 @@ export interface CanvasRendererOptions {
   ctx: CanvasRenderingContext2D;
   /** 背景色（CSS色文字列） */
   backgroundColor: string;
+  /** パレット色（6色想定） */
+  paletteColors: string[];
 }
 
 /**

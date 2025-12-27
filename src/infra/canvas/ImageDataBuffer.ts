@@ -1,10 +1,12 @@
 import { parseColorToRgb } from "@/infra/colorUtil";
 
+/** ImageDataBufferの初期化オプション */
 export type ImageDataBufferOptions = {
   ctx: CanvasRenderingContext2D;
   backgroundColor: string;
 };
 
+/** 1ピクセル書き込みの入力 */
 export type SetPixelParams = {
   x: number;
   y: number;
@@ -28,6 +30,7 @@ export class ImageDataBuffer {
   private offscreenCanvas: HTMLCanvasElement | null = null;
   private offscreenCtx: CanvasRenderingContext2D | null = null;
 
+  /** バッファを初期化する */
   constructor({ ctx, backgroundColor }: ImageDataBufferOptions) {
     this.ctx = ctx;
     this.backgroundColorRgba = parseColorToRgb(backgroundColor);
@@ -41,14 +44,17 @@ export class ImageDataBuffer {
     }
   }
 
+  /** 背景色のRGBAを取得する */
   getBackgroundColorRgba(): { r: number; g: number; b: number; a: number } {
     return this.backgroundColorRgba;
   }
 
+  /** 現在のバッファサイズを取得する */
   getSize(): { width: number; height: number } {
     return { width: this.lastWidth, height: this.lastHeight };
   }
 
+  /** ImageDataが初期化済みかどうか */
   hasImageData(): boolean {
     return this.imageData !== null && this.data !== null;
   }
@@ -66,6 +72,7 @@ export class ImageDataBuffer {
     return true;
   }
 
+  /** バッファを指定サイズで初期化する */
   clear({ width, height }: { width: number; height: number }): void {
     this.lastWidth = width;
     this.lastHeight = height;
@@ -91,6 +98,7 @@ export class ImageDataBuffer {
     this.data[index + 3] = a;
   }
 
+  /** ImageBitmapからImageDataを読み込む */
   loadFromBitmap({
     bitmap,
     width,
@@ -113,6 +121,7 @@ export class ImageDataBuffer {
     this.data = imageData.data;
   }
 
+  /** 現在のImageDataを取得する */
   getImageData(): ImageData {
     if (!this.imageData) {
       throw new Error("ImageData is not initialized. Call clear() first.");
@@ -120,6 +129,7 @@ export class ImageDataBuffer {
     return this.imageData;
   }
 
+  /** オフスクリーンキャンバスを取得する */
   getOffscreenCanvas(): HTMLCanvasElement {
     if (!this.offscreenCanvas) {
       throw new Error("Offscreen canvas is not initialized.");
@@ -144,6 +154,7 @@ export class ImageDataBuffer {
     return await createImageBitmap(this.offscreenCanvas);
   }
 
+  /** ImageDataとオフスクリーンを初期化する */
   private initializeImageData({
     width,
     height,

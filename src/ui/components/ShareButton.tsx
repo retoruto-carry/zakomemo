@@ -5,6 +5,7 @@ import { uiSoundManager } from "@/infra/sound/uiSounds";
 import { shareToTwitter } from "@/lib/share";
 
 // X（Twitter）アイコン
+/** Xアイコン */
 const XIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -18,6 +19,7 @@ const XIcon = () => (
   </svg>
 );
 
+/** ShareButtonの入力 */
 interface ShareButtonProps {
   /** シェアするテキスト */
   text: string;
@@ -48,6 +50,7 @@ export function ShareButton({
     }
   }, [shareError]);
 
+  /** シェア処理を実行する */
   const handleShare = async () => {
     if (isSharing) return;
     uiSoundManager.play("share-button", { stopPrevious: true });

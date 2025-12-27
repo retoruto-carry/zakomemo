@@ -4,8 +4,9 @@ import type {
   Point,
   Stroke,
   StrokeKind,
-} from "./types";
+} from "@/core/types";
 
+/** ストロークを開始する */
 export function startStroke(
   drawing: Drawing,
   strokeId: string,
@@ -26,6 +27,7 @@ export function startStroke(
   };
 }
 
+/** 既存ストロークにポイントを追加する */
 export function appendPoint(
   drawing: Drawing,
   strokeId: string,
@@ -41,6 +43,7 @@ export function appendPoint(
   };
 }
 
+/** 描画を全消去する */
 export function clearDrawing(drawing: Drawing): Drawing {
   return {
     ...drawing,

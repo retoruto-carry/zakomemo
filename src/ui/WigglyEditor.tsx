@@ -4,16 +4,17 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { BODY_PRESETS, PALETTE_PRESETS } from "@/config/presets";
 import type { JitterConfig } from "@/core/jitter";
 import type { BrushPatternId } from "@/core/types";
-import { exportDrawingAsGif } from "@/engine/exportGif";
 import type { EraserVariant, PenVariant } from "@/engine/variants";
 import type { Tool, WigglyEngine } from "@/engine/WigglyEngine";
 import { CanvasRenderer } from "@/infra/canvas/CanvasRenderer";
+import { exportDrawingAsGif } from "@/infra/exportGif";
 import { GifEncGifEncoder } from "@/infra/GifEncGifEncoder";
 import { initializeUISounds, uiSoundManager } from "@/infra/sound/uiSounds";
-import { DesktopLayout } from "./layouts/DesktopLayout";
-import { MobileLayout } from "./layouts/MobileLayout";
-import { WigglyCanvas } from "./WigglyCanvas";
-import { WigglyTools, type WigglyToolsHandle } from "./WigglyTools";
+import { useWigglyEngineSync } from "@/ui/hooks/useWigglyEngineSync";
+import { DesktopLayout } from "@/ui/layouts/DesktopLayout";
+import { MobileLayout } from "@/ui/layouts/MobileLayout";
+import { WigglyCanvas } from "@/ui/WigglyCanvas";
+import { WigglyTools, type WigglyToolsHandle } from "@/ui/WigglyTools";
 
 const defaultPalette = PALETTE_PRESETS[0];
 
@@ -23,9 +24,11 @@ const defaultBodyColor = BODY_PRESETS[0].body;
 /** デフォルトのペン幅（engine/variants.tsのdefaultPenWidth.normalと揃える） */
 const DEFAULT_PEN_WIDTH = 16;
 
+/** 画面全体の描画UIを提供するエディタ */
 export function WigglyEditor() {
   const engineRef = useRef<WigglyEngine | null>(null);
   const toolsRef = useRef<WigglyToolsHandle | null>(null);
+  const [engine, setEngine] = useState<WigglyEngine | null>(null);
 
   // 音源の初期化（初回のみ）
   useEffect(() => {
@@ -34,7 +37,7 @@ export function WigglyEditor() {
 
   // 状態
   const [tool, setTool] = useState<Tool>("pen");
-  const [color, setColor] = useState("var(--palette-0)");
+  const [colorIndex, setColorIndex] = useState(0);
   const [brushWidth, setBrushWidth] = useState(DEFAULT_PEN_WIDTH);
   // penVariantは現在"normal"のみなので定数として扱う
   const penVariant: PenVariant = "normal";
@@ -73,6 +76,7 @@ export function WigglyEditor() {
   const [isDesktop, setIsDesktop] = useState(false);
 
   useEffect(() => {
+    /** 画面幅からレイアウト種別を判定する */
     const check = () => setIsDesktop(window.innerWidth >= 768);
     check();
     window.addEventListener("resize", check);
@@ -81,6 +85,7 @@ export function WigglyEditor() {
 
   // グローバルショートカット（Ctrl/Cmd+Z/Yはやり直し/進むのみ）
   useEffect(() => {
+    /** undo/redoショートカットを処理する */
     const handleKey = (ev: KeyboardEvent) => {
       const engine = engineRef.current;
       if (!engine) return;
@@ -101,6 +106,7 @@ export function WigglyEditor() {
     return () => window.removeEventListener("keydown", handleKey);
   }, []);
 
+  /** GIFエクスポートを実行する */
   const handleExportGif = async () => {
     const engine = engineRef.current;
     const drawing = engine?.getDrawing();
@@ -125,6 +131,7 @@ export function WigglyEditor() {
       const renderer = new CanvasRenderer({
         ctx,
         backgroundColor,
+        paletteColors: palette,
       });
 
       const gifEncoder = new GifEncGifEncoder();
@@ -149,6 +156,7 @@ export function WigglyEditor() {
 
   const onEngineInit = useCallback((engine: WigglyEngine) => {
     engineRef.current = engine;
+    setEngine(engine);
     engine.setHistoryChangeListener(() => {
       setCanUndo(engine.canUndo());
       setCanRedo(engine.canRedo());
@@ -158,11 +166,18 @@ export function WigglyEditor() {
     setCanRedo(engine.canRedo());
   }, []);
 
-  // パレット/本体色の変更をエンジンのパターンキャッシュに同期
-  // biome-ignore lint/correctness/useExhaustiveDependencies: palette/bodyColor変更時のみ動かすため
-  useEffect(() => {
-    engineRef.current?.clearRendererCache();
-  }, [palette, bodyColor]);
+  useWigglyEngineSync({
+    engine,
+    tool,
+    colorIndex,
+    brushWidth,
+    penVariant,
+    eraserVariant,
+    patternId,
+    backgroundColor,
+    jitterConfig,
+    palette,
+  });
 
   const Layout = isDesktop ? DesktopLayout : MobileLayout;
 
@@ -188,20 +203,9 @@ export function WigglyEditor() {
 
   const handleDSButtonY = useCallback(() => {
     uiSoundManager.play("ds-button-y", { stopPrevious: true });
-    let currentIndex = -1;
-    if (color.startsWith("var(--palette-")) {
-      const parsedIndex = parseInt(
-        color.substring("var(--palette-".length, color.length - 1),
-        10,
-      );
-      if (!Number.isNaN(parsedIndex) && parsedIndex >= 0) {
-        currentIndex = parsedIndex;
-      }
-    }
-    const safeIndex = currentIndex === -1 ? 0 : currentIndex;
-    const nextIndex = (safeIndex + 1) % palette.length;
-    setColor(`var(--palette-${nextIndex})`);
-  }, [color, palette]);
+    const nextIndex = (colorIndex + 1) % palette.length;
+    setColorIndex(nextIndex);
+  }, [colorIndex, palette.length]);
 
   const handleDSButtonUp = useCallback(() => {
     uiSoundManager.play("ds-button-up", { stopPrevious: true });
@@ -218,10 +222,8 @@ export function WigglyEditor() {
     const currentPaletteIndex = selectedPaletteName
       ? PALETTE_PRESETS.findIndex((p) => p.name === selectedPaletteName)
       : -1;
-    const nextIndex =
-      currentPaletteIndex === -1
-        ? 0
-        : (currentPaletteIndex + 1) % PALETTE_PRESETS.length;
+    const safeIndex = currentPaletteIndex === -1 ? 0 : currentPaletteIndex;
+    const nextIndex = (safeIndex + 1) % PALETTE_PRESETS.length;
     const nextPreset = PALETTE_PRESETS[nextIndex];
     setPalette(nextPreset.colors);
     setBackgroundColor(nextPreset.background);
@@ -233,10 +235,12 @@ export function WigglyEditor() {
     const currentPaletteIndex = selectedPaletteName
       ? PALETTE_PRESETS.findIndex((p) => p.name === selectedPaletteName)
       : -1;
-    const prevIndex =
-      currentPaletteIndex <= 0
+    const safeIndex =
+      currentPaletteIndex === -1
         ? PALETTE_PRESETS.length - 1
-        : currentPaletteIndex - 1;
+        : currentPaletteIndex;
+    const prevIndex =
+      safeIndex === 0 ? PALETTE_PRESETS.length - 1 : safeIndex - 1;
     const prevPreset = PALETTE_PRESETS[prevIndex];
     setPalette(prevPreset.colors);
     setBackgroundColor(prevPreset.background);
@@ -367,11 +371,9 @@ export function WigglyEditor() {
         canvas={
           <WigglyCanvas
             tool={tool}
-            color={color}
             brushWidth={brushWidth}
-            penVariant={penVariant}
             eraserVariant={eraserVariant}
-            patternId={patternId}
+            paletteColors={palette}
             backgroundColor={backgroundColor}
             jitterConfig={jitterConfig}
             onEngineInit={onEngineInit}
@@ -382,8 +384,8 @@ export function WigglyEditor() {
             ref={toolsRef}
             tool={tool}
             setTool={setTool}
-            color={color}
-            setColor={setColor}
+            colorIndex={colorIndex}
+            setColorIndex={setColorIndex}
             brushWidth={brushWidth}
             setBrushWidth={setBrushWidth}
             eraserVariant={eraserVariant}

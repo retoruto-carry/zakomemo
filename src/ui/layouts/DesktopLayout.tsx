@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 
+/** DSボタンのイベントハンドラ */
 interface DSButtonHandlers {
   onA: () => void;
   onB: () => void;
@@ -15,12 +16,14 @@ interface DSButtonHandlers {
   onSelect: () => void;
 }
 
+/** レイアウトに渡す表示要素 */
 interface LayoutProps {
   canvas: ReactNode;
   tools: ReactNode;
   dsButtons?: DSButtonHandlers;
 }
 
+/** デスクトップ向けの本体レイアウト */
 export function DesktopLayout({ canvas, tools, dsButtons }: LayoutProps) {
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-[#1a1a1a] p-4 overflow-hidden font-sans text-slate-900">

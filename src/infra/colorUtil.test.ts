@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { parseColorToRgb, resolveCssVariable } from "./colorUtil";
+import {
+  parseColorToRgb,
+  resolveBrushColor,
+  resolveCssVariable,
+} from "@/infra/colorUtil";
 
 describe("colorUtil", () => {
   describe("resolveCssVariable", () => {
@@ -38,6 +42,32 @@ describe("colorUtil", () => {
 
     it("should return black for invalid colors", () => {
       expect(parseColorToRgb("invalid")).toEqual({ r: 0, g: 0, b: 0, a: 1 });
+    });
+  });
+
+  describe("resolveBrushColor", () => {
+    it("should resolve palette colors by index", () => {
+      const palette = ["#ff0000", "#00ff00"];
+      expect(
+        resolveBrushColor({ color: { kind: "palette", index: 1 }, palette }),
+      ).toBe("#00ff00");
+    });
+
+    it("should fall back when palette index is out of range", () => {
+      const palette = ["#ff0000"];
+      expect(
+        resolveBrushColor({ color: { kind: "palette", index: 2 }, palette }),
+      ).toBe("#000000");
+    });
+
+    it("should return fixed color values as-is", () => {
+      const palette = ["#ff0000"];
+      expect(
+        resolveBrushColor({
+          color: { kind: "fixed", color: "#123456" },
+          palette,
+        }),
+      ).toBe("#123456");
     });
   });
 });

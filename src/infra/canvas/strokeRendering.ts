@@ -3,16 +3,20 @@
  * ピクセル単位でストロークを描画する機能を提供
  */
 
+import { assertNever } from "@/core/assertNever";
 import { getPatternDefinition } from "@/core/patterns";
 import type { PatternTile } from "@/core/patternTypes";
 import {
   bresenhamLine,
+  calculateStampedLinePixels,
   calculateThickLinePixels,
   getCirclePixelOffsets,
+  getLineStampOffsets,
+  getSquareStampOffsets,
 } from "@/core/rasterization";
 import type { BrushVariant, Stroke } from "@/core/types";
 import type { ImageDataBuffer } from "@/infra/canvas/ImageDataBuffer";
-import { parseColorToRgb, resolveCssVariable } from "@/infra/colorUtil";
+import { parseColorToRgb, resolveBrushColor } from "@/infra/colorUtil";
 
 /**
  * ストローク描画のコンテキスト
@@ -27,11 +31,13 @@ export type StrokeRenderingContext = ImageDataBuffer;
  */
 export function renderStroke({
   context,
+  palette,
   stroke,
   jitteredPoints,
   elapsedTimeMs: _elapsedTimeMs,
 }: {
   context: StrokeRenderingContext;
+  palette: string[];
   stroke: Stroke;
   jitteredPoints: { x: number; y: number }[];
   elapsedTimeMs: number;
@@ -40,12 +46,12 @@ export function renderStroke({
 
   // パターンの場合はピクセル単位描画
   if (stroke.brush.kind === "pattern") {
-    renderPatternStroke(context, stroke, jitteredPoints);
+    renderPatternStroke(context, palette, stroke, jitteredPoints);
     return;
   }
 
   // ソリッド/消しゴムはピクセル単位描画
-  renderSolidStroke(context, stroke, jitteredPoints);
+  renderSolidStroke(context, palette, stroke, jitteredPoints);
 }
 
 /**
@@ -53,11 +59,16 @@ export function renderStroke({
  */
 function renderSolidStroke(
   context: StrokeRenderingContext,
+  palette: string[],
   stroke: Stroke,
   jitteredPoints: { x: number; y: number }[],
 ): void {
   const brushWidth = Math.round(stroke.brush.width);
-  const variant = stroke.brush.variant as BrushVariant | undefined;
+  const variant = stroke.brush.variant as BrushVariant;
+  const eraserStampVariant = resolveEraserStampVariant({
+    strokeKind: stroke.kind,
+    variant,
+  });
 
   // 色を取得
   let r: number;
@@ -74,11 +85,26 @@ function renderSolidStroke(
     a = bg.a * 255; // 0-255に変換
   } else {
     // 通常のペン: ストロークの色を使用
-    const color = parseColorToRgb(resolveCssVariable(stroke.brush.color));
+    const color = parseColorToRgb(
+      resolveBrushColor({ color: stroke.brush.color, palette }),
+    );
     r = color.r;
     g = color.g;
     b = color.b;
     a = stroke.brush.opacity * 255; // 0-255に変換
+  }
+
+  if (eraserStampVariant) {
+    const centerPixels = buildCenterPixels(jitteredPoints);
+    const stamp = resolveEraserStamp({
+      variant: eraserStampVariant,
+      width: brushWidth,
+    });
+    const stampedPixels = calculateStampedLinePixels(centerPixels, stamp);
+    for (const pixel of stampedPixels) {
+      context.setPixel({ x: pixel.x, y: pixel.y, r, g, b, a });
+    }
+    return;
   }
 
   // 1点だけのとき
@@ -86,45 +112,13 @@ function renderSolidStroke(
     const p = jitteredPoints[0];
     const x = Math.round(p.x);
     const y = Math.round(p.y);
-    drawPixelToImageData(
-      context,
-      x,
-      y,
-      brushWidth,
-      variant,
-      stroke.kind,
-      r,
-      g,
-      b,
-      a,
-    );
+    drawPixelToImageData(context, x, y, brushWidth, r, g, b, a);
     return;
   }
 
   // パフォーマンス最適化: 太い線の場合は領域を直接計算
   if (brushWidth > 1) {
-    // 中心線を取得
-    const centerPixels: Array<{ x: number; y: number }> = [];
-
-    for (let i = 0; i < jitteredPoints.length; i++) {
-      const current = jitteredPoints[i];
-      const x = Math.round(current.x);
-      const y = Math.round(current.y);
-
-      if (i === 0) {
-        centerPixels.push({ x, y });
-      } else {
-        // 前の点から現在の点までBresenhamで線を描画
-        const prev = jitteredPoints[i - 1];
-        const prevX = Math.round(prev.x);
-        const prevY = Math.round(prev.y);
-        const linePixels = bresenhamLine(prevX, prevY, x, y);
-        // 最初の点は重複するのでスキップ
-        if (linePixels.length > 0) {
-          centerPixels.push(...linePixels.slice(1));
-        }
-      }
-    }
+    const centerPixels = buildCenterPixels(jitteredPoints);
 
     // 太い線の領域を計算（重複排除済み）
     const thickPixels = calculateThickLinePixels(centerPixels, brushWidth);
@@ -174,39 +168,91 @@ function drawPixelToImageData(
   x: number,
   y: number,
   width: number,
-  variant: BrushVariant | undefined,
-  strokeKind: "draw" | "erase",
   r: number,
   g: number,
   b: number,
   a: number,
 ): void {
-  if (strokeKind === "erase" && variant === "eraserLine") {
-    // 消しゴム（横線）: 横方向に拡大
-    const halfLen = Math.round(width);
-    for (let dx = -halfLen; dx <= halfLen; dx++) {
-      context.setPixel({ x: x + dx, y, r, g, b, a });
-    }
-  } else if (strokeKind === "erase" && variant === "eraserSquare") {
-    // 消しゴム（四角）: 四角形で描画
-    const halfWidth = Math.floor(width / 2);
-    for (let dy = -halfWidth; dy < halfWidth; dy++) {
-      for (let dx = -halfWidth; dx < halfWidth; dx++) {
-        context.setPixel({ x: x + dx, y: y + dy, r, g, b, a });
-      }
-    }
+  // 円スタンプの単点描画
+  if (width === 1) {
+    context.setPixel({ x, y, r, g, b, a });
   } else {
-    // 通常のペン/消しゴム（円）: 円で描画
-    if (width === 1) {
-      context.setPixel({ x, y, r, g, b, a });
-    } else {
-      const radius = Math.floor(width / 2);
-      // テーブル化されたオフセットを使用（毎回計算しない）
-      const offsets = getCirclePixelOffsets(radius);
-      for (const { dx, dy } of offsets) {
-        context.setPixel({ x: x + dx, y: y + dy, r, g, b, a });
-      }
+    const radius = width / 2;
+    // テーブル化されたオフセットを使用（毎回計算しない）
+    const offsets = getCirclePixelOffsets(radius);
+    for (const { dx, dy } of offsets) {
+      context.setPixel({ x: x + dx, y: y + dy, r, g, b, a });
     }
+  }
+}
+
+function buildCenterPixels(
+  jitteredPoints: { x: number; y: number }[],
+): Array<{ x: number; y: number }> {
+  const centerPixels: Array<{ x: number; y: number }> = [];
+
+  for (let i = 0; i < jitteredPoints.length; i++) {
+    const current = jitteredPoints[i];
+    const x = Math.round(current.x);
+    const y = Math.round(current.y);
+
+    if (i === 0) {
+      centerPixels.push({ x, y });
+    } else {
+      const prev = jitteredPoints[i - 1];
+      const prevX = Math.round(prev.x);
+      const prevY = Math.round(prev.y);
+      const linePixels = bresenhamLine(prevX, prevY, x, y);
+      centerPixels.push(...linePixels.slice(1));
+    }
+  }
+
+  return centerPixels;
+}
+
+/**
+ * 消しゴムのスタンプ形状を取得する
+ */
+function resolveEraserStamp({
+  variant,
+  width,
+}: {
+  variant: "eraserLine" | "eraserSquare";
+  width: number;
+}) {
+  switch (variant) {
+    case "eraserLine":
+      return getLineStampOffsets(width);
+    case "eraserSquare":
+      return getSquareStampOffsets(width);
+    default:
+      return assertNever(variant);
+  }
+}
+
+/**
+ * ストロークから消しゴムスタンプの種別を決定する
+ */
+function resolveEraserStampVariant({
+  strokeKind,
+  variant,
+}: {
+  strokeKind: "draw" | "erase";
+  variant: BrushVariant;
+}): "eraserLine" | "eraserSquare" | null {
+  if (strokeKind !== "erase") {
+    return null;
+  }
+
+  switch (variant) {
+    case "eraserLine":
+    case "eraserSquare":
+      return variant;
+    case "eraserCircle":
+    case "normal":
+      return null;
+    default:
+      return assertNever(variant);
   }
 }
 
@@ -216,16 +262,17 @@ function drawPixelToImageData(
  */
 function renderPatternStroke(
   context: StrokeRenderingContext,
+  palette: string[],
   stroke: Stroke,
   jitteredPoints: { x: number; y: number }[],
 ): void {
-  if (stroke.brush.kind !== "pattern" || !stroke.brush.patternId) return;
+  if (stroke.brush.kind !== "pattern") return;
 
-  const patternDef = getPatternDefinition(stroke.brush.patternId);
-  if (!patternDef) return;
-  const tile = patternDef.tile;
+  const tile = getPatternDefinition(stroke.brush.patternId).tile;
 
-  const color = parseColorToRgb(resolveCssVariable(stroke.brush.color));
+  const color = parseColorToRgb(
+    resolveBrushColor({ color: stroke.brush.color, palette }),
+  );
   const brushWidth = Math.round(stroke.brush.width);
 
   let areaPixels: Array<{ x: number; y: number }>;
@@ -242,24 +289,7 @@ function renderPatternStroke(
     }
   } else {
     // 複数点の場合はBresenhamアルゴリズムで中心線を取得
-    const centerPixels: Array<{ x: number; y: number }> = [];
-    for (let i = 0; i < jitteredPoints.length; i++) {
-      const current = jitteredPoints[i];
-      const x = Math.round(current.x);
-      const y = Math.round(current.y);
-
-      if (i === 0) {
-        centerPixels.push({ x, y });
-      } else {
-        const prev = jitteredPoints[i - 1];
-        const prevX = Math.round(prev.x);
-        const prevY = Math.round(prev.y);
-        const linePixels = bresenhamLine(prevX, prevY, x, y);
-        if (linePixels.length > 0) {
-          centerPixels.push(...linePixels.slice(1));
-        }
-      }
-    }
+    const centerPixels = buildCenterPixels(jitteredPoints);
 
     // 太い線の場合は領域を計算（重複排除済み）
     if (brushWidth > 1) {

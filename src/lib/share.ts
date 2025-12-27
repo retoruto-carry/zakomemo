@@ -3,13 +3,16 @@
  */
 
 // デバイス判定
+/** iOS端末かどうか */
 export const isIos = (): boolean =>
   typeof navigator !== "undefined" &&
   /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
+/** Android端末かどうか */
 export const isAndroid = (): boolean =>
   typeof navigator !== "undefined" && /Android/i.test(navigator.userAgent);
 
+/** モバイル端末かどうか */
 export const isMobile = (): boolean => isIos() || isAndroid();
 
 /**
@@ -57,6 +60,7 @@ export const createTwitterIntentUrl = (text: string, url?: string): string => {
   return `https://twitter.com/intent/tweet?${params.toString()}`;
 };
 
+/** X (Twitter) 共有の入力オプション */
 export interface ShareOptions {
   text: string;
   imageUrl?: string;

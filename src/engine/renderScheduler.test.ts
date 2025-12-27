@@ -1,10 +1,11 @@
 import type { Drawing, Stroke } from "@/core/types";
+import type { DrawingRenderer } from "@/engine/ports";
 import {
   invalidatePendingRequests,
   renderDrawingAtTime,
-} from "@/engine/frameRenderer";
-import type { DrawingRenderer } from "@/engine/ports";
+} from "@/engine/renderScheduler";
 
+/** renderSchedulerのテスト用レンダラー */
 class MockRenderer implements DrawingRenderer {
   clears: { width: number; height: number }[] = [];
   strokes: Array<{
@@ -45,6 +46,7 @@ type CycleRendererStub = DrawingRenderer & {
   resolveBitmap: (bitmap: ImageBitmap) => void;
 };
 
+/** getCycleBitmapを任意タイミングで解決できるレンダラーを生成する */
 function createCycleRenderer(): CycleRendererStub {
   let resolver: ((bitmap: ImageBitmap) => void) | null = null;
   const getCycleBitmap = () =>
@@ -81,9 +83,10 @@ describe("renderDrawingAtTime", () => {
           kind: "draw",
           brush: {
             kind: "solid",
-            color: "#000",
+            color: { kind: "palette", index: 0 },
             width: 4,
             opacity: 1,
+            variant: "normal",
           },
           points: [
             { x: 0, y: 0, t: 0 },
@@ -119,9 +122,10 @@ describe("renderDrawingAtTime", () => {
           kind: "draw",
           brush: {
             kind: "solid",
-            color: "#000",
+            color: { kind: "palette", index: 0 },
             width: 4,
             opacity: 1,
+            variant: "normal",
           },
           points: [
             { x: 0, y: 0, t: 0 },
@@ -158,10 +162,11 @@ describe("renderDrawingAtTime", () => {
           kind: "draw",
           brush: {
             kind: "pattern",
-            color: "#000",
+            color: { kind: "palette", index: 0 },
             width: 4,
             opacity: 1,
             patternId: "dot_sparse",
+            variant: "normal",
           },
           points: [
             { x: 0, y: 0, t: 0 },
