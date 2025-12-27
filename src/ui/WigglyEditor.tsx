@@ -24,6 +24,13 @@ const defaultBodyColor = BODY_PRESETS[0].body;
 /** デフォルトのペン幅（engine/variants.tsのdefaultPenWidth.penCircleと揃える） */
 const DEFAULT_PEN_WIDTH = 16;
 
+// Centralize modular navigation to keep cycling math consistent.
+const cycleIndex = (
+  current: number,
+  length: number,
+  direction: 1 | -1,
+): number => (current + direction + length) % length;
+
 /** 画面全体の描画UIを提供するエディタ */
 export function WigglyEditor() {
   const engineRef = useRef<WigglyEngine | null>(null);
@@ -196,55 +203,63 @@ export function WigglyEditor() {
     uiSoundManager.play("ds-button-x", { stopPrevious: true });
     const toolCycle: Tool[] = ["pen", "pattern", "eraser"];
     const currentIndex = toolCycle.indexOf(tool);
-    const nextIndex = (currentIndex + 1) % toolCycle.length;
+    const nextIndex = cycleIndex(currentIndex, toolCycle.length, 1);
     setTool(toolCycle[nextIndex]);
   }, [tool]);
 
   const handleDSButtonY = useCallback(() => {
     uiSoundManager.play("ds-button-y", { stopPrevious: true });
-    const nextIndex = (colorIndex + 1) % palette.length;
-    setColorIndex(nextIndex);
-  }, [colorIndex, palette.length]);
+    const toolCycle: Tool[] = ["pen", "pattern", "eraser"];
+    const currentIndex = toolCycle.indexOf(tool);
+    const nextIndex = cycleIndex(currentIndex, toolCycle.length, -1);
+    setTool(toolCycle[nextIndex]);
+  }, [tool]);
 
   const handleDSButtonUp = useCallback(() => {
     uiSoundManager.play("ds-button-up", { stopPrevious: true });
-    // TODO: 将来的に別機能を割り当てる（例: ブラシサイズ変更、ツール切り替えなど）
-  }, []);
-
-  const handleDSButtonDown = useCallback(() => {
-    uiSoundManager.play("ds-button-down", { stopPrevious: true });
-    // TODO: 将来的に別機能を割り当てる（例: ブラシサイズ変更、ツール切り替えなど）
-  }, []);
-
-  const handleDSButtonRight = useCallback(() => {
-    uiSoundManager.play("ds-button-right", { stopPrevious: true });
     const currentPaletteIndex = selectedPaletteName
       ? PALETTE_PRESETS.findIndex((p) => p.name === selectedPaletteName)
       : -1;
-    const safeIndex = currentPaletteIndex === -1 ? 0 : currentPaletteIndex;
-    const nextIndex = (safeIndex + 1) % PALETTE_PRESETS.length;
-    const nextPreset = PALETTE_PRESETS[nextIndex];
+    const nextPreset =
+      currentPaletteIndex === -1
+        ? PALETTE_PRESETS[0]
+        : PALETTE_PRESETS[
+            cycleIndex(currentPaletteIndex, PALETTE_PRESETS.length, 1)
+          ];
     setPalette(nextPreset.colors);
     setBackgroundColor(nextPreset.background);
     setSelectedPaletteName(nextPreset.name);
   }, [selectedPaletteName]);
 
-  const handleDSButtonLeft = useCallback(() => {
-    uiSoundManager.play("ds-button-left", { stopPrevious: true });
+  const handleDSButtonDown = useCallback(() => {
+    uiSoundManager.play("ds-button-down", { stopPrevious: true });
     const currentPaletteIndex = selectedPaletteName
       ? PALETTE_PRESETS.findIndex((p) => p.name === selectedPaletteName)
       : -1;
-    const safeIndex =
+    const prevPreset =
       currentPaletteIndex === -1
-        ? PALETTE_PRESETS.length - 1
-        : currentPaletteIndex;
-    const prevIndex =
-      safeIndex === 0 ? PALETTE_PRESETS.length - 1 : safeIndex - 1;
-    const prevPreset = PALETTE_PRESETS[prevIndex];
+        ? PALETTE_PRESETS[PALETTE_PRESETS.length - 1]
+        : PALETTE_PRESETS[
+            cycleIndex(currentPaletteIndex, PALETTE_PRESETS.length, -1)
+          ];
     setPalette(prevPreset.colors);
     setBackgroundColor(prevPreset.background);
     setSelectedPaletteName(prevPreset.name);
   }, [selectedPaletteName]);
+
+  const handleDSButtonRight = useCallback(() => {
+    uiSoundManager.play("ds-button-right", { stopPrevious: true });
+    if (palette.length === 0) return;
+    const nextIndex = cycleIndex(colorIndex, palette.length, 1);
+    setColorIndex(nextIndex);
+  }, [colorIndex, palette.length]);
+
+  const handleDSButtonLeft = useCallback(() => {
+    uiSoundManager.play("ds-button-left", { stopPrevious: true });
+    if (palette.length === 0) return;
+    const prevIndex = cycleIndex(colorIndex, palette.length, -1);
+    setColorIndex(prevIndex);
+  }, [colorIndex, palette.length]);
 
   const handleDSButtonStart = useCallback(() => {
     uiSoundManager.play("ds-button-start", { stopPrevious: true });
@@ -311,41 +326,6 @@ export function WigglyEditor() {
         .zako-scrollbar {
           scrollbar-width: auto;
           scrollbar-color: var(--color-zako-orange-strong) var(--color-zako-cream);
-        }
-
-        /* スライダーのつまみを大きくする */
-        input[type="range"]::-webkit-slider-thumb {
-          appearance: none;
-          width: 20px;
-          height: 20px;
-          border-radius: 50%;
-          background: var(--color-zako-orange-strong);
-          border: 3px solid var(--color-zako-panel);
-          box-shadow: 0 2px 4px var(--color-zako-black-20);
-          cursor: pointer;
-          margin-top: -8px;
-        }
-
-        input[type="range"]::-moz-range-thumb {
-          width: 20px;
-          height: 20px;
-          border-radius: 50%;
-          background: var(--color-zako-orange-strong);
-          border: 3px solid var(--color-zako-panel);
-          box-shadow: 0 2px 4px var(--color-zako-black-20);
-          cursor: pointer;
-        }
-
-        /* 太さスライダー用のより大きなつまみ */
-        input[type="range"].pen-width-slider::-webkit-slider-thumb {
-          width: 24px;
-          height: 24px;
-          margin-top: -4px;
-        }
-
-        input[type="range"].pen-width-slider::-moz-range-thumb {
-          width: 24px;
-          height: 24px;
         }
       `,
         }}
@@ -414,7 +394,6 @@ export function WigglyEditor() {
             setSelectedPaletteName={setSelectedPaletteName}
             bodyColor={bodyColor}
             setBodyColor={setBodyColor}
-            backgroundColor={backgroundColor}
             setBackgroundColor={setBackgroundColor}
             customBackgroundColor={customBackgroundColor}
             setCustomBackgroundColor={setCustomBackgroundColor}
