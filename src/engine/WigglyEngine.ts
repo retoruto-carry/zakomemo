@@ -23,6 +23,7 @@ import type {
 } from "@/engine/ports";
 import {
   invalidatePendingRequests,
+  invalidateRendererCache,
   renderDrawingAtTime,
 } from "@/engine/renderScheduler";
 import type { EraserVariant, PenVariant } from "@/engine/variants";
@@ -141,8 +142,8 @@ export class WigglyEngine {
       typeof this.renderer.setBackgroundColor === "function"
     ) {
       this.renderer.setBackgroundColor(backgroundColor);
-      // 背景色変更前のリクエストを無効化して古いImageBitmapを捨てる
-      invalidatePendingRequests(this.renderer);
+      // 背景色が変わると描画結果が変わるためキャッシュを無効化
+      this.clearRendererCache();
       // 背景色変更を即座に反映するために次の描画を強制
       this.lastRenderAt = 0;
     }
@@ -170,10 +171,8 @@ export class WigglyEngine {
    * レンダラーのキャッシュと保留中リクエストを無効化する
    */
   clearRendererCache(): void {
-    this.renderer.invalidateRenderCache();
-    // 保留中の非同期レンダリングリクエストを無効化
-    // これにより、閉じられたImageBitmapを使用しようとする古いリクエストを防ぐ
-    invalidatePendingRequests(this.renderer);
+    // キャッシュ無効化と保留中リクエスト破棄をまとめて実行
+    invalidateRendererCache(this.renderer);
   }
 
   /** undo可能かどうか */

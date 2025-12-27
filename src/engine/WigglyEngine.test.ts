@@ -1,135 +1,18 @@
-import type { Drawing, Stroke } from "@/core/types";
-import type {
-  DrawingRenderer,
-  RafScheduler,
-  StrokeSound,
-  StrokeSoundInfo,
-  TimeProvider,
-} from "@/engine/ports";
 import * as renderScheduler from "@/engine/renderScheduler";
 import { WigglyEngine } from "@/engine/WigglyEngine";
+import {
+  createTestEngine,
+  DEFAULT_TEST_DRAWING,
+  MockRaf,
+  MockRenderer,
+  MockTime,
+} from "@/testUtils/engineMocks";
 
-class MockRenderer implements DrawingRenderer {
-  clears: { width: number; height: number }[] = [];
-  rendered: Array<{
-    stroke: Stroke;
-    jittered: { x: number; y: number }[];
-    time: number;
-  }> = [];
-  imageData: ImageData;
-
-  constructor(width: number, height: number) {
-    this.imageData = {
-      width,
-      height,
-      data: new Uint8ClampedArray(width * height * 4),
-    } as unknown as ImageData;
-  }
-
-  clear(width: number, height: number): void {
-    this.clears.push({ width, height });
-  }
-
-  invalidateRenderCache(): void {
-    // モック用の空実装
-  }
-
-  renderStroke({
-    stroke,
-    jitteredPoints,
-    elapsedTimeMs,
-  }: {
-    stroke: Stroke;
-    jitteredPoints: { x: number; y: number }[];
-    elapsedTimeMs: number;
-  }): void {
-    this.rendered.push({
-      stroke,
-      jittered: jitteredPoints,
-      time: elapsedTimeMs,
-    });
-  }
-
-  getImageData(): ImageData {
-    return this.imageData;
-  }
-}
-
-class MockTime implements TimeProvider {
-  private current = 0;
-  now(): number {
-    return this.current;
-  }
-  set(ms: number) {
-    this.current = ms;
-  }
-}
-
-class MockRaf implements RafScheduler {
-  private lastId = 0;
-  private callbacks = new Map<number, () => void>();
-  request(cb: () => void): number {
-    this.lastId += 1;
-    this.callbacks.set(this.lastId, cb);
-    return this.lastId;
-  }
-  cancel(id: number): void {
-    this.callbacks.delete(id);
-  }
-  runFrame(id?: number): void {
-    const targetId = id ?? this.lastId;
-    const cb = this.callbacks.get(targetId);
-    cb?.();
-  }
-}
-
-class MockSound implements StrokeSound {
-  events: Array<{ type: string; info: StrokeSoundInfo }> = [];
-  destroyed = false;
-  onStrokeStart(info: StrokeSoundInfo): void {
-    this.events.push({ type: "start", info });
-  }
-  onStrokeUpdate(info: StrokeSoundInfo): void {
-    this.events.push({ type: "update", info });
-  }
-  onStrokeEnd(info: StrokeSoundInfo): void {
-    this.events.push({ type: "end", info });
-  }
-  destroy(): void {
-    this.destroyed = true;
-  }
-}
-
-const initialDrawing: Drawing = {
-  width: 50,
-  height: 50,
-  strokes: [],
-};
-
-function createEngine() {
-  const time = new MockTime();
-  const raf = new MockRaf();
-  const renderer = new MockRenderer(
-    initialDrawing.width,
-    initialDrawing.height,
-  );
-  const sound = new MockSound();
-
-  const engine = new WigglyEngine({
-    initialDrawing,
-    renderer,
-    time,
-    raf,
-    sound,
-    jitterConfig: { amplitude: 1.5, frequency: 0.01 },
-  });
-
-  return { engine, time, raf, renderer, sound };
-}
+const initialDrawing = DEFAULT_TEST_DRAWING;
 
 describe("WigglyEngine", () => {
   test("ポインタ操作でストロークを作成し履歴に記録する", () => {
-    const { engine, time, sound } = createEngine();
+    const { engine, time, sound } = createTestEngine();
 
     time.set(0);
     engine.pointerDown(5, 5);
@@ -148,7 +31,7 @@ describe("WigglyEngine", () => {
   });
 
   test("undo/redoで履歴を移動できる", () => {
-    const { engine, time } = createEngine();
+    const { engine, time } = createTestEngine();
     engine.pointerDown(0, 0);
     time.set(5);
     engine.pointerMove(3, 4);
@@ -162,7 +45,7 @@ describe("WigglyEngine", () => {
   });
 
   test("clearは履歴に追加されundoできる", () => {
-    const { engine, time } = createEngine();
+    const { engine, time } = createTestEngine();
     engine.pointerDown(1, 1);
     time.set(5);
     engine.pointerMove(2, 2);
@@ -176,7 +59,7 @@ describe("WigglyEngine", () => {
   });
 
   test("レンダリングループでジッター適用済みポイントが描画される", () => {
-    const { engine, time, raf, renderer } = createEngine();
+    const { engine, time, raf, renderer } = createTestEngine();
     engine.pointerDown(0, 0);
     time.set(5);
     engine.pointerMove(10, 0);
@@ -191,7 +74,7 @@ describe("WigglyEngine", () => {
     expect(jittered[0].x).not.toBe(0);
   });
 
-  test("背景色変更で保留中リクエストを無効化する", () => {
+  test("背景色変更でキャッシュと保留中リクエストを無効化する", () => {
     class MockRendererWithBackground extends MockRenderer {
       setBackgroundColor = vi.fn();
     }
@@ -209,10 +92,7 @@ describe("WigglyEngine", () => {
       raf,
       jitterConfig: { amplitude: 0, frequency: 1 },
     });
-    const invalidateSpy = vi.spyOn(
-      renderScheduler,
-      "invalidatePendingRequests",
-    );
+    const invalidateSpy = vi.spyOn(renderScheduler, "invalidateRendererCache");
 
     engine.setBackgroundColor("#000000");
 
@@ -241,10 +121,7 @@ describe("WigglyEngine", () => {
       raf,
       jitterConfig: { amplitude: 0, frequency: 1 },
     });
-    const invalidateSpy = vi.spyOn(
-      renderScheduler,
-      "invalidatePendingRequests",
-    );
+    const invalidateSpy = vi.spyOn(renderScheduler, "invalidateRendererCache");
     const cacheSpy = vi.spyOn(renderer, "invalidateRenderCache");
 
     const palette = ["#000000", "#ffffff"];
@@ -259,20 +136,20 @@ describe("WigglyEngine", () => {
   });
 
   test("destroyでRAFループをキャンセルする", () => {
-    const { engine, raf } = createEngine();
+    const { engine, raf } = createTestEngine();
     const cancelSpy = vi.spyOn(raf, "cancel");
     engine.destroy();
     expect(cancelSpy).toHaveBeenCalled();
   });
 
   test("destroyでサウンドの後片付けを呼び出す", () => {
-    const { engine, sound } = createEngine();
+    const { engine, sound } = createTestEngine();
     engine.destroy();
     expect(sound.destroyed).toBe(true);
   });
 
   test("座標は整数にスナップされる", () => {
-    const { engine, time } = createEngine();
+    const { engine, time } = createTestEngine();
     time.set(0);
     engine.pointerDown(10.7, 20.3);
     const drawing = engine.getDrawing();
@@ -284,7 +161,7 @@ describe("WigglyEngine", () => {
   });
 
   test("ブラシサイズは整数にスナップされる", () => {
-    const { engine } = createEngine();
+    const { engine } = createTestEngine();
     engine.setBrushWidth(10.7);
     engine.pointerDown(0, 0);
     const drawing = engine.getDrawing();
@@ -293,7 +170,7 @@ describe("WigglyEngine", () => {
   });
 
   test("小数座標の移動も整数にスナップされる", () => {
-    const { engine, time } = createEngine();
+    const { engine, time } = createTestEngine();
     time.set(0);
     engine.pointerDown(0, 0);
     time.set(10);
@@ -309,7 +186,7 @@ describe("WigglyEngine", () => {
 
   describe("統合テスト（描画フロー全体）", () => {
     test("pointerDown → pointerMove → pointerUp → undo → redo の完全なフロー", () => {
-      const { engine, time } = createEngine();
+      const { engine, time } = createTestEngine();
 
       // 1. 描画開始
       time.set(0);
@@ -344,7 +221,7 @@ describe("WigglyEngine", () => {
     });
 
     test("複数のストロークを描画 → undo → redo → clear のフロー", () => {
-      const { engine, time } = createEngine();
+      const { engine, time } = createTestEngine();
 
       // 1. 最初のストローク
       time.set(0);
@@ -385,7 +262,7 @@ describe("WigglyEngine", () => {
     });
 
     test("描画 → 背景色変更 → undo → redo のフロー", () => {
-      const { engine, time } = createEngine();
+      const { engine, time } = createTestEngine();
 
       // 1. 描画
       time.set(0);
@@ -414,7 +291,7 @@ describe("WigglyEngine", () => {
 
   describe("境界値", () => {
     test("非常に多くのストローク", () => {
-      const { engine, time } = createEngine();
+      const { engine, time } = createTestEngine();
 
       // 100個のストロークを描画
       for (let i = 0; i < 100; i++) {
@@ -430,7 +307,7 @@ describe("WigglyEngine", () => {
     });
 
     test("非常に長いストローク（多数のポイント）", () => {
-      const { engine, time } = createEngine();
+      const { engine, time } = createTestEngine();
 
       time.set(0);
       engine.pointerDown(0, 0);
@@ -449,7 +326,7 @@ describe("WigglyEngine", () => {
     });
 
     test("連続したundo/redo", () => {
-      const { engine, time } = createEngine();
+      const { engine, time } = createTestEngine();
 
       // 5個のストロークを描画
       for (let i = 0; i < 5; i++) {
