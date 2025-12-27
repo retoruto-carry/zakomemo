@@ -67,10 +67,10 @@ function JitterControlSlider({
   ).current;
 
   return (
-    <div className="p-3 bg-white border-[3px] border-[#e7d1b1] rounded-[6px] shadow-[2px_2px_0_rgba(210,180,140,0.1)]">
+    <div className="p-3 bg-white border-[3px] border-zako-tan-light rounded-[6px] shadow-[2px_2px_0_var(--color-zako-tan-10)]">
       <div className="flex items-center justify-between mb-2">
-        <span className="font-black text-sm text-[#a67c52]">{label}</span>
-        <span className="font-black text-xs text-[#a67c52] font-mono">
+        <span className="font-black text-sm text-zako-brown">{label}</span>
+        <span className="font-black text-xs text-zako-brown font-mono">
           {value.toFixed(toFixed)}
         </span>
       </div>
@@ -86,9 +86,9 @@ function JitterControlSlider({
             onChange(newValue);
             playSliderSoundThrottled();
           }}
-          className="w-full h-2 bg-[#fffdeb] rounded-lg appearance-none cursor-pointer accent-[#ff6b00] relative z-10"
+          className="w-full h-2 bg-zako-cream-soft rounded-lg appearance-none cursor-pointer accent-zako-orange-strong relative z-10"
           style={{
-            background: `linear-gradient(to right, #ff6b00 0%, #ff6b00 ${percentage}%, #fffdeb ${percentage}%, #fffdeb 100%)`,
+            background: `linear-gradient(to right, var(--color-zako-orange-strong) 0%, var(--color-zako-orange-strong) ${percentage}%, var(--color-zako-cream-soft) ${percentage}%, var(--color-zako-cream-soft) 100%)`,
           }}
         />
       </div>
@@ -344,14 +344,14 @@ export const WigglyTools = React.forwardRef<
   };
 
   return (
-    <div className="flex flex-col w-full bg-[#fdfbf7] select-none text-(--color-ugo-dark) font-sans p-2 gap-2 relative">
+    <div className="flex flex-col w-full bg-zako-cream select-none text-zako-dark font-sans p-2 gap-2 relative">
       {/* 忠実な走査線・ピクセルテクスチャのオーバーレイ（ポップアップの背面にするためZを低く） */}
       <div
         className="absolute inset-0 pointer-events-none z-0 opacity-15"
         style={{
           backgroundImage: `
-            linear-gradient(90deg, rgba(0,0,0,0.1) 1px, transparent 1px),
-            linear-gradient(0deg, rgba(255,255,255,0.05) 1px, transparent 1px)
+            linear-gradient(90deg, var(--color-zako-black-10) 1px, transparent 1px),
+            linear-gradient(0deg, var(--color-zako-white-05) 1px, transparent 1px)
           `,
           backgroundSize: "2px 100%, 100% 2px",
         }}
@@ -362,8 +362,8 @@ export const WigglyTools = React.forwardRef<
         className="absolute inset-0 pointer-events-none opacity-[0.12]"
         style={{
           backgroundImage: `
-            linear-gradient(to right, #ff8c00 1.5px, transparent 1.5px),
-            linear-gradient(to bottom, #ff8c00 1.5px, transparent 1.5px)
+            linear-gradient(to right, var(--color-zako-orange-bright) 1.5px, transparent 1.5px),
+            linear-gradient(to bottom, var(--color-zako-orange-bright) 1.5px, transparent 1.5px)
           `,
           backgroundSize: "16px 16px",
         }}
@@ -385,7 +385,7 @@ export const WigglyTools = React.forwardRef<
           uiSoundManager.play("button-clear", { stopPrevious: true });
           onClear();
         })}
-        className="absolute top-0 left-0 bg-[#ff6b00] border-t-[3px] border-l-[3px] border-t-[#ff9d5c] border-l-[#ff9d5c] border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-tl-none rounded-tr-[6px] rounded-bl-none rounded-br-[6px] h-12 px-2 py-1 flex items-center justify-center gap-1 active:translate-y-0.5 active:brightness-95 transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#ff6b00] z-10"
+        className="absolute top-0 left-0 bg-zako-orange-strong border-t-[3px] border-l-[3px] border-t-zako-orange-light border-l-zako-orange-light border-b-[3px] border-r-[3px] border-b-zako-orange-dark border-r-zako-orange-dark rounded-tl-none rounded-tr-[6px] rounded-bl-none rounded-br-[6px] h-12 px-2 py-1 flex items-center justify-center gap-1 active:translate-y-0.5 active:brightness-95 transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-zako-orange-strong z-10"
       >
         <div className="relative w-7 h-7 flex items-center justify-center shrink-0">
           {[0, 1, 2, 3, 4, 5, 6, 7].map((angle) => (
@@ -414,7 +414,7 @@ export const WigglyTools = React.forwardRef<
           uiSoundManager.play("button-settings", { stopPrevious: true });
           setActivePopup("settings");
         })}
-        className="absolute top-0 left-[calc(94px+2px)] bg-[#ff6b00] border-t-[3px] border-l-[3px] border-t-[#ff9d5c] border-l-[#ff9d5c] border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-[6px] h-12 px-2 py-1 flex items-center justify-center gap-1 active:translate-y-0.5 group cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#ff6b00] z-10"
+        className="absolute top-0 left-[calc(94px+2px)] bg-zako-orange-strong border-t-[3px] border-l-[3px] border-t-zako-orange-light border-l-zako-orange-light border-b-[3px] border-r-[3px] border-b-zako-orange-dark border-r-zako-orange-dark rounded-[6px] h-12 px-2 py-1 flex items-center justify-center gap-1 active:translate-y-0.5 group cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-zako-orange-strong z-10"
       >
         <svg
           viewBox="0 0 24 24"
@@ -441,11 +441,11 @@ export const WigglyTools = React.forwardRef<
           className={`
               border-t-[3px] border-l-[3px] border-b-[3px] border-r-[1.5px] 
               rounded-tl-[6px] rounded-tr-none rounded-bl-[6px] rounded-br-none h-full px-2 py-1 flex items-center justify-center gap-1 
-              transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#ff6b00]
+              transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-zako-orange-strong
               ${
                 !canUndo
-                  ? "bg-[#ffd6b8] border-t-white border-l-[#fffefc] border-b-[#ffb38a] border-r-[#ffb38a] cursor-not-allowed"
-                  : "bg-[#ff6b00] border-[#ff9d5c] border-b-[#b34700] border-r-[#b34700] active:translate-y-0.5 active:brightness-95 cursor-pointer"
+                  ? "bg-zako-orange-soft border-t-zako-panel border-l-zako-cream-bright border-b-zako-orange-peach border-r-zako-orange-peach cursor-not-allowed"
+                  : "bg-zako-orange-strong border-zako-orange-light border-b-zako-orange-dark border-r-zako-orange-dark active:translate-y-0.5 active:brightness-95 cursor-pointer"
               }
             `}
         >
@@ -477,11 +477,11 @@ export const WigglyTools = React.forwardRef<
           className={`
               border-t-[3px] border-l-[1.5px] border-r-[3px] border-b-[3px] 
               rounded-tl-none rounded-tr-none rounded-bl-none rounded-br-none h-full px-2 py-1 flex items-center justify-center 
-              transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#ff6b00]
+              transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-zako-orange-strong
               ${
                 !canRedo
-                  ? "bg-[#ffd6b8] border-t-white border-l-[#ffb38a] border-r-[#ffb38a] border-b-[#ffb38a] cursor-not-allowed"
-                  : "bg-[#ff6b00] border-t-[#ff9d5c] border-l-[#ff9d5c] border-r-[#b34700] border-b-[#b34700] active:translate-y-0.5 active:brightness-95 cursor-pointer"
+                  ? "bg-zako-orange-soft border-t-zako-panel border-l-zako-orange-peach border-r-zako-orange-peach border-b-zako-orange-peach cursor-not-allowed"
+                  : "bg-zako-orange-strong border-t-zako-orange-light border-l-zako-orange-light border-r-zako-orange-dark border-b-zako-orange-dark active:translate-y-0.5 active:brightness-95 cursor-pointer"
               }
             `}
         >
@@ -501,16 +501,18 @@ export const WigglyTools = React.forwardRef<
                   relative flex flex-col items-center justify-center p-1.5 transition-all active:scale-[0.98] w-full h-full rounded-[8px] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2
                   ${
                     tool === "pen"
-                      ? "bg-[#fff700] border-[5px] border-black shadow-[6px_6px_0_#000] z-40"
-                      : "bg-[#fffdeb] border-[4px] border-[#d2b48c] shadow-[4px_4px_0_rgba(210,180,140,0.3)]"
+                      ? "bg-zako-yellow border-[5px] border-black shadow-[6px_6px_0_var(--color-zako-black)] z-40"
+                      : "bg-zako-cream-soft border-[4px] border-zako-tan shadow-[4px_4px_0_var(--color-zako-tan-30)]"
                   }
             `}
           >
             <div
-              className={`absolute top-2 left-2 text-sm font-black z-50 ${tool === "pen" ? "text-black" : "text-[#a67c52]"}`}
+              className={`absolute top-2 left-2 text-sm font-black z-50 ${tool === "pen" ? "text-black" : "text-zako-brown"}`}
               style={{
                 WebkitTextStroke:
-                  tool === "pen" ? "3px #fff700" : "3px #fffdeb",
+                  tool === "pen"
+                    ? "3px var(--color-zako-yellow)"
+                    : "3px var(--color-zako-cream-soft)",
                 paintOrder: "stroke fill",
               }}
             >
@@ -527,10 +529,10 @@ export const WigglyTools = React.forwardRef<
             />
             {/* 角インジケータ（丸） */}
             <div
-              className={`absolute bottom-1.5 right-1.5 w-9 h-9 border-[3px] rounded-[3px] flex items-center justify-center z-[90] ${tool === "pen" ? "border-black bg-white" : "border-[#d2b48c] bg-white"}`}
+              className={`absolute bottom-1.5 right-1.5 w-9 h-9 border-[3px] rounded-[3px] flex items-center justify-center z-[90] ${tool === "pen" ? "border-black bg-white" : "border-zako-tan bg-white"}`}
             >
               <div
-                className={`w-4 h-4 rounded-full ${tool === "pen" ? "bg-black" : "bg-[#d2b48c]"}`}
+                className={`w-4 h-4 rounded-full ${tool === "pen" ? "bg-black" : "bg-zako-tan"}`}
               />
             </div>
           </button>
@@ -551,16 +553,18 @@ export const WigglyTools = React.forwardRef<
                   relative flex flex-col items-center justify-center p-1.5 transition-all active:scale-[0.98] w-full h-full rounded-[8px] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2
                   ${
                     tool === "pattern"
-                      ? "bg-[#fff700] border-[5px] border-black shadow-[6px_6px_0_#000] z-40"
-                      : "bg-[#fffdeb] border-[4px] border-[#d2b48c] shadow-[4px_4px_0_rgba(210,180,140,0.3)]"
+                      ? "bg-zako-yellow border-[5px] border-black shadow-[6px_6px_0_var(--color-zako-black)] z-40"
+                      : "bg-zako-cream-soft border-[4px] border-zako-tan shadow-[4px_4px_0_var(--color-zako-tan-30)]"
                   }
             `}
             >
               <div
-                className={`absolute top-2 left-2 text-sm font-black z-50 ${tool === "pattern" ? "text-black" : "text-[#a67c52]"}`}
+                className={`absolute top-2 left-2 text-sm font-black z-50 ${tool === "pattern" ? "text-black" : "text-zako-brown"}`}
                 style={{
                   WebkitTextStroke:
-                    tool === "pattern" ? "3px #fff700" : "3px #fffdeb",
+                    tool === "pattern"
+                      ? "3px var(--color-zako-yellow)"
+                      : "3px var(--color-zako-cream-soft)",
                   paintOrder: "stroke fill",
                 }}
               >
@@ -600,7 +604,7 @@ export const WigglyTools = React.forwardRef<
                 setTool("pattern");
                 setActivePopup(activePopup === "pattern" ? "none" : "pattern");
               })}
-              className={`absolute bottom-1.5 right-1.5 w-9 h-9 border-[3px] rounded-[3px] flex items-center justify-center transition-all hover:scale-105 active:scale-95 z-[90] focus:outline-none focus-visible:ring-2 focus-visible:ring-black cursor-pointer ${tool === "pattern" ? "border-black bg-white" : "border-[#d2b48c] bg-white"}`}
+              className={`absolute bottom-1.5 right-1.5 w-9 h-9 border-[3px] rounded-[3px] flex items-center justify-center transition-all hover:scale-105 active:scale-95 z-[90] focus:outline-none focus-visible:ring-2 focus-visible:ring-black cursor-pointer ${tool === "pattern" ? "border-black bg-white" : "border-zako-tan bg-white"}`}
             >
               <PatternPreview
                 patternId={patternId}
@@ -613,7 +617,7 @@ export const WigglyTools = React.forwardRef<
             {/* 小さなポップアップ: パターングリッド（ドット風） */}
             {activePopup === "pattern" && (
               <div
-                className="absolute bg-white border-[3px] border-black p-0.5 grid grid-cols-3 gap-0.5 shadow-[8px_8px_0_rgba(0,0,0,0.2)] z-[150] h-fit rounded-[4px]"
+                className="absolute bg-white border-[3px] border-black p-0.5 grid grid-cols-3 gap-0.5 shadow-[8px_8px_0_var(--color-zako-black-20)] z-[150] h-fit rounded-[4px]"
                 style={{
                   top: "calc(100% - 54px)",
                   left: "calc(100% - 54px)",
@@ -635,8 +639,8 @@ export const WigglyTools = React.forwardRef<
                       }}
                       className={`relative border-[2px] w-9 h-9 overflow-hidden bg-white active:scale-95 transition-all rounded-[2px] cursor-pointer flex items-center justify-center ${
                         patternId === pattern.id
-                          ? "border-black bg-[#ffff00]/30"
-                          : "border-[#e7d1b1]"
+                          ? "border-black bg-zako-yellow-strong-30"
+                          : "border-zako-tan-light"
                       }`}
                       aria-label={`パターン: ${pattern.id}`}
                     >
@@ -669,16 +673,18 @@ export const WigglyTools = React.forwardRef<
                   relative flex flex-col items-center justify-center p-1.5 transition-all active:scale-[0.98] w-full h-full rounded-[8px] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2
                   ${
                     tool === "eraser"
-                      ? "bg-[#fff700] border-[5px] border-black shadow-[6px_6px_0_#000] z-40"
-                      : "bg-[#fffdeb] border-[4px] border-[#d2b48c] shadow-[4px_4px_0_rgba(210,180,140,0.3)]"
+                      ? "bg-zako-yellow border-[5px] border-black shadow-[6px_6px_0_var(--color-zako-black)] z-40"
+                      : "bg-zako-cream-soft border-[4px] border-zako-tan shadow-[4px_4px_0_var(--color-zako-tan-30)]"
                   }
             `}
             >
               <div
-                className={`absolute top-2 left-2 text-sm font-black z-50 ${tool === "eraser" ? "text-black" : "text-[#a67c52]"}`}
+                className={`absolute top-2 left-2 text-sm font-black z-50 ${tool === "eraser" ? "text-black" : "text-zako-brown"}`}
                 style={{
                   WebkitTextStroke:
-                    tool === "eraser" ? "3px #fff700" : "3px #fffdeb",
+                    tool === "eraser"
+                      ? "3px var(--color-zako-yellow)"
+                      : "3px var(--color-zako-cream-soft)",
                   paintOrder: "stroke fill",
                 }}
               >
@@ -718,17 +724,17 @@ export const WigglyTools = React.forwardRef<
                 setTool("eraser");
                 setActivePopup(activePopup === "eraser" ? "none" : "eraser");
               })}
-              className={`absolute bottom-1.5 right-1.5 w-9 h-9 border-[3px] rounded-[3px] flex items-center justify-center transition-all hover:scale-105 active:scale-95 z-[90] focus:outline-none focus-visible:ring-2 focus-visible:ring-black cursor-pointer ${tool === "eraser" ? "border-black bg-white" : "border-[#d2b48c] bg-white"}`}
+              className={`absolute bottom-1.5 right-1.5 w-9 h-9 border-[3px] rounded-[3px] flex items-center justify-center transition-all hover:scale-105 active:scale-95 z-[90] focus:outline-none focus-visible:ring-2 focus-visible:ring-black cursor-pointer ${tool === "eraser" ? "border-black bg-white" : "border-zako-tan bg-white"}`}
             >
               <div
-                className={`${getEraserIndicatorClass(eraserVariant)} bg-white border-[1.5px] ${tool === "eraser" ? "border-black" : "border-[#d2b48c]"} shadow-inner`}
+                className={`${getEraserIndicatorClass(eraserVariant)} bg-white border-[1.5px] ${tool === "eraser" ? "border-black" : "border-zako-tan"} shadow-inner`}
               />
             </button>
 
             {/* 小さなポップアップ: 消しゴムグリッド */}
             {activePopup === "eraser" && (
               <div
-                className="absolute bg-white border-[3px] border-black p-0.5 grid grid-cols-3 gap-0.5 shadow-[8px_8px_0_rgba(0,0,0,0.2)] z-[150] h-fit rounded-[4px]"
+                className="absolute bg-white border-[3px] border-black p-0.5 grid grid-cols-3 gap-0.5 shadow-[8px_8px_0_var(--color-zako-black-20)] z-[150] h-fit rounded-[4px]"
                 style={{
                   top: "calc(100% - 54px)",
                   right: "8px",
@@ -752,11 +758,11 @@ export const WigglyTools = React.forwardRef<
                                     ${
                                       eraserVariant === v.id
                                         ? "border-black bg-slate-100"
-                                        : "border-[#e7d1b1] bg-white"
+                                        : "border-zako-tan-light bg-white"
                                     }`}
                     >
                       <div
-                        className={`${getEraserGridClass(v.id)} bg-white border-[1.5px] ${eraserVariant === v.id ? "border-black" : "border-[#a67c52]"}`}
+                        className={`${getEraserGridClass(v.id)} bg-white border-[1.5px] ${eraserVariant === v.id ? "border-black" : "border-zako-brown"}`}
                       />
                     </button>
                   );
@@ -769,12 +775,12 @@ export const WigglyTools = React.forwardRef<
 
       {/* 2.5. スライダー行 */}
       <div className="h-8 shrink-0 flex items-center gap-2 relative z-10">
-        <span className="text-sm font-black text-[#a67c52] leading-none whitespace-nowrap">
+        <span className="text-sm font-black text-zako-brown leading-none whitespace-nowrap">
           太さ
         </span>
         <div className="flex-1 flex items-center relative">
           <div
-            className="absolute top-1/2 -translate-y-1/2 left-0 right-0 h-3 bg-[#fdfdfd]"
+            className="absolute top-1/2 -translate-y-1/2 left-0 right-0 h-3 bg-zako-paper"
             style={{ clipPath: "polygon(0 80%, 100% 20%, 100% 100%, 0% 100%)" }}
           />
           <input
@@ -787,7 +793,7 @@ export const WigglyTools = React.forwardRef<
               setBrushWidth(Number(e.target.value));
               playWidthSliderSound();
             }}
-            className="pen-width-slider w-full h-4 relative z-10 accent-[#ff6b00] cursor-pointer mix-blend-multiply"
+            className="pen-width-slider w-full h-4 relative z-10 accent-zako-orange-strong cursor-pointer mix-blend-multiply"
           />
         </div>
       </div>
@@ -795,7 +801,7 @@ export const WigglyTools = React.forwardRef<
       {/* 3. 下段: 色 */}
       <div className="h-12 shrink-0 flex items-center justify-start gap-2 relative z-10">
         {/* 色 */}
-        <div className="w-fit h-full bg-[#fffdeb] border-[3px] border-[#d2b48c] p-1 flex items-center justify-center gap-1 shadow-[3px_3px_0_rgba(210,180,140,0.2)] rounded-[4px]">
+        <div className="w-fit h-full bg-zako-cream-soft border-[3px] border-zako-tan p-1 flex items-center justify-center gap-1 shadow-[3px_3px_0_var(--color-zako-tan-20)] rounded-[4px]">
           <div
             className="h-8 w-8 rounded-[2px] shadow-sm shrink-0 relative border-black border-[3px]"
             style={{ backgroundColor }}
@@ -803,7 +809,7 @@ export const WigglyTools = React.forwardRef<
             <div className="absolute inset-0 border-2 border-white/40 opacity-80 pointer-events-none" />
           </div>
           <div
-            className="w-[3px] h-8 bg-[#d2b48c] rounded-full"
+            className="w-[3px] h-8 bg-zako-tan rounded-full"
             aria-hidden="true"
           />
           {palette.map((_c, idx) => {
@@ -822,7 +828,7 @@ export const WigglyTools = React.forwardRef<
                               h-8 w-8 rounded-[2px] transition-transform shadow-sm shrink-0 relative cursor-pointer
                               ${
                                 isSelected
-                                  ? "border-black border-[3px] scale-110 z-10 shadow-[0_0_0_2px_rgba(255,255,255,0.8)]"
+                                  ? "border-black border-[3px] scale-110 z-10 shadow-[0_0_0_2px_var(--color-zako-white-80)]"
                                   : "border-white border-[2px] hover:scale-105"
                               }
                           `}
@@ -841,11 +847,11 @@ export const WigglyTools = React.forwardRef<
         {exportUrl ? (
           <a
             href={exportUrl}
-            download="wiggly-ugomemo.gif"
+            download="wiggly-zakomemo.gif"
             onClick={() => {
               uiSoundManager.play("export-save", { stopPrevious: true });
             }}
-            className="bg-[#ff6b00] border-t-[3px] border-l-[3px] border-t-[#ff9d5c] border-l-[#ff9d5c] border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-tl-[6px] rounded-tr-[6px] rounded-bl-none rounded-br-none h-full px-2 py-1 flex items-center justify-center active:translate-y-0.5 transition-all text-white font-black cursor-pointer"
+            className="bg-zako-orange-strong border-t-[3px] border-l-[3px] border-t-zako-orange-light border-l-zako-orange-light border-b-[3px] border-r-[3px] border-b-zako-orange-dark border-r-zako-orange-dark rounded-tl-[6px] rounded-tr-[6px] rounded-bl-none rounded-br-none h-full px-2 py-1 flex items-center justify-center active:translate-y-0.5 transition-all text-white font-black cursor-pointer"
           >
             <span className="text-lg leading-none">GIFを保存</span>
           </a>
@@ -861,7 +867,7 @@ export const WigglyTools = React.forwardRef<
               onExport();
             })}
             disabled={isExporting}
-            className={`bg-[#ff6b00] border-t-[3px] border-l-[3px] border-t-[#ff9d5c] border-l-[#ff9d5c] border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-tl-[6px] rounded-tr-[6px] rounded-bl-none rounded-br-none h-full px-2 py-1 flex items-center justify-center active:translate-y-0.5 transition-all text-white font-black cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#ff6b00] ${isExporting ? "opacity-50 pointer-events-none" : ""}`}
+            className={`bg-zako-orange-strong border-t-[3px] border-l-[3px] border-t-zako-orange-light border-l-zako-orange-light border-b-[3px] border-r-[3px] border-b-zako-orange-dark border-r-zako-orange-dark rounded-tl-[6px] rounded-tr-[6px] rounded-bl-none rounded-br-none h-full px-2 py-1 flex items-center justify-center active:translate-y-0.5 transition-all text-white font-black cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-zako-orange-strong ${isExporting ? "opacity-50 pointer-events-none" : ""}`}
           >
             {isExporting ? (
               <span className="text-lg">...</span>
@@ -874,7 +880,7 @@ export const WigglyTools = React.forwardRef<
 
       {/* エクスポートオーバーレイ */}
       {(isExporting || exportUrl) && (
-        <div className="absolute inset-0 z-[300] bg-[#ff6b00] flex flex-col items-center p-3 text-white overflow-hidden">
+        <div className="absolute inset-0 z-[300] bg-zako-orange-strong flex flex-col items-center p-3 text-white overflow-hidden">
           {/* 閉じるボタン（エクスポート完了後またはエラー時のみ表示） */}
           {!isExporting && (
             <button
@@ -916,14 +922,14 @@ export const WigglyTools = React.forwardRef<
                     uiSoundManager.play("export-close", { stopPrevious: true });
                     onCloseExport();
                   }}
-                  className="bg-white text-[#ff6b00] border-[3px] border-black rounded-[6px] px-5 py-1.5 font-black text-base active:translate-y-0.5 transition-all cursor-pointer"
+                  className="bg-white text-zako-orange-strong border-[3px] border-black rounded-[6px] px-5 py-1.5 font-black text-base active:translate-y-0.5 transition-all cursor-pointer"
                 >
                   閉じる
                 </button>
               </div>
             ) : (
               <div className="flex flex-col items-center w-full gap-2.5">
-                <div className="bg-white p-0.5 rounded-[6px] border-[3px] border-black shadow-[6px_6px_0_rgba(0,0,0,0.2)] w-[45%] aspect-[3/2] flex items-center justify-center overflow-hidden">
+                <div className="bg-white p-0.5 rounded-[6px] border-[3px] border-black shadow-[6px_6px_0_var(--color-zako-black-20)] w-[45%] aspect-[3/2] flex items-center justify-center overflow-hidden">
                   {exportUrl && (
                     <>
                       {/* biome-ignore lint/performance/noImgElement: エクスポートされたGIF表示のため */}
@@ -947,18 +953,18 @@ export const WigglyTools = React.forwardRef<
                 <div className="flex flex-row gap-2 w-full px-6 mt-3">
                   <a
                     href={exportUrl || "#"}
-                    download="wiggly-ugomemo.gif"
+                    download="wiggly-zakomemo.gif"
                     onClick={() => {
                       uiSoundManager.play("export-save", {
                         stopPrevious: true,
                       });
                     }}
-                    className="flex-1 bg-white text-[#ff6b00] border-t-[3px] border-l-[3px] border-t-white border-l-white border-b-[3px] border-r-[3px] border-b-[#b34700] border-r-[#b34700] rounded-[6px] py-2 flex items-center justify-center active:translate-y-0.5 transition-all font-black text-lg shadow-lg cursor-pointer"
+                    className="flex-1 bg-white text-zako-orange-strong border-t-[3px] border-l-[3px] border-t-zako-panel border-l-zako-panel border-b-[3px] border-r-[3px] border-b-zako-orange-dark border-r-zako-orange-dark rounded-[6px] py-2 flex items-center justify-center active:translate-y-0.5 transition-all font-black text-lg shadow-lg cursor-pointer"
                   >
                     保存する
                   </a>
                   <ShareButton
-                    text="うごメモで絵を描いたよ！ #wigglyugomemo"
+                    text="ざこメモで絵を描いたよ！ #wigglyzakomemo"
                     imageUrl={exportUrl || undefined}
                     className="flex-1"
                   />
@@ -971,21 +977,21 @@ export const WigglyTools = React.forwardRef<
 
       {/* 全画面設定モーダル */}
       {activePopup === "settings" && (
-        <div className="absolute inset-0 z-[200] bg-[#fdfbf7] flex flex-col overflow-hidden">
+        <div className="absolute inset-0 z-[200] bg-zako-cream flex flex-col overflow-hidden">
           {/* 背景グリッド（メイン画面と統一） */}
           <div
             className="absolute inset-0 pointer-events-none opacity-[0.12] z-0"
             style={{
               backgroundImage: `
-                linear-gradient(to right, #ff8c00 1.5px, transparent 1.5px),
-                linear-gradient(to bottom, #ff8c00 1.5px, transparent 1.5px)
+                linear-gradient(to right, var(--color-zako-orange-bright) 1.5px, transparent 1.5px),
+                linear-gradient(to bottom, var(--color-zako-orange-bright) 1.5px, transparent 1.5px)
               `,
               backgroundSize: "16px 16px",
             }}
           />
 
           {/* 上部バー: タブと閉じる */}
-          <div className="h-14 shrink-0 bg-[#ff6b00] border-b-[4px] border-[#b34700] flex items-center px-2 gap-2 relative z-10">
+          <div className="h-14 shrink-0 bg-zako-orange-strong border-b-[4px] border-zako-orange-dark flex items-center px-2 gap-2 relative z-10">
             <div className="flex-1 flex h-full items-end gap-1 pt-1.5">
               <button
                 type="button"
@@ -995,8 +1001,8 @@ export const WigglyTools = React.forwardRef<
                 }}
                 className={`px-3 py-1.5 rounded-t-[8px] font-black text-sm transition-all cursor-pointer ${
                   settingsTab === "palette"
-                    ? "bg-[#fdfbf7] text-[#ff6b00] translate-y-px border-t-[3px] border-l-[3px] border-r-[3px] border-[#e7d1b1] hover:brightness-95"
-                    : "bg-[#ff9d5c] text-white hover:bg-[#ff8c00]"
+                    ? "bg-zako-cream text-zako-orange-strong translate-y-px border-t-[3px] border-l-[3px] border-r-[3px] border-zako-tan-light hover:brightness-95"
+                    : "bg-zako-orange-light text-white hover:bg-zako-orange-bright"
                 }`}
               >
                 パレット
@@ -1010,8 +1016,8 @@ export const WigglyTools = React.forwardRef<
                   }}
                   className={`px-3 py-1.5 rounded-t-[8px] font-black text-sm transition-all cursor-pointer ${
                     settingsTab === "body"
-                      ? "bg-[#fdfbf7] text-[#ff6b00] translate-y-px border-t-[3px] border-l-[3px] border-r-[3px] border-[#e7d1b1] hover:brightness-95"
-                      : "bg-[#ff9d5c] text-white hover:bg-[#ff8c00]"
+                      ? "bg-zako-cream text-zako-orange-strong translate-y-px border-t-[3px] border-l-[3px] border-r-[3px] border-zako-tan-light hover:brightness-95"
+                      : "bg-zako-orange-light text-white hover:bg-zako-orange-bright"
                   }`}
                 >
                   本体色
@@ -1025,8 +1031,8 @@ export const WigglyTools = React.forwardRef<
                 }}
                 className={`px-3 py-1.5 rounded-t-[8px] font-black text-sm transition-all cursor-pointer ${
                   settingsTab === "jitter"
-                    ? "bg-[#fdfbf7] text-[#ff6b00] translate-y-px border-t-[3px] border-l-[3px] border-r-[3px] border-[#e7d1b1] hover:brightness-95"
-                    : "bg-[#ff9d5c] text-white hover:bg-[#ff8c00]"
+                    ? "bg-zako-cream text-zako-orange-strong translate-y-px border-t-[3px] border-l-[3px] border-r-[3px] border-zako-tan-light hover:brightness-95"
+                    : "bg-zako-orange-light text-white hover:bg-zako-orange-bright"
                 }`}
               >
                 ぶるぶる
@@ -1046,7 +1052,7 @@ export const WigglyTools = React.forwardRef<
           </div>
 
           {/* コンテンツ領域（カスタムスクロールバー） */}
-          <div className="flex-1 overflow-y-auto ugo-scrollbar p-3 relative z-10">
+          <div className="flex-1 overflow-y-auto zako-scrollbar p-3 relative z-10">
             {settingsTab === "palette" ? (
               <div className="flex flex-col gap-2.5">
                 {/* パレットプリセット */}
@@ -1067,12 +1073,12 @@ export const WigglyTools = React.forwardRef<
                         }}
                         className={`flex items-center justify-between p-2.5 rounded-[4px] border-[3px] transition-all relative overflow-hidden cursor-pointer ${
                           selectedPaletteName === p.name
-                            ? "border-black bg-[#ffff00] shadow-[4px_4px_0_rgba(0,0,0,0.1)]"
-                            : "border-[#e7d1b1] bg-white hover:border-[#ff9d5c] shadow-[2px_2px_0_rgba(210,180,140,0.1)]"
+                            ? "border-black bg-zako-yellow-strong shadow-[4px_4px_0_var(--color-zako-black-10)]"
+                            : "border-zako-tan-light bg-white hover:border-zako-orange-light shadow-[2px_2px_0_var(--color-zako-tan-10)]"
                         }`}
                       >
                         <span
-                          className={`font-black text-sm ${selectedPaletteName === p.name ? "text-black" : "text-[#a67c52]"}`}
+                          className={`font-black text-sm ${selectedPaletteName === p.name ? "text-black" : "text-zako-brown"}`}
                         >
                           {p.name}
                         </span>
@@ -1083,7 +1089,7 @@ export const WigglyTools = React.forwardRef<
                             style={{ backgroundColor: p.background }}
                           />
                           <div
-                            className="w-[3px] h-6 bg-[#e7d1b1] rounded-full"
+                            className="w-[3px] h-6 bg-zako-tan-light rounded-full"
                             aria-hidden="true"
                           />
                           {p.colors.map((c) => {
@@ -1108,8 +1114,8 @@ export const WigglyTools = React.forwardRef<
                 <div
                   className={`mt-1.5 p-3 border-[3px] rounded-[6px] transition-all cursor-pointer ${
                     selectedPaletteName === CUSTOM_PALETTE_NAME
-                      ? "border-black bg-[#ffff00] shadow-[4px_4px_0_rgba(0,0,0,0.1)] hover:brightness-95"
-                      : "border-[#e7d1b1] bg-white shadow-[2px_2px_0_rgba(210,180,140,0.1)] hover:border-[#ff9d5c]"
+                      ? "border-black bg-zako-yellow-strong shadow-[4px_4px_0_var(--color-zako-black-10)] hover:brightness-95"
+                      : "border-zako-tan-light bg-white shadow-[2px_2px_0_var(--color-zako-tan-10)] hover:border-zako-orange-light"
                   }`}
                   role="button"
                   tabIndex={0}
@@ -1117,7 +1123,7 @@ export const WigglyTools = React.forwardRef<
                   onKeyDown={handleButtonKeyDown(selectCustomPalette)}
                 >
                   <div className="flex items-center justify-between mb-3">
-                    <span className="font-black text-base text-left text-[#a67c52]">
+                    <span className="font-black text-base text-left text-zako-brown">
                       カスタムパレット
                     </span>
                     <button
@@ -1136,7 +1142,7 @@ export const WigglyTools = React.forwardRef<
                       className={`px-3 py-1 text-xs font-black border-[2px] rounded-[4px] transition-all cursor-pointer ${
                         selectedPaletteName === CUSTOM_PALETTE_NAME
                           ? "border-black bg-white text-black"
-                          : "border-[#e7d1b1] bg-[#fffdeb] text-[#a67c52] hover:border-[#ff9d5c]"
+                          : "border-zako-tan-light bg-zako-cream-soft text-zako-brown hover:border-zako-orange-light"
                       }`}
                     >
                       {selectedPaletteName === CUSTOM_PALETTE_NAME
@@ -1148,7 +1154,7 @@ export const WigglyTools = React.forwardRef<
                     <div className="relative flex items-center gap-2">
                       <label
                         htmlFor="custom-palette-bg"
-                        className="text-sm font-black text-[#a67c52] w-16 shrink-0 cursor-pointer"
+                        className="text-sm font-black text-zako-brown w-16 shrink-0 cursor-pointer"
                       >
                         背景
                       </label>
@@ -1181,13 +1187,13 @@ export const WigglyTools = React.forwardRef<
                       </div>
                       <label
                         htmlFor="custom-palette-bg"
-                        className="text-sm font-black text-[#a67c52] leading-none cursor-pointer flex-1"
+                        className="text-sm font-black text-zako-brown leading-none cursor-pointer flex-1"
                       >
                         {customBackgroundColor.toUpperCase()}
                       </label>
                     </div>
                     <div
-                      className="h-[3px] w-full bg-[#e7d1b1] rounded-full"
+                      className="h-[3px] w-full bg-zako-tan-light rounded-full"
                       aria-hidden="true"
                     />
                     <div className="flex flex-col gap-2">
@@ -1200,7 +1206,7 @@ export const WigglyTools = React.forwardRef<
                           >
                             <label
                               htmlFor={`custom-palette-${index}`}
-                              className="text-sm font-black text-[#a67c52] w-16 shrink-0 cursor-pointer"
+                              className="text-sm font-black text-zako-brown w-16 shrink-0 cursor-pointer"
                             >
                               {label}
                             </label>
@@ -1234,7 +1240,7 @@ export const WigglyTools = React.forwardRef<
                             </div>
                             <label
                               htmlFor={`custom-palette-${index}`}
-                              className="text-sm font-black text-[#a67c52] leading-none cursor-pointer flex-1"
+                              className="text-sm font-black text-zako-brown leading-none cursor-pointer flex-1"
                             >
                               {color.toUpperCase()}
                             </label>
@@ -1285,8 +1291,8 @@ export const WigglyTools = React.forwardRef<
                       }}
                       className={`w-full aspect-square rounded-[4px] border-[3px] transition-all relative flex items-center justify-center p-1 cursor-pointer min-w-0 ${
                         JSON.stringify(bodyColor) === JSON.stringify(b.body)
-                          ? "border-black bg-[#ffff00] shadow-[3px_3px_0_rgba(0,0,0,0.15)] z-10"
-                          : "border-[#e7d1b1] bg-white hover:border-[#ff9d5c] shadow-[1px_1px_0_rgba(210,180,140,0.1)]"
+                          ? "border-black bg-zako-yellow-strong shadow-[3px_3px_0_var(--color-zako-black-15)] z-10"
+                          : "border-zako-tan-light bg-white hover:border-zako-orange-light shadow-[1px_1px_0_var(--color-zako-tan-10)]"
                       }`}
                     >
                       <div
@@ -1301,14 +1307,14 @@ export const WigglyTools = React.forwardRef<
                 </div>
 
                 {/* カスタム本体色（コンパクト版） */}
-                <div className="p-2.5 bg-white border-[3px] border-[#e7d1b1] rounded-[6px] flex items-center gap-3 shadow-[2px_2px_0_rgba(210,180,140,0.1)]">
+                <div className="p-2.5 bg-white border-[3px] border-zako-tan-light rounded-[6px] flex items-center gap-3 shadow-[2px_2px_0_var(--color-zako-tan-10)]">
                   <div className="flex-1">
-                    <span className="font-black text-xs block text-[#a67c52] leading-tight">
+                    <span className="font-black text-xs block text-zako-brown leading-tight">
                       カスタムカラー
                     </span>
                   </div>
                   <div className="flex items-center gap-2.5 relative">
-                    <span className="font-black text-[10px] text-[#a67c52] font-mono">
+                    <span className="font-black text-[10px] text-zako-brown font-mono">
                       {bodyColor.bg.toUpperCase()}
                     </span>
                     <div className="w-14 h-8 shrink-0 relative">

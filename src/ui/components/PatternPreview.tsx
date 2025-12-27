@@ -35,7 +35,9 @@ export function PatternPreview({
             style={{
               width: pixelSize,
               height: pixelSize,
-              backgroundColor: value ? "#000" : "transparent",
+              backgroundColor: value
+                ? "var(--color-zako-black)"
+                : "transparent",
             }}
           />,
         );

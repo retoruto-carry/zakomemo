@@ -7,12 +7,12 @@
 }
 
 .layer1 {
-  background-color: #ff6000; /* メインのオレンジ */
+  background-color: var(--color-zako-orange); /* メインのオレンジ */
   z-index: 20;
 }
 
 .layer2 {
-  background-color: #ffaa60; /* サブのオレンジ */
+  background-color: var(--color-zako-orange-warm); /* サブのオレンジ */
   z-index: 10;
 }
 

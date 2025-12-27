@@ -282,36 +282,36 @@ export function WigglyEditor() {
           __html: `
         :root {
           ${palette.map((c, i) => `--palette-${i}: ${c};`).join("\n")}
-          --ugo-body-bg: ${bodyColor.bg};
-          --ugo-body-border: ${bodyColor.border};
-          --ugo-bezel-bg: ${bodyColor.bezel};
-          --ugo-bezel-border: ${bodyColor.bezelBorder};
-          --ugo-button-bg: ${bodyColor.button};
-          --ugo-button-border: ${bodyColor.buttonBorder};
-          --ugo-button-text: ${bodyColor.buttonText};
-          --ugo-hinge-from: ${bodyColor.hingeFrom};
-          --ugo-hinge-via: ${bodyColor.hingeVia};
-          --ugo-hinge-to: ${bodyColor.hingeTo};
-          --ugo-hinge-border: ${bodyColor.hingeBorder};
+          --zako-body-bg: ${bodyColor.bg};
+          --zako-body-border: ${bodyColor.border};
+          --zako-bezel-bg: ${bodyColor.bezel};
+          --zako-bezel-border: ${bodyColor.bezelBorder};
+          --zako-button-bg: ${bodyColor.button};
+          --zako-button-border: ${bodyColor.buttonBorder};
+          --zako-button-text: ${bodyColor.buttonText};
+          --zako-hinge-from: ${bodyColor.hingeFrom};
+          --zako-hinge-via: ${bodyColor.hingeVia};
+          --zako-hinge-to: ${bodyColor.hingeTo};
+          --zako-hinge-border: ${bodyColor.hingeBorder};
         }
 
         /* カスタムスクロールバー（うごメモ風） */
-        .ugo-scrollbar::-webkit-scrollbar {
+        .zako-scrollbar::-webkit-scrollbar {
           width: 16px;
         }
-        .ugo-scrollbar::-webkit-scrollbar-track {
-          background: #fdfbf7;
-          border-left: 3px solid #e7d1b1;
+        .zako-scrollbar::-webkit-scrollbar-track {
+          background: var(--color-zako-cream);
+          border-left: 3px solid var(--color-zako-tan-light);
         }
-        .ugo-scrollbar::-webkit-scrollbar-thumb {
-          background: #ff6b00;
-          border: 4px solid #fdfbf7;
+        .zako-scrollbar::-webkit-scrollbar-thumb {
+          background: var(--color-zako-orange-strong);
+          border: 4px solid var(--color-zako-cream);
           border-radius: 4px;
-          box-shadow: inset -1.5px -1.5px 0 rgba(0,0,0,0.25), inset 1.5px 1.5px 0 rgba(255,255,255,0.35);
+          box-shadow: inset -1.5px -1.5px 0 var(--color-zako-black-25), inset 1.5px 1.5px 0 var(--color-zako-white-35);
         }
-        .ugo-scrollbar {
+        .zako-scrollbar {
           scrollbar-width: auto;
-          scrollbar-color: #ff6b00 #fdfbf7;
+          scrollbar-color: var(--color-zako-orange-strong) var(--color-zako-cream);
         }
 
         /* スライダーのつまみを大きくする */
@@ -320,9 +320,9 @@ export function WigglyEditor() {
           width: 20px;
           height: 20px;
           border-radius: 50%;
-          background: #ff6b00;
-          border: 3px solid #fff;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+          background: var(--color-zako-orange-strong);
+          border: 3px solid var(--color-zako-panel);
+          box-shadow: 0 2px 4px var(--color-zako-black-20);
           cursor: pointer;
           margin-top: -8px;
         }
@@ -331,9 +331,9 @@ export function WigglyEditor() {
           width: 20px;
           height: 20px;
           border-radius: 50%;
-          background: #ff6b00;
-          border: 3px solid #fff;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+          background: var(--color-zako-orange-strong);
+          border: 3px solid var(--color-zako-panel);
+          box-shadow: 0 2px 4px var(--color-zako-black-20);
           cursor: pointer;
         }
 

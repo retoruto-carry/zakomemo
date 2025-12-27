@@ -77,7 +77,7 @@ const TWITTER_APP_OPEN_TIMEOUT_MS = 1000;
  * - それ以外: インテントURLでシェア（モバイルはアプリ、PCはWeb）
  */
 export const shareToTwitter = async (options: ShareOptions): Promise<void> => {
-  const { text, imageUrl, imageName = "wiggly-ugomemo.gif" } = options;
+  const { text, imageUrl, imageName = "wiggly-zakomemo.gif" } = options;
 
   // モバイル + 画像あり + Web Share API 対応の場合
   if (isMobile() && imageUrl && (await canShareFiles())) {

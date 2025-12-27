@@ -1,16 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  /* うごメモのパレット */
-  --color-ugomemo-orange: #ff6000;
-  --color-ugomemo-bg: #f8f8f0;
-  --color-ugomemo-dark: #1a1a1a;
-  --color-ugomemo-panel: #ffffff;
-  --color-ugomemo-border: #333333;
-  --color-ugomemo-shadow: rgba(0, 0, 0, 0.15);
+  /* ざこメモのパレット */
+  --color-zakomemo-orange: #ff6000;
+  --color-zakomemo-bg: #f8f8f0;
+  --color-zakomemo-dark: #1a1a1a;
+  --color-zakomemo-panel: #ffffff;
+  --color-zakomemo-border: #333333;
+  --color-zakomemo-shadow: rgba(0, 0, 0, 0.15);
 
-  --background: var(--color-ugomemo-bg);
-  --foreground: var(--color-ugomemo-dark);
+  --background: var(--color-zakomemo-bg);
+  --foreground: var(--color-zakomemo-dark);
 }
 
 @theme inline {
@@ -20,14 +20,67 @@
     var(--font-rounded), "Inter", "Helvetica Neue", Arial, sans-serif;
 
   /* カスタムカラー */
-  --color-ugo-orange: var(--color-ugomemo-orange);
-  --color-ugo-bg: var(--color-ugomemo-bg);
-  --color-ugo-dark: var(--color-ugomemo-dark);
-  --color-ugo-panel: var(--color-ugomemo-panel);
-  --color-ugo-border: var(--color-ugomemo-border);
+  --color-zako-orange: var(--color-zakomemo-orange);
+  --color-zako-bg: var(--color-zakomemo-bg);
+  --color-zako-dark: var(--color-zakomemo-dark);
+  --color-zako-panel: var(--color-zakomemo-panel);
+  --color-zako-border: var(--color-zakomemo-border);
 
-  --shadow-ugo: 4px 4px 0px 0px var(--color-ugomemo-shadow);
-  --radius-ugo: 0.75rem;
+  --shadow-zako: 4px 4px 0px 0px var(--color-zakomemo-shadow);
+  --radius-zako: 0.75rem;
+
+  /* UI palette */
+  --color-zako-black: #000000;
+  --color-zako-ink: #0a0a0a;
+  --color-zako-lens-from: #001;
+  --color-zako-lens-to: #113;
+  --color-zako-charcoal-soft: #2c2c2c;
+  --color-zako-gray-600: #888;
+  --color-zako-gray-500: #999;
+  --color-zako-gray-400: #aaa;
+  --color-zako-gray-300: #bbb;
+
+  --color-zako-brown: #a67c52;
+  --color-zako-tan: #d2b48c;
+  --color-zako-tan-light: #e7d1b1;
+
+  --color-zako-cream: #fdfbf7;
+  --color-zako-cream-soft: #fffdeb;
+  --color-zako-cream-bright: #fffefc;
+  --color-zako-paper: #fdfdfd;
+
+  --color-zako-orange-strong: #ff6b00;
+  --color-zako-orange-bright: #ff8c00;
+  --color-zako-orange-light: #ff9d5c;
+  --color-zako-orange-warm: #ffaa60;
+  --color-zako-orange-peach: #ffb38a;
+  --color-zako-orange-soft: #ffd6b8;
+  --color-zako-orange-dark: #b34700;
+
+  --color-zako-yellow: #fff700;
+  --color-zako-yellow-strong: #ffff00;
+  --color-zako-yellow-strong-30: rgba(255, 255, 0, 0.3);
+  --color-zako-led-blue: #4fc3f7;
+  --color-zako-led-blue-glow: #03a9f4;
+  --color-zako-led-amber: #ffb74d;
+  --color-zako-led-green: #81c784;
+  --color-zako-led-green-glow: #4caf50;
+
+  --color-zako-black-05: rgba(0, 0, 0, 0.05);
+  --color-zako-black-10: rgba(0, 0, 0, 0.1);
+  --color-zako-black-15: var(--color-zakomemo-shadow);
+  --color-zako-black-20: rgba(0, 0, 0, 0.2);
+  --color-zako-black-25: rgba(0, 0, 0, 0.25);
+  --color-zako-black-80: rgba(0, 0, 0, 0.8);
+
+  --color-zako-white-05: rgba(255, 255, 255, 0.05);
+  --color-zako-white-35: rgba(255, 255, 255, 0.35);
+  --color-zako-white-80: rgba(255, 255, 255, 0.8);
+  --color-zako-white-90: rgba(255, 255, 255, 0.9);
+
+  --color-zako-tan-10: rgba(210, 180, 140, 0.1);
+  --color-zako-tan-20: rgba(210, 180, 140, 0.2);
+  --color-zako-tan-30: rgba(210, 180, 140, 0.3);
 }
 
 @media (prefers-color-scheme: dark) {

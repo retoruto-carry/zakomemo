@@ -344,7 +344,7 @@ export function WigglyCanvas({
             top: eraserPos.y,
             transform: "translate(-50%, -50%)",
             borderRadius: eraserGuideStyle.borderRadius,
-            boxShadow: "0 0 0 1px rgba(255,255,255,0.9)",
+            boxShadow: "0 0 0 1px var(--color-zako-white-90)",
           }}
         />
       )}
