@@ -393,7 +393,7 @@ describe("rasterization", () => {
   describe("calculateStampedLinePixels", () => {
     it("線スタンプは水平に広がる", () => {
       const centerPixels = [{ x: 2, y: 2 }];
-      const stamp = getLineStampOffsets(1);
+      const stamp = getLineStampOffsets(3);
       const result = calculateStampedLinePixels(centerPixels, stamp);
       expect(result.length).toBe(3);
       expect(result).toContainEqual({ x: 1, y: 2 });

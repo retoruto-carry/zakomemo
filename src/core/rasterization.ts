@@ -322,29 +322,31 @@ export function getSquareStampOffsets(width: number): StampOffsets {
 
 /**
  * 横線スタンプのオフセットと範囲を取得
- * @param width 左右に伸ばす半長さ（px）
+ * @param width 横線の長さ（px）
  * @returns 横線スタンプのオフセットと範囲
  */
 export function getLineStampOffsets(width: number): StampOffsets {
-  const safeHalfLength = Math.max(1, Math.round(width));
-  const cached = lineOffsetCache.get(safeHalfLength);
+  const safeSize = Math.max(1, Math.round(width));
+  const cached = lineOffsetCache.get(safeSize);
   if (cached) {
     return cached;
   }
 
+  const start = -Math.floor(safeSize / 2);
+  const end = start + safeSize - 1;
   const offsets: Array<{ dx: number; dy: number }> = [];
-  for (let dx = -safeHalfLength; dx <= safeHalfLength; dx++) {
+  for (let dx = start; dx <= end; dx++) {
     offsets.push({ dx, dy: 0 });
   }
 
   const stamp = {
     offsets,
-    minX: -safeHalfLength,
-    maxX: safeHalfLength,
+    minX: start,
+    maxX: end,
     minY: 0,
     maxY: 0,
   };
-  lineOffsetCache.set(safeHalfLength, stamp);
+  lineOffsetCache.set(safeSize, stamp);
   return stamp;
 }
 

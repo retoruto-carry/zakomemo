@@ -142,10 +142,10 @@ describe("renderStroke", () => {
   test("消しゴムの線が移動中も形状を維持する", () => {
     const buffer = createBuffer("#ffffff");
     buffer.clear({ width: 9, height: 9 });
-    buffer.setPixel({ x: 8, y: 4, r: 0, g: 0, b: 0, a: 255 });
+    buffer.setPixel({ x: 7, y: 4, r: 0, g: 0, b: 0, a: 255 });
     const palette = ["#ff0000", "#00ff00", "#0000ff"];
 
-    const eraseStroke = createEraserStroke("eraserLine", 2);
+    const eraseStroke = createEraserStroke("eraserLine", 3);
     renderStroke({
       context: buffer,
       palette,
@@ -157,8 +157,8 @@ describe("renderStroke", () => {
       elapsedTimeMs: 0,
     });
 
-    // eraserLine(width=2)は中心から左右2px伸びるため、終点(6,4)の外側(8,4)も消える
-    expect(getPixel(buffer, 8, 4)).toEqual({
+    // eraserLine(width=3)は中心から左右1px伸びるため、終点(6,4)の外側(7,4)も消える
+    expect(getPixel(buffer, 7, 4)).toEqual({
       r: 255,
       g: 255,
       b: 255,

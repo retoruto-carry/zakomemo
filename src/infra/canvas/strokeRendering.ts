@@ -289,22 +289,7 @@ function renderPatternStroke(
     }
   } else {
     // 複数点の場合はBresenhamアルゴリズムで中心線を取得
-    const centerPixels: Array<{ x: number; y: number }> = [];
-    for (let i = 0; i < jitteredPoints.length; i++) {
-      const current = jitteredPoints[i];
-      const x = Math.round(current.x);
-      const y = Math.round(current.y);
-
-      if (i === 0) {
-        centerPixels.push({ x, y });
-      } else {
-        const prev = jitteredPoints[i - 1];
-        const prevX = Math.round(prev.x);
-        const prevY = Math.round(prev.y);
-        const linePixels = bresenhamLine(prevX, prevY, x, y);
-        centerPixels.push(...linePixels.slice(1));
-      }
-    }
+    const centerPixels = buildCenterPixels(jitteredPoints);
 
     // 太い線の場合は領域を計算（重複排除済み）
     if (brushWidth > 1) {
