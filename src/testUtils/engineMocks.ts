@@ -9,19 +9,24 @@ import type {
 } from "@/engine/ports";
 import { WigglyEngine } from "@/engine/WigglyEngine";
 
+/** エンジンテスト向けの最小描画フィクスチャ。 */
 export const DEFAULT_TEST_DRAWING: Drawing = {
   width: 50,
   height: 50,
   strokes: [],
 };
 
+/** エンジンテストで使うデフォルトのジッター振幅。 */
 export const DEFAULT_TEST_JITTER_AMPLITUDE = 1.5;
+/** エンジンテストで使うデフォルトのジッター周波数。 */
 export const DEFAULT_TEST_JITTER_FREQUENCY = 0.01;
+/** エンジンテストで使うデフォルトのジッター設定。 */
 export const DEFAULT_TEST_JITTER_CONFIG: JitterConfig = {
   amplitude: DEFAULT_TEST_JITTER_AMPLITUDE,
   frequency: DEFAULT_TEST_JITTER_FREQUENCY,
 };
 
+/** 描画内容を記録するレンダラーモック。 */
 export class MockRenderer implements DrawingRenderer {
   clears: { width: number; height: number }[] = [];
   rendered: Array<{
@@ -68,6 +73,7 @@ export class MockRenderer implements DrawingRenderer {
   }
 }
 
+/** 手動で時間を進められるタイムモック。 */
 export class MockTime implements TimeProvider {
   private current = 0;
   now(): number {
@@ -78,6 +84,7 @@ export class MockTime implements TimeProvider {
   }
 }
 
+/** キューを任意タイミングで実行できるRAFモック。 */
 export class MockRaf implements RafScheduler {
   private lastId = 0;
   private callbacks = new Map<number, () => void>();
@@ -96,6 +103,7 @@ export class MockRaf implements RafScheduler {
   }
 }
 
+/** ストローク音のライフサイクルを記録するモック。 */
 export class MockSound implements StrokeSound {
   events: Array<{ type: string; info: StrokeSoundInfo }> = [];
   destroyed = false;
@@ -113,6 +121,7 @@ export class MockSound implements StrokeSound {
   }
 }
 
+/** デフォルトモックでWigglyEngineを生成する。 */
 export function createTestEngine(): {
   engine: WigglyEngine;
   time: MockTime;
@@ -120,6 +129,7 @@ export function createTestEngine(): {
   renderer: MockRenderer;
   sound: MockSound;
 };
+/** すべてのモックを指定してWigglyEngineを生成する。 */
 export function createTestEngine<
   TRenderer extends DrawingRenderer,
   TTime extends TimeProvider,
