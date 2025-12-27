@@ -9,11 +9,9 @@ import type { Tool, WigglyEngine } from "@/engine/WigglyEngine";
 import { createWigglyEngine } from "@/infra/createWigglyEngine";
 
 const ERASER_GUIDE = {
-  minSize: 12,
   squareRadius: 2,
   line: {
     lengthMult: 2,
-    height: 2,
   },
 } as const;
 
@@ -37,7 +35,7 @@ function resolveEraserGuideStyle(params: {
   brushWidth: number;
 }): EraserGuideStyle {
   const { variant, brushWidth } = params;
-  const size = Math.max(brushWidth, ERASER_GUIDE.minSize);
+  const size = brushWidth;
 
   switch (variant) {
     case "eraserCircle":
@@ -54,11 +52,8 @@ function resolveEraserGuideStyle(params: {
       };
     case "eraserLine":
       return {
-        width: Math.max(
-          brushWidth * ERASER_GUIDE.line.lengthMult,
-          ERASER_GUIDE.minSize,
-        ),
-        height: ERASER_GUIDE.line.height,
+        width: brushWidth * ERASER_GUIDE.line.lengthMult,
+        height: brushWidth,
         borderRadius: "0px",
       };
     default:

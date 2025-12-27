@@ -312,41 +312,6 @@ export function WigglyEditor() {
           scrollbar-width: auto;
           scrollbar-color: var(--color-zako-orange-strong) var(--color-zako-cream);
         }
-
-        /* スライダーのつまみを大きくする */
-        input[type="range"]::-webkit-slider-thumb {
-          appearance: none;
-          width: 20px;
-          height: 20px;
-          border-radius: 50%;
-          background: var(--color-zako-orange-strong);
-          border: 3px solid var(--color-zako-panel);
-          box-shadow: 0 2px 4px var(--color-zako-black-20);
-          cursor: pointer;
-          margin-top: -8px;
-        }
-
-        input[type="range"]::-moz-range-thumb {
-          width: 20px;
-          height: 20px;
-          border-radius: 50%;
-          background: var(--color-zako-orange-strong);
-          border: 3px solid var(--color-zako-panel);
-          box-shadow: 0 2px 4px var(--color-zako-black-20);
-          cursor: pointer;
-        }
-
-        /* 太さスライダー用のより大きなつまみ */
-        input[type="range"].pen-width-slider::-webkit-slider-thumb {
-          width: 24px;
-          height: 24px;
-          margin-top: -4px;
-        }
-
-        input[type="range"].pen-width-slider::-moz-range-thumb {
-          width: 24px;
-          height: 24px;
-        }
       `,
         }}
       />

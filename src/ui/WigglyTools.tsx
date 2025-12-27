@@ -49,6 +49,11 @@ interface JitterControlSliderProps {
   onChange: (value: number) => void;
 }
 
+function buildSliderFill(percentage: number): string {
+  const clamped = Math.min(100, Math.max(0, percentage));
+  return `linear-gradient(to right, var(--slider-fill-color) 0%, var(--slider-fill-color) ${clamped}%, var(--slider-track-color) ${clamped}%, var(--slider-track-color) 100%)`;
+}
+
 /** ジッター設定用のスライダー */
 function JitterControlSlider({
   label,
@@ -60,6 +65,7 @@ function JitterControlSlider({
   onChange,
 }: JitterControlSliderProps) {
   const percentage = max > min ? ((value - min) / (max - min)) * 100 : 0;
+  const sliderFill = buildSliderFill(percentage);
   const playSliderSoundThrottled = useRef(
     throttle(() => {
       uiSoundManager.play("slider-change", { stopPrevious: true });
@@ -86,10 +92,12 @@ function JitterControlSlider({
             onChange(newValue);
             playSliderSoundThrottled();
           }}
-          className="w-full h-2 bg-zako-cream-soft rounded-lg appearance-none cursor-pointer accent-zako-orange-strong relative z-10"
-          style={{
-            background: `linear-gradient(to right, var(--color-zako-orange-strong) 0%, var(--color-zako-orange-strong) ${percentage}%, var(--color-zako-cream-soft) ${percentage}%, var(--color-zako-cream-soft) 100%)`,
-          }}
+          className="zako-slider w-full relative z-10"
+          style={
+            {
+              "--slider-fill": sliderFill,
+            } as React.CSSProperties
+          }
         />
       </div>
     </div>
@@ -249,7 +257,6 @@ export const WigglyTools = React.forwardRef<
     setSelectedPaletteName,
     bodyColor,
     setBodyColor,
-    backgroundColor,
     setBackgroundColor,
     customBackgroundColor,
     setCustomBackgroundColor,
@@ -262,6 +269,11 @@ export const WigglyTools = React.forwardRef<
   const [activePopup, setActivePopup] = useState<
     "none" | "pen" | "pattern" | "eraser" | "settings"
   >("none");
+  const penWidthPercentage =
+    MAX_PEN_WIDTH > MIN_PEN_WIDTH
+      ? ((brushWidth - MIN_PEN_WIDTH) / (MAX_PEN_WIDTH - MIN_PEN_WIDTH)) * 100
+      : 0;
+  const penWidthFill = buildSliderFill(penWidthPercentage);
   const currentPattern = useMemo(
     () => getPatternDefinition(patternId),
     [patternId],
@@ -862,10 +874,6 @@ export const WigglyTools = React.forwardRef<
           太さ
         </span>
         <div className="flex-1 flex items-center relative">
-          <div
-            className="absolute top-1/2 -translate-y-1/2 left-0 right-0 h-3 bg-zako-paper"
-            style={{ clipPath: "polygon(0 80%, 100% 20%, 100% 100%, 0% 100%)" }}
-          />
           <input
             type="range"
             min={MIN_PEN_WIDTH}
@@ -876,7 +884,12 @@ export const WigglyTools = React.forwardRef<
               setBrushWidth(Number(e.target.value));
               playWidthSliderSound();
             }}
-            className="pen-width-slider w-full h-4 relative z-10 accent-zako-orange-strong cursor-pointer mix-blend-multiply"
+            className="zako-slider w-full relative z-10"
+            style={
+              {
+                "--slider-fill": penWidthFill,
+              } as React.CSSProperties
+            }
           />
         </div>
       </div>
@@ -885,16 +898,6 @@ export const WigglyTools = React.forwardRef<
       <div className="h-12 shrink-0 flex items-center justify-start gap-2 relative z-10">
         {/* 色 */}
         <div className="w-fit h-full bg-zako-cream-soft border-[3px] border-zako-tan p-1 flex items-center justify-center gap-1 shadow-[3px_3px_0_var(--color-zako-tan-20)] rounded-[4px]">
-          <div
-            className="h-8 w-8 rounded-[2px] shadow-sm shrink-0 relative border-black border-[3px]"
-            style={{ backgroundColor }}
-          >
-            <div className="absolute inset-0 border-2 border-white/40 opacity-80 pointer-events-none" />
-          </div>
-          <div
-            className="w-[3px] h-8 bg-zako-tan rounded-full"
-            aria-hidden="true"
-          />
           {palette.map((_c, idx) => {
             const varName = `var(--palette-${idx})`;
             const isSelected = colorIndex === idx;
