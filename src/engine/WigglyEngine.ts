@@ -142,8 +142,8 @@ export class WigglyEngine {
       typeof this.renderer.setBackgroundColor === "function"
     ) {
       this.renderer.setBackgroundColor(backgroundColor);
-      // 背景色変更前のリクエストを無効化して古いImageBitmapを捨てる
-      invalidatePendingRequests(this.renderer);
+      // 背景色が変わると描画結果が変わるためキャッシュを無効化
+      this.clearRendererCache();
       // 背景色変更を即座に反映するために次の描画を強制
       this.lastRenderAt = 0;
     }

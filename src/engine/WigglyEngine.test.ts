@@ -74,7 +74,7 @@ describe("WigglyEngine", () => {
     expect(jittered[0].x).not.toBe(0);
   });
 
-  test("背景色変更で保留中リクエストを無効化する", () => {
+  test("背景色変更でキャッシュと保留中リクエストを無効化する", () => {
     class MockRendererWithBackground extends MockRenderer {
       setBackgroundColor = vi.fn();
     }
@@ -92,10 +92,7 @@ describe("WigglyEngine", () => {
       raf,
       jitterConfig: { amplitude: 0, frequency: 1 },
     });
-    const invalidateSpy = vi.spyOn(
-      renderScheduler,
-      "invalidatePendingRequests",
-    );
+    const invalidateSpy = vi.spyOn(renderScheduler, "invalidateRendererCache");
 
     engine.setBackgroundColor("#000000");
 
