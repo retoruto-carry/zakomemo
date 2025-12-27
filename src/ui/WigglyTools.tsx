@@ -602,10 +602,10 @@ export const WigglyTools = React.forwardRef<
                         setPenVariant(v.id);
                         setActivePopup("none");
                       }}
-                      className={`relative border-[2px] w-9 h-9 flex items-center justify-center transition-all rounded-[2px] cursor-pointer
+                        className={`relative border-[2px] w-9 h-9 flex items-center justify-center transition-all rounded-[2px] cursor-pointer
                                     ${
                                       penVariant === v.id
-                                        ? "border-black bg-slate-100"
+                                        ? "border-black bg-zako-yellow-strong-30"
                                         : "border-zako-tan-light bg-white"
                                     }`}
                       aria-label={`ペン: ${v.label}`}
@@ -840,7 +840,7 @@ export const WigglyTools = React.forwardRef<
                       className={`relative border-[2px] w-9 h-9 flex items-center justify-center transition-all rounded-[2px] cursor-pointer
                                     ${
                                       eraserVariant === v.id
-                                        ? "border-black bg-slate-100"
+                                        ? "border-black bg-zako-yellow-strong-30"
                                         : "border-zako-tan-light bg-white"
                                     }`}
                     >
