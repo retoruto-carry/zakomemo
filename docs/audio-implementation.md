@@ -71,7 +71,7 @@
 - クリック/タップ時に即座に再生
 - 連続クリック時は前の音を停止して新しい音を再生
 
-**音源ファイル:**
+**音源ファイル（`public/audios/se/`）:**
 
 - `select1.mp3`: ほぼすべての UI 要素に使用
   - DS ボタン（A, B, X, Y, 十字キー, Start, Select）
@@ -82,7 +82,8 @@
   - エクスポートモーダル（閉じる、保存）
   - シェアボタン
   - ポップアップ閉じる
-- `kero.wav`: やり直しボタン（Undo, Redo）のみに使用
+- `kero1.wav`: Undo ボタンに使用
+- `kero5.wav`: Redo ボタンに使用
 - 将来的には各要素に異なる音源を割り当て可能
 
 ### 2. キャンバス描画音
@@ -96,46 +97,47 @@
 **実装方法:**
 
 - Web Audio API を使用した動的音源生成を実装
-- ホワイトノイズとピンクノイズをベースに、フィルターで音色を調整
-- 描画速度（加速度）に応じてリアルタイムに音量とフィルター周波数を変化
-- ツールごとに異なる音色を生成
+- ピンクノイズを AudioWorklet で生成（未対応環境はバッファループにフォールバック）
+- 描画速度に応じて音量とフィルター周波数を調整（指数平滑化）
+- ツールごとに異なるフィルター設定とゲインを適用
 
 **技術詳細:**
 
 1. **ノイズ生成**
 
    - すべてのツール: ピンクノイズ（より自然な音色）
-   - 2 段階のローパスフィルターでスムージング（プツプツノイズを抑制）
-   - 0.3 秒のループバッファを生成
+   - AudioWorklet が使える場合は `pink-noise-processor` を動的生成
+   - 未対応環境では 8 秒のループバッファを生成し、クロスフェードで継ぎ目を抑制
 
 2. **フィルター設定**
 
-   - ペン: バンドパスフィルター（中音域、2800Hz、Q: 0.6）
-   - ブラシ（パターン）: バンドパスフィルター（中音域、2400Hz、Q: 0.4）
-   - 消しゴム: バンドパスフィルター（高音域、4000Hz、Q: 0.5）
-   - 全ツール共通: 追加のローパスフィルター（8kHz 以上をカット、プツプツノイズ抑制）
+   - ペン: バンドパス（2800Hz、Q: 0.6）+ ハイパス（60Hz）
+   - ブラシ（パターン）: バンドパス（2400Hz、Q: 0.4）+ ハイパス（60Hz）
+   - 消しゴム: バンドパス（4000Hz、Q: 0.5）+ ハイパス（90Hz）
+   - 全ツール共通: ローパス（8kHz）で高域のノイズを抑制
 
 3. **動的パラメータ調整**
 
-   - 音量: 描画速度（移動平均速度）に応じて 0.2 + speed \* 0.6 ～ 1.0 の範囲で変化
-   - フィルター周波数: 描画速度に応じて基本周波数の 0.9 ～ 2.2 倍の範囲で変化（平方根カーブ、速い描画で高音域を強調）
-   - 速度計算: 直近 5 サンプルの移動平均速度を使用（滑らかな変化のため）
+   - 速度は指数平滑化（時定数 0.08s）し、`SPEED_REFERENCE` を基準に正規化
+   - フィルター周波数は平方根カーブで 0.9〜2.1 倍程度に変化（ツールごとに上限が異なる）
+   - 音量は `minGain + speed * gainScale` を基準にし、ヒステリシス付きゲートで停止付近を無音化
 
 4. **フェード制御**
 
-   - 描画開始時: 120ms でフェードイン（初期音量 0.5）
-   - 描画終了時: 180ms でフェードアウト
+   - 描画開始時: 20ms でフェードイン
+   - 描画終了時: 50ms でフェードアウト
    - ツール切り替え時: 50ms でフェードアウト
+   - 入力停止時は idle 判定で段階的に無音化し、約 220ms でソースを停止
 
 5. **フィルターチェーン**
-   - `source → bandpass → lowpass → gain → destination`
-   - bandpass フィルターでツールごとの音色を決定
-   - lowpass フィルターで超高音域（8kHz 以上）をカットし、プツプツノイズを抑制
+   - `source → highpass → bandpass → lowpass → gain → destination`
+   - バンドパスでツールごとの音色を決定し、低域/高域ノイズを抑える
 
 **実装クラス:**
 
 - `WebAudioStrokeSound`: Web Audio API を使用した描画音生成クラス
-- `src/infra/WebAudioStrokeSound.ts` に実装
+- `src/infra/sound/WebAudioStrokeSound.ts` に実装
+- 代替実装として `src/infra/sound/HowlerStrokeSound.ts` も用意（UI音源と同じSEのループ）
 
 **音源ファイルの探し方:**
 
@@ -224,15 +226,19 @@
 ### 音源管理システム
 
 ```typescript
-// src/infra/UISoundManager.ts
+// src/infra/sound/UISoundManager.ts
 export class UISoundManager {
   private sounds: Map<string, Howl> = new Map();
 
   // 音源を登録
-  registerSound(id: string, src: string): void;
+  registerSound(
+    id: string,
+    src: string | string[],
+    options?: { volume?: number; preload?: boolean },
+  ): void;
 
   // 音を再生
-  play(id: string, options?: PlayOptions): void;
+  play(id: string, options?: PlayOptions): number | null;
 
   // 音を停止
   stop(id: string): void;

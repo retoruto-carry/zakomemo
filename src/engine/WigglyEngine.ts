@@ -379,6 +379,7 @@ export class WigglyEngine {
     if (this.loopId !== null) {
       this.raf.cancel(this.loopId);
     }
+    this.sound?.destroy?.();
   }
 
   /**

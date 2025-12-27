@@ -85,6 +85,7 @@ class MockRaf implements RafScheduler {
 
 class MockSound implements StrokeSound {
   events: Array<{ type: string; info: StrokeSoundInfo }> = [];
+  destroyed = false;
   onStrokeStart(info: StrokeSoundInfo): void {
     this.events.push({ type: "start", info });
   }
@@ -93,6 +94,9 @@ class MockSound implements StrokeSound {
   }
   onStrokeEnd(info: StrokeSoundInfo): void {
     this.events.push({ type: "end", info });
+  }
+  destroy(): void {
+    this.destroyed = true;
   }
 }
 
@@ -259,6 +263,12 @@ describe("WigglyEngine", () => {
     const cancelSpy = vi.spyOn(raf, "cancel");
     engine.destroy();
     expect(cancelSpy).toHaveBeenCalled();
+  });
+
+  test("destroyでサウンドの後片付けを呼び出す", () => {
+    const { engine, sound } = createEngine();
+    engine.destroy();
+    expect(sound.destroyed).toBe(true);
   });
 
   test("座標は整数にスナップされる", () => {
