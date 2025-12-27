@@ -34,7 +34,7 @@ function getPixel(
 function createSolidStroke(
   kind: "draw" | "erase",
   color: BrushColor,
-  variant: BrushVariant = "normal",
+  variant: BrushVariant = "penCircle",
 ): Stroke {
   return {
     id: "s1",
@@ -80,7 +80,7 @@ function createPatternStroke(color: BrushColor): Stroke {
       width: 2,
       opacity: 1,
       patternId: "dot_sparse",
-      variant: "normal",
+      variant: "penCircle",
     },
     points: [{ x: 1, y: 1, t: 0 }],
   };

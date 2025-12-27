@@ -259,7 +259,7 @@ function resolveEraserStampVariant({
     case "eraserSquare":
       return variant;
     case "eraserCircle":
-    case "normal":
+    case "penCircle":
     case "penSquare":
       return null;
     default:

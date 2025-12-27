@@ -12,7 +12,7 @@ const brush: BrushSettings = {
   color: { kind: "palette", index: 0 },
   width: 4,
   opacity: 1,
-  variant: "normal",
+  variant: "penCircle",
 };
 
 describe("drawingLogic", () => {

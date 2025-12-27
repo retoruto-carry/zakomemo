@@ -34,7 +34,7 @@ function createTestStroke(
       color: { kind: "palette", index: 0 },
       width: 2,
       opacity: 1,
-      variant: "normal",
+      variant: "penCircle",
     },
     points,
   };

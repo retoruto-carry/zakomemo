@@ -132,7 +132,7 @@ function getPenShapeClass(
 ): string {
   const sizeClass = size === "indicator" ? "w-4 h-4" : "w-5 h-5";
   switch (variant) {
-    case "normal":
+    case "penCircle":
       return `rounded-full ${sizeClass}`;
     case "penSquare":
       return `rounded-none ${sizeClass}`;

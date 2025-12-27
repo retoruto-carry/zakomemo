@@ -87,7 +87,7 @@ describe("renderDrawingAtTime", () => {
             color: { kind: "palette", index: 0 },
             width: 4,
             opacity: 1,
-            variant: "normal",
+            variant: "penCircle",
           },
           points: [
             { x: 0, y: 0, t: 0 },
@@ -126,7 +126,7 @@ describe("renderDrawingAtTime", () => {
             color: { kind: "palette", index: 0 },
             width: 4,
             opacity: 1,
-            variant: "normal",
+            variant: "penCircle",
           },
           points: [
             { x: 0, y: 0, t: 0 },
@@ -167,7 +167,7 @@ describe("renderDrawingAtTime", () => {
             width: 4,
             opacity: 1,
             patternId: "dot_sparse",
-            variant: "normal",
+            variant: "penCircle",
           },
           points: [
             { x: 0, y: 0, t: 0 },

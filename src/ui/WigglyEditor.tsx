@@ -21,7 +21,7 @@ const defaultPalette = PALETTE_PRESETS[0];
 // 標準DSホワイト本体
 const defaultBodyColor = BODY_PRESETS[0].body;
 
-/** デフォルトのペン幅（engine/variants.tsのdefaultPenWidth.normalと揃える） */
+/** デフォルトのペン幅（engine/variants.tsのdefaultPenWidth.penCircleと揃える） */
 const DEFAULT_PEN_WIDTH = 16;
 
 /** 画面全体の描画UIを提供するエディタ */
@@ -39,7 +39,7 @@ export function WigglyEditor() {
   const [tool, setTool] = useState<Tool>("pen");
   const [colorIndex, setColorIndex] = useState(0);
   const [brushWidth, setBrushWidth] = useState(DEFAULT_PEN_WIDTH);
-  const [penVariant, setPenVariant] = useState<PenVariant>("normal");
+  const [penVariant, setPenVariant] = useState<PenVariant>("penCircle");
   const [eraserVariant, setEraserVariant] =
     useState<EraserVariant>("eraserCircle");
   const [patternId, setPatternId] = useState<BrushPatternId>("dot_sparse");
