@@ -106,11 +106,37 @@ export class MockSound implements StrokeSound {
   }
 }
 
+export function createTestEngine(): {
+  engine: WigglyEngine;
+  time: MockTime;
+  raf: MockRaf;
+  renderer: MockRenderer;
+  sound: MockSound;
+};
 export function createTestEngine<
-  TRenderer extends DrawingRenderer = MockRenderer,
-  TTime extends TimeProvider = MockTime,
-  TRaf extends RafScheduler = MockRaf,
-  TSound extends StrokeSound = MockSound,
+  TRenderer extends DrawingRenderer,
+  TTime extends TimeProvider,
+  TRaf extends RafScheduler,
+  TSound extends StrokeSound,
+>(options: {
+  initialDrawing?: Drawing;
+  renderer: TRenderer;
+  time: TTime;
+  raf: TRaf;
+  sound: TSound;
+  jitterConfig?: JitterConfig;
+}): {
+  engine: WigglyEngine;
+  time: TTime;
+  raf: TRaf;
+  renderer: TRenderer;
+  sound: TSound;
+};
+export function createTestEngine<
+  TRenderer extends DrawingRenderer,
+  TTime extends TimeProvider,
+  TRaf extends RafScheduler,
+  TSound extends StrokeSound,
 >({
   initialDrawing = DEFAULT_TEST_DRAWING,
   renderer,
@@ -127,16 +153,16 @@ export function createTestEngine<
   jitterConfig?: JitterConfig;
 } = {}): {
   engine: WigglyEngine;
-  time: TTime;
-  raf: TRaf;
-  renderer: TRenderer;
-  sound: TSound;
+  time: TTime | MockTime;
+  raf: TRaf | MockRaf;
+  renderer: TRenderer | MockRenderer;
+  sound: TSound | MockSound;
 } {
-  const resolvedTime = (time ?? new MockTime()) as TTime;
-  const resolvedRaf = (raf ?? new MockRaf()) as TRaf;
-  const resolvedRenderer = (renderer ??
-    new MockRenderer(initialDrawing.width, initialDrawing.height)) as TRenderer;
-  const resolvedSound = (sound ?? new MockSound()) as TSound;
+  const resolvedTime = time ?? new MockTime();
+  const resolvedRaf = raf ?? new MockRaf();
+  const resolvedRenderer =
+    renderer ?? new MockRenderer(initialDrawing.width, initialDrawing.height);
+  const resolvedSound = sound ?? new MockSound();
 
   const engine = new WigglyEngine({
     initialDrawing,
