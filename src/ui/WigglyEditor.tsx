@@ -24,6 +24,7 @@ const defaultBodyColor = BODY_PRESETS[0].body;
 /** デフォルトのペン幅（engine/variants.tsのdefaultPenWidth.penCircleと揃える） */
 const DEFAULT_PEN_WIDTH = 16;
 
+// Centralize modular navigation to keep cycling math consistent.
 const cycleIndex = (
   current: number,
   length: number,
