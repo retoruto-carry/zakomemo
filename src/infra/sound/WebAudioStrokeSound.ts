@@ -289,15 +289,11 @@ export class WebAudioStrokeSound implements StrokeSound {
     }
 
     const events = ["pointerdown", "touchstart", "mousedown"];
-    const handler = () => {
-      resume();
-      this.interactionHandlers = this.interactionHandlers.filter(
-        (item) => item.handler !== handler,
-      );
-    };
+    const handler = () => resume();
 
     for (const event of events) {
       document.addEventListener(event, handler, { once: true });
+      // destroy()で明示的に解除できるように保持
       this.interactionHandlers.push({ event, handler });
     }
   }
