@@ -44,14 +44,17 @@ export class MockRenderer implements DrawingRenderer {
     } as unknown as ImageData;
   }
 
+  /** 描画バッファをクリアした記録を残す。 */
   clear(width: number, height: number): void {
     this.clears.push({ width, height });
   }
 
+  /** テスト用の空実装。 */
   invalidateRenderCache(): void {
     // モック用の空実装
   }
 
+  /** ストローク描画の引数を記録する。 */
   renderStroke({
     stroke,
     jitteredPoints,
@@ -68,6 +71,7 @@ export class MockRenderer implements DrawingRenderer {
     });
   }
 
+  /** 疑似ImageDataを返す。 */
   getImageData(): ImageData {
     return this.imageData;
   }
@@ -76,9 +80,11 @@ export class MockRenderer implements DrawingRenderer {
 /** 手動で時間を進められるタイムモック。 */
 export class MockTime implements TimeProvider {
   private current = 0;
+  /** 現在時刻を返す。 */
   now(): number {
     return this.current;
   }
+  /** 現在時刻を設定する。 */
   set(ms: number) {
     this.current = ms;
   }
@@ -88,14 +94,17 @@ export class MockTime implements TimeProvider {
 export class MockRaf implements RafScheduler {
   private lastId = 0;
   private callbacks = new Map<number, () => void>();
+  /** コールバックを登録してIDを返す。 */
   request(cb: () => void): number {
     this.lastId += 1;
     this.callbacks.set(this.lastId, cb);
     return this.lastId;
   }
+  /** 指定IDのコールバックをキャンセルする。 */
   cancel(id: number): void {
     this.callbacks.delete(id);
   }
+  /** 指定IDまたは最新IDのコールバックを実行する。 */
   runFrame(id?: number): void {
     const targetId = id ?? this.lastId;
     const cb = this.callbacks.get(targetId);
@@ -107,15 +116,19 @@ export class MockRaf implements RafScheduler {
 export class MockSound implements StrokeSound {
   events: Array<{ type: string; info: StrokeSoundInfo }> = [];
   destroyed = false;
+  /** 開始イベントを記録する。 */
   onStrokeStart(info: StrokeSoundInfo): void {
     this.events.push({ type: "start", info });
   }
+  /** 更新イベントを記録する。 */
   onStrokeUpdate(info: StrokeSoundInfo): void {
     this.events.push({ type: "update", info });
   }
+  /** 終了イベントを記録する。 */
   onStrokeEnd(info: StrokeSoundInfo): void {
     this.events.push({ type: "end", info });
   }
+  /** 破棄済みフラグを立てる。 */
   destroy(): void {
     this.destroyed = true;
   }
@@ -149,6 +162,7 @@ export function createTestEngine<
   renderer: TRenderer;
   sound: TSound;
 };
+/** createTestEngineの実装。 */
 export function createTestEngine<
   TRenderer extends DrawingRenderer,
   TTime extends TimeProvider,
