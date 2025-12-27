@@ -24,6 +24,12 @@ const defaultBodyColor = BODY_PRESETS[0].body;
 /** デフォルトのペン幅（engine/variants.tsのdefaultPenWidth.penCircleと揃える） */
 const DEFAULT_PEN_WIDTH = 16;
 
+const cycleIndex = (
+  current: number,
+  length: number,
+  direction: 1 | -1,
+): number => (current + direction + length) % length;
+
 /** 画面全体の描画UIを提供するエディタ */
 export function WigglyEditor() {
   const engineRef = useRef<WigglyEngine | null>(null);
@@ -196,7 +202,7 @@ export function WigglyEditor() {
     uiSoundManager.play("ds-button-x", { stopPrevious: true });
     const toolCycle: Tool[] = ["pen", "pattern", "eraser"];
     const currentIndex = toolCycle.indexOf(tool);
-    const nextIndex = (currentIndex + 1) % toolCycle.length;
+    const nextIndex = cycleIndex(currentIndex, toolCycle.length, 1);
     setTool(toolCycle[nextIndex]);
   }, [tool]);
 
@@ -204,8 +210,7 @@ export function WigglyEditor() {
     uiSoundManager.play("ds-button-y", { stopPrevious: true });
     const toolCycle: Tool[] = ["pen", "pattern", "eraser"];
     const currentIndex = toolCycle.indexOf(tool);
-    const nextIndex =
-      (currentIndex - 1 + toolCycle.length) % toolCycle.length;
+    const nextIndex = cycleIndex(currentIndex, toolCycle.length, -1);
     setTool(toolCycle[nextIndex]);
   }, [tool]);
 
@@ -217,7 +222,9 @@ export function WigglyEditor() {
     const nextPreset =
       currentPaletteIndex === -1
         ? PALETTE_PRESETS[0]
-        : PALETTE_PRESETS[(currentPaletteIndex + 1) % PALETTE_PRESETS.length];
+        : PALETTE_PRESETS[
+            cycleIndex(currentPaletteIndex, PALETTE_PRESETS.length, 1)
+          ];
     setPalette(nextPreset.colors);
     setBackgroundColor(nextPreset.background);
     setSelectedPaletteName(nextPreset.name);
@@ -232,8 +239,7 @@ export function WigglyEditor() {
       currentPaletteIndex === -1
         ? PALETTE_PRESETS[PALETTE_PRESETS.length - 1]
         : PALETTE_PRESETS[
-            (currentPaletteIndex - 1 + PALETTE_PRESETS.length) %
-              PALETTE_PRESETS.length
+            cycleIndex(currentPaletteIndex, PALETTE_PRESETS.length, -1)
           ];
     setPalette(prevPreset.colors);
     setBackgroundColor(prevPreset.background);
@@ -243,14 +249,14 @@ export function WigglyEditor() {
   const handleDSButtonRight = useCallback(() => {
     uiSoundManager.play("ds-button-right", { stopPrevious: true });
     if (palette.length === 0) return;
-    const nextIndex = (colorIndex + 1) % palette.length;
+    const nextIndex = cycleIndex(colorIndex, palette.length, 1);
     setColorIndex(nextIndex);
   }, [colorIndex, palette.length]);
 
   const handleDSButtonLeft = useCallback(() => {
     uiSoundManager.play("ds-button-left", { stopPrevious: true });
     if (palette.length === 0) return;
-    const prevIndex = (colorIndex - 1 + palette.length) % palette.length;
+    const prevIndex = cycleIndex(colorIndex, palette.length, -1);
     setColorIndex(prevIndex);
   }, [colorIndex, palette.length]);
 
