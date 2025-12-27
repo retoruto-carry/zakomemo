@@ -274,9 +274,6 @@ export class WebAudioStrokeSound implements StrokeSound {
     const events = ["pointerdown", "touchstart", "mousedown"];
     const handler = () => {
       resume();
-      events.forEach((event) => {
-        document.removeEventListener(event, handler);
-      });
       this.interactionHandlers = this.interactionHandlers.filter(
         (item) => item.handler !== handler,
       );
@@ -483,24 +480,7 @@ export class WebAudioStrokeSound implements StrokeSound {
 
     // 速度ゲート（ヒステリシス＋ホールド）で停止付近のノイズを確実にカット
     const wasGateOpen = state.gateOpen;
-    const gateHoldSec = WebAudioStrokeSound.GATE_HOLD_MS / 1000;
-    if (WebAudioStrokeSound.ALWAYS_SOUND_WHILE_DRAWING && state.strokeActive) {
-      state.gateOpen = true;
-      state.gateHoldUntil = now + gateHoldSec;
-    } else if (isInitial) {
-      state.gateOpen = true;
-      state.gateHoldUntil = now + gateHoldSec;
-    } else if (state.gateOpen) {
-      if (state.smoothSpeed > WebAudioStrokeSound.GATE_OFF_SPEED) {
-        // 動いている間はホールド期限を更新し、減速時の短い揺れで切れないようにする
-        state.gateHoldUntil = now + gateHoldSec;
-      } else if (now >= state.gateHoldUntil) {
-        state.gateOpen = false;
-      }
-    } else if (state.smoothSpeed >= WebAudioStrokeSound.GATE_ON_SPEED) {
-      state.gateOpen = true;
-      state.gateHoldUntil = now + gateHoldSec;
-    }
+    this.updateGateState(state, now, isInitial);
 
     if (!state.gateOpen) {
       targetGain = 0;
@@ -534,6 +514,40 @@ export class WebAudioStrokeSound implements StrokeSound {
     if (!context) return;
     const now = context.currentTime;
     this.scheduleParam(state.gain.gain, gain, timeConstant, now);
+  }
+
+  private updateGateState(
+    state: ToolState,
+    now: number,
+    isInitial: boolean,
+  ): void {
+    const gateHoldSec = WebAudioStrokeSound.GATE_HOLD_MS / 1000;
+    if (WebAudioStrokeSound.ALWAYS_SOUND_WHILE_DRAWING && state.strokeActive) {
+      state.gateOpen = true;
+      state.gateHoldUntil = now + gateHoldSec;
+      return;
+    }
+
+    if (isInitial) {
+      state.gateOpen = true;
+      state.gateHoldUntil = now + gateHoldSec;
+      return;
+    }
+
+    if (state.gateOpen) {
+      if (state.smoothSpeed > WebAudioStrokeSound.GATE_OFF_SPEED) {
+        // 動いている間はホールド期限を更新し、減速時の短い揺れで切れないようにする
+        state.gateHoldUntil = now + gateHoldSec;
+      } else if (now >= state.gateHoldUntil) {
+        state.gateOpen = false;
+      }
+      return;
+    }
+
+    if (state.smoothSpeed >= WebAudioStrokeSound.GATE_ON_SPEED) {
+      state.gateOpen = true;
+      state.gateHoldUntil = now + gateHoldSec;
+    }
   }
 
   private scheduleParam(
@@ -654,6 +668,7 @@ export class WebAudioStrokeSound implements StrokeSound {
     if (typeof Blob === "undefined" || typeof URL === "undefined") {
       return null;
     }
+    const noiseGain = WebAudioStrokeSound.NOISE_GAIN;
     const source = `
 class PinkNoiseProcessor extends AudioWorkletProcessor {
   constructor() {
@@ -689,7 +704,7 @@ class PinkNoiseProcessor extends AudioWorkletProcessor {
         this.b6 +
         white * 0.5362;
       this.b6 = white * 0.115926;
-      channel[i] = pink * 0.22;
+      channel[i] = pink * ${noiseGain};
     }
     if (output.length > 1) {
       for (let c = 1; c < output.length; c++) {
