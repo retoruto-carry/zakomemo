@@ -585,7 +585,7 @@ export const WigglyTools = React.forwardRef<
                 className="absolute bg-white border-[3px] border-black p-0.5 grid grid-cols-2 gap-0.5 shadow-[8px_8px_0_var(--color-zako-black-20)] z-[150] h-fit rounded-[4px]"
                 style={{
                   top: "calc(100% - 54px)",
-                  right: "8px",
+                  left: "calc(100% - 54px)",
                   width: "100px",
                 }}
               >
@@ -611,7 +611,7 @@ export const WigglyTools = React.forwardRef<
                       aria-label={`ペン: ${v.label}`}
                     >
                       <div
-                        className={`${getPenShapeClass(v.id, "grid")} ${penVariant === v.id ? "bg-black border-black" : "bg-white border-zako-brown"} border-[1.5px]`}
+                        className={`${getPenShapeClass(v.id, "grid")} bg-black ${penVariant === v.id ? "border-black" : "border-zako-brown"} border-[1.5px]`}
                       />
                     </button>
                   );
