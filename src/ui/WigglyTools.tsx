@@ -211,7 +211,6 @@ interface WigglyToolsProps {
   setSelectedPaletteName: (name: string | null) => void;
   bodyColor: BodyColor;
   setBodyColor: (bodyColor: BodyColor) => void;
-  backgroundColor: string;
   setBackgroundColor: (backgroundColor: string) => void;
   customBackgroundColor: string;
   setCustomBackgroundColor: (backgroundColor: string) => void;

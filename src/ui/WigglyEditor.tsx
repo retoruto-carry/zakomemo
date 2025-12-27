@@ -379,7 +379,6 @@ export function WigglyEditor() {
             setSelectedPaletteName={setSelectedPaletteName}
             bodyColor={bodyColor}
             setBodyColor={setBodyColor}
-            backgroundColor={backgroundColor}
             setBackgroundColor={setBackgroundColor}
             customBackgroundColor={customBackgroundColor}
             setCustomBackgroundColor={setCustomBackgroundColor}
