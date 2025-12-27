@@ -250,8 +250,6 @@ function resolveEraserStampVariant({
       return variant;
     case "eraserCircle":
     case "normal":
-    case "pressure":
-    case "noise":
       return null;
     default:
       return assertNever(variant);
