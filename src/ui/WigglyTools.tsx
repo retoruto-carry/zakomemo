@@ -125,25 +125,17 @@ const CUSTOM_PALETTE_SOUND_DEBOUNCE_MS = 250;
 /** カスタムパレットの色反映を間引く間隔(ms) */
 const CUSTOM_PALETTE_APPLY_THROTTLE_MS = 50;
 
-/** ペンのインジケータ形状を取得する */
-function getPenIndicatorClass(variant: PenVariant): string {
+/** ペンの形状クラスを取得する */
+function getPenShapeClass(
+  variant: PenVariant,
+  size: "indicator" | "grid",
+): string {
+  const sizeClass = size === "indicator" ? "w-4 h-4" : "w-5 h-5";
   switch (variant) {
     case "normal":
-      return "rounded-full w-4 h-4";
+      return `rounded-full ${sizeClass}`;
     case "penSquare":
-      return "rounded-none w-4 h-4";
-    default:
-      return assertNever(variant);
-  }
-}
-
-/** ペンのグリッド形状を取得する */
-function getPenGridClass(variant: PenVariant): string {
-  switch (variant) {
-    case "normal":
-      return "rounded-full w-5 h-5";
-    case "penSquare":
-      return "rounded-none w-5 h-5";
+      return `rounded-none ${sizeClass}`;
     default:
       return assertNever(variant);
   }
@@ -378,6 +370,16 @@ export const WigglyTools = React.forwardRef<
     }
   };
 
+  const togglePenPopup = useCallback(() => {
+    if (activePopup === "pen") {
+      uiSoundManager.play("popup-close", { stopPrevious: true });
+    } else {
+      uiSoundManager.play("button-tool", { stopPrevious: true });
+    }
+    setTool("pen");
+    setActivePopup(activePopup === "pen" ? "none" : "pen");
+  }, [activePopup, setActivePopup, setTool]);
+
   return (
     <div className="flex flex-col w-full bg-zako-cream select-none text-zako-dark font-sans p-2 gap-2 relative">
       {/* 忠実な走査線・ピクセルテクスチャのオーバーレイ（ポップアップの背面にするためZを低く） */}
@@ -568,28 +570,12 @@ export const WigglyTools = React.forwardRef<
             {/* 角インジケータ */}
             <button
               type="button"
-              onClick={() => {
-                if (activePopup === "pen") {
-                  uiSoundManager.play("popup-close", { stopPrevious: true });
-                } else {
-                  uiSoundManager.play("button-tool", { stopPrevious: true });
-                }
-                setTool("pen");
-                setActivePopup(activePopup === "pen" ? "none" : "pen");
-              }}
-              onKeyDown={handleButtonKeyDown(() => {
-                if (activePopup === "pen") {
-                  uiSoundManager.play("popup-close", { stopPrevious: true });
-                } else {
-                  uiSoundManager.play("button-tool", { stopPrevious: true });
-                }
-                setTool("pen");
-                setActivePopup(activePopup === "pen" ? "none" : "pen");
-              })}
+              onClick={togglePenPopup}
+              onKeyDown={handleButtonKeyDown(togglePenPopup)}
               className={`absolute bottom-1.5 right-1.5 w-9 h-9 border-[3px] rounded-[3px] flex items-center justify-center transition-all hover:scale-105 active:scale-95 z-[90] focus:outline-none focus-visible:ring-2 focus-visible:ring-black cursor-pointer ${tool === "pen" ? "border-black bg-white" : "border-zako-tan bg-white"}`}
             >
               <div
-                className={`${getPenIndicatorClass(penVariant)} ${tool === "pen" ? "bg-black" : "bg-zako-tan"}`}
+                className={`${getPenShapeClass(penVariant, "indicator")} ${tool === "pen" ? "bg-black" : "bg-zako-tan"}`}
               />
             </button>
 
@@ -625,7 +611,7 @@ export const WigglyTools = React.forwardRef<
                       aria-label={`ペン: ${v.label}`}
                     >
                       <div
-                        className={`${getPenGridClass(v.id)} bg-white border-[1.5px] ${penVariant === v.id ? "border-black" : "border-zako-brown"}`}
+                        className={`${getPenShapeClass(v.id, "grid")} bg-white border-[1.5px] ${penVariant === v.id ? "border-black" : "border-zako-brown"}`}
                       />
                     </button>
                   );
