@@ -88,9 +88,11 @@ export class WebAudioStrokeSound implements StrokeSound {
   private static readonly NOISE_GAIN = 0.22;
   private static readonly SPEED_REFERENCE = 1.2;
   // GATE系は「ほぼ停止中」を判定して音を素早く止めるための閾値/タイミング
-  private static readonly GATE_ON_SPEED = 0.015;
-  private static readonly GATE_OFF_SPEED = 0.015;
+  private static readonly GATE_ON_SPEED = 0.004;
+  private static readonly GATE_OFF_SPEED = 0.004;
   private static readonly GATE_HOLD_MS = 60;
+  // 書き始めの極小移動は「始点保持」として音を維持する
+  private static readonly INITIAL_HOLD_LENGTH_PX = 2;
   private static readonly SPEED_SMOOTH_SEC = 0.08;
   private static readonly PARAM_SMOOTH_SEC = 0.06;
   // ゲートが閉じた瞬間の素早いフェードアウト
@@ -454,7 +456,8 @@ export class WebAudioStrokeSound implements StrokeSound {
     targetGain = Math.min(Math.max(targetGain, 0), 1);
     const isInitial =
       forceInitial ||
-      info.timeSinceStart < WebAudioStrokeSound.INITIAL_GUARANTEE_MS;
+      info.timeSinceStart < WebAudioStrokeSound.INITIAL_GUARANTEE_MS ||
+      info.length <= WebAudioStrokeSound.INITIAL_HOLD_LENGTH_PX;
 
     // 速度ゲート（ヒステリシス＋ホールド）で停止付近のノイズを確実にカット
     const wasGateOpen = state.gateOpen;
@@ -558,6 +561,10 @@ export class WebAudioStrokeSound implements StrokeSound {
       if (!state.strokeActive) return;
       const now = context.currentTime;
       if (now - state.lastInputAt < WebAudioStrokeSound.IDLE_TIMEOUT_MS / 1000) {
+        this.scheduleIdleCheck(state, context);
+        return;
+      }
+      if (state.lastLength <= WebAudioStrokeSound.INITIAL_HOLD_LENGTH_PX) {
         this.scheduleIdleCheck(state, context);
         return;
       }
