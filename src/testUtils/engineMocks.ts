@@ -15,6 +15,13 @@ export const DEFAULT_TEST_DRAWING: Drawing = {
   strokes: [],
 };
 
+export const DEFAULT_TEST_JITTER_AMPLITUDE = 1.5;
+export const DEFAULT_TEST_JITTER_FREQUENCY = 0.01;
+export const DEFAULT_TEST_JITTER_CONFIG: JitterConfig = {
+  amplitude: DEFAULT_TEST_JITTER_AMPLITUDE,
+  frequency: DEFAULT_TEST_JITTER_FREQUENCY,
+};
+
 export class MockRenderer implements DrawingRenderer {
   clears: { width: number; height: number }[] = [];
   rendered: Array<{
@@ -143,7 +150,7 @@ export function createTestEngine<
   time,
   raf,
   sound,
-  jitterConfig = { amplitude: 1.5, frequency: 0.01 },
+  jitterConfig = DEFAULT_TEST_JITTER_CONFIG,
 }: {
   initialDrawing?: Drawing;
   renderer?: TRenderer;
