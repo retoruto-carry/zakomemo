@@ -86,6 +86,14 @@ export function invalidatePendingRequests(renderer: DrawingRenderer): void {
 }
 
 /**
+ * レンダラーのキャッシュ無効化と保留中リクエスト破棄をまとめて行う
+ */
+export function invalidateRendererCache(renderer: DrawingRenderer): void {
+  renderer.invalidateRenderCache();
+  bumpRequestId(renderer);
+}
+
+/**
  * 指定時刻のDrawingをレンダリングする。
  * ImageBitmapキャッシュ対応の場合は非同期で取得し、最新リクエストのみ描画する。
  */

@@ -1,6 +1,7 @@
 import type { Drawing, Stroke } from "@/core/types";
 import type { DrawingRenderer } from "@/engine/ports";
 import {
+  invalidateRendererCache,
   invalidatePendingRequests,
   renderDrawingAtTime,
 } from "@/engine/renderScheduler";
@@ -211,6 +212,30 @@ describe("renderDrawingAtTime", () => {
     renderer.resolveBitmap(bitmap);
     await Promise.resolve();
 
+    expect(renderer.flushFromBitmap).not.toHaveBeenCalled();
+    expect(bitmap.close).toHaveBeenCalled();
+  });
+
+  test("invalidateRendererCacheでキャッシュと保留中リクエストを無効化する", async () => {
+    const drawing: Drawing = { width: 10, height: 10, strokes: [] };
+    const renderer = createCycleRenderer();
+    renderer.flushFromBitmap = vi.fn();
+    renderer.invalidateRenderCache = vi.fn();
+    const bitmap = { width: 1, height: 1, close: vi.fn() } as ImageBitmap;
+
+    renderDrawingAtTime({
+      drawing,
+      drawingRevision: 1,
+      renderer,
+      jitterConfig: { amplitude: 0, frequency: 1 },
+      elapsedTimeMs: 0,
+    });
+
+    invalidateRendererCache(renderer);
+    renderer.resolveBitmap(bitmap);
+    await Promise.resolve();
+
+    expect(renderer.invalidateRenderCache).toHaveBeenCalled();
     expect(renderer.flushFromBitmap).not.toHaveBeenCalled();
     expect(bitmap.close).toHaveBeenCalled();
   });

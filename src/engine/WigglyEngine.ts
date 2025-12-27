@@ -23,6 +23,7 @@ import type {
 } from "@/engine/ports";
 import {
   invalidatePendingRequests,
+  invalidateRendererCache,
   renderDrawingAtTime,
 } from "@/engine/renderScheduler";
 import type { EraserVariant, PenVariant } from "@/engine/variants";
@@ -170,10 +171,8 @@ export class WigglyEngine {
    * レンダラーのキャッシュと保留中リクエストを無効化する
    */
   clearRendererCache(): void {
-    this.renderer.invalidateRenderCache();
-    // 保留中の非同期レンダリングリクエストを無効化
-    // これにより、閉じられたImageBitmapを使用しようとする古いリクエストを防ぐ
-    invalidatePendingRequests(this.renderer);
+    // キャッシュ無効化と保留中リクエスト破棄をまとめて実行
+    invalidateRendererCache(this.renderer);
   }
 
   /** undo可能かどうか */
