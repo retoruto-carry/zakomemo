@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import type { BrushColor, Stroke } from "@/core/types";
+import type { BrushColor, BrushVariant, Stroke } from "@/core/types";
 import { ImageDataBuffer } from "@/infra/canvas/ImageDataBuffer";
 import { renderStroke } from "@/infra/canvas/strokeRendering";
 
@@ -31,7 +31,11 @@ function getPixel(
 }
 
 /** ソリッドストロークを生成する */
-function createSolidStroke(kind: "draw" | "erase", color: BrushColor): Stroke {
+function createSolidStroke(
+  kind: "draw" | "erase",
+  color: BrushColor,
+  variant: BrushVariant = "penCircle",
+): Stroke {
   return {
     id: "s1",
     kind,
@@ -40,7 +44,7 @@ function createSolidStroke(kind: "draw" | "erase", color: BrushColor): Stroke {
       color,
       width: 1,
       opacity: 1,
-      variant: "normal",
+      variant,
     },
     points: [{ x: 2, y: 2, t: 0 }],
   };
@@ -76,7 +80,7 @@ function createPatternStroke(color: BrushColor): Stroke {
       width: 2,
       opacity: 1,
       patternId: "dot_sparse",
-      variant: "normal",
+      variant: "penCircle",
     },
     points: [{ x: 1, y: 1, t: 0 }],
   };
@@ -209,6 +213,40 @@ describe("renderStroke", () => {
     expect(getPixel(buffer, 1, 1)).toEqual({
       r: 0,
       g: 255,
+      b: 0,
+      a: 255,
+    });
+  });
+
+  test("四角ペンが角を含むスタンプで描画する", () => {
+    const buffer = createBuffer("#ffffff");
+    buffer.clear({ width: 8, height: 8 });
+    const palette = ["#ff0000", "#00ff00", "#0000ff"];
+
+    const stroke: Stroke = {
+      id: "s-square",
+      kind: "draw",
+      brush: {
+        kind: "solid",
+        color: { kind: "palette", index: 0 },
+        width: 4,
+        opacity: 1,
+        variant: "penSquare",
+      },
+      points: [{ x: 4, y: 4, t: 0 }],
+    };
+
+    renderStroke({
+      context: buffer,
+      palette,
+      stroke,
+      jitteredPoints: [{ x: 4, y: 4 }],
+      elapsedTimeMs: 0,
+    });
+
+    expect(getPixel(buffer, 5, 5)).toEqual({
+      r: 255,
+      g: 0,
       b: 0,
       a: 255,
     });

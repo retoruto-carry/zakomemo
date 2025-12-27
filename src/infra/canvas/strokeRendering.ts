@@ -107,6 +107,16 @@ function renderSolidStroke(
     return;
   }
 
+  if (stroke.kind === "draw" && variant === "penSquare") {
+    const centerPixels = buildCenterPixels(jitteredPoints);
+    const stamp = getSquareStampOffsets(brushWidth);
+    const stampedPixels = calculateStampedLinePixels(centerPixels, stamp);
+    for (const pixel of stampedPixels) {
+      context.setPixel({ x: pixel.x, y: pixel.y, r, g, b, a });
+    }
+    return;
+  }
+
   // 1点だけのとき
   if (jitteredPoints.length === 1) {
     const p = jitteredPoints[0];
@@ -249,7 +259,8 @@ function resolveEraserStampVariant({
     case "eraserSquare":
       return variant;
     case "eraserCircle":
-    case "normal":
+    case "penCircle":
+    case "penSquare":
       return null;
     default:
       return assertNever(variant);
@@ -274,30 +285,13 @@ function renderPatternStroke(
     resolveBrushColor({ color: stroke.brush.color, palette }),
   );
   const brushWidth = Math.round(stroke.brush.width);
+  const useSquareStamp = stroke.brush.variant === "penSquare";
 
-  let areaPixels: Array<{ x: number; y: number }>;
-
-  // 1点だけのとき
-  if (jitteredPoints.length === 1) {
-    const p = jitteredPoints[0];
-    const x = Math.round(p.x);
-    const y = Math.round(p.y);
-    if (brushWidth > 1) {
-      areaPixels = calculateThickLinePixels([{ x, y }], brushWidth);
-    } else {
-      areaPixels = [{ x, y }];
-    }
-  } else {
-    // 複数点の場合はBresenhamアルゴリズムで中心線を取得
-    const centerPixels = buildCenterPixels(jitteredPoints);
-
-    // 太い線の場合は領域を計算（重複排除済み）
-    if (brushWidth > 1) {
-      areaPixels = calculateThickLinePixels(centerPixels, brushWidth);
-    } else {
-      areaPixels = centerPixels;
-    }
-  }
+  const areaPixels = resolvePatternAreaPixels({
+    jitteredPoints,
+    brushWidth,
+    useSquareStamp,
+  });
 
   // エリア全体にパターンを一括適用
   applyPatternToArea(
@@ -309,6 +303,45 @@ function renderPatternStroke(
     color.b,
     brushWidth,
   );
+}
+
+/**
+ * パターンストロークの描画領域を解決する
+ */
+function resolvePatternAreaPixels({
+  jitteredPoints,
+  brushWidth,
+  useSquareStamp,
+}: {
+  jitteredPoints: { x: number; y: number }[];
+  brushWidth: number;
+  useSquareStamp: boolean;
+}): Array<{ x: number; y: number }> {
+  if (jitteredPoints.length === 0) return [];
+
+  // 1点だけのときはそのまま中心線として扱う
+  const centerPixels =
+    jitteredPoints.length === 1
+      ? [
+          {
+            x: Math.round(jitteredPoints[0].x),
+            y: Math.round(jitteredPoints[0].y),
+          },
+        ]
+      : buildCenterPixels(jitteredPoints);
+
+  if (brushWidth <= 1) {
+    return centerPixels;
+  }
+
+  if (useSquareStamp) {
+    return calculateStampedLinePixels(
+      centerPixels,
+      getSquareStampOffsets(brushWidth),
+    );
+  }
+
+  return calculateThickLinePixels(centerPixels, brushWidth);
 }
 
 /**

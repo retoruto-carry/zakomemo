@@ -57,8 +57,8 @@ export class WigglyEngine {
 
   private currentTool: Tool = "pen";
   private pendingColor: BrushColor = { kind: "palette", index: 0 };
-  private pendingWidth = defaultPenWidth.normal;
-  private penVariant: PenVariant = "normal";
+  private pendingWidth = defaultPenWidth.penCircle;
+  private penVariant: PenVariant = "penCircle";
   private eraserVariant: EraserVariant = "eraserCircle";
   private pendingPattern: BrushPatternId = "dot_sparse";
 

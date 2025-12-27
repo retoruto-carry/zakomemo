@@ -2,7 +2,8 @@ import type { EraserVariant, PenVariant } from "@/engine/variants";
 
 /** ペンのバリアント選択肢 */
 export const penVariants: { id: PenVariant; label: string }[] = [
-  { id: "normal", label: "ノーマル" },
+  { id: "penCircle", label: "丸" },
+  { id: "penSquare", label: "四角" },
 ];
 
 /** 消しゴムのバリアント選択肢 */

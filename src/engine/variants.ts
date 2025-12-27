@@ -1,11 +1,12 @@
 /** ペンのバリアント種別 */
-export type PenVariant = "normal";
+export type PenVariant = "penCircle" | "penSquare";
 /** 消しゴムのバリアント種別 */
 export type EraserVariant = "eraserCircle" | "eraserSquare" | "eraserLine";
 
 /** ペンのデフォルト幅 */
 export const defaultPenWidth: Record<PenVariant, number> = {
-  normal: 16,
+  penCircle: 16,
+  penSquare: 16,
 };
 
 /** 消しゴムのデフォルト幅 */

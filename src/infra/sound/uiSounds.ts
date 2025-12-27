@@ -52,6 +52,9 @@ export function initializeUISounds(): void {
   // 消しゴム種類選択 - select1.mp3を使用
   uiSoundManager.registerSound("eraser-variant-select", selectSound);
 
+  // ペン形状選択 - select1.mp3を使用
+  uiSoundManager.registerSound("pen-variant-select", selectSound);
+
   // 設定モーダルタブ - select1.mp3を使用
   uiSoundManager.registerSound("settings-tab", selectSound);
 

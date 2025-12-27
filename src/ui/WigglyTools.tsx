@@ -19,7 +19,7 @@ import { assertNever } from "@/core/assertNever";
 import type { JitterConfig } from "@/core/jitter";
 import { getPatternDefinition, PATTERNS } from "@/core/patterns";
 import type { BrushPatternId } from "@/core/types";
-import type { EraserVariant } from "@/engine/variants";
+import type { EraserVariant, PenVariant } from "@/engine/variants";
 import type { Tool } from "@/engine/WigglyEngine";
 import { uiSoundManager } from "@/infra/sound/uiSounds";
 import { debounce } from "@/lib/debounce";
@@ -31,7 +31,7 @@ import {
 } from "@/ui/components/AnimatedGif";
 import { PatternPreview } from "@/ui/components/PatternPreview";
 import { ShareButton } from "@/ui/components/ShareButton";
-import { eraserVariants } from "@/ui/variants";
+import { eraserVariants, penVariants } from "@/ui/variants";
 
 /** WigglyToolsの外部操作用ハンドル */
 export interface WigglyToolsHandle {
@@ -125,6 +125,22 @@ const CUSTOM_PALETTE_SOUND_DEBOUNCE_MS = 250;
 /** カスタムパレットの色反映を間引く間隔(ms) */
 const CUSTOM_PALETTE_APPLY_THROTTLE_MS = 50;
 
+/** ペンの形状クラスを取得する */
+function getPenShapeClass(
+  variant: PenVariant,
+  size: "indicator" | "grid",
+): string {
+  const sizeClass = size === "indicator" ? "w-4 h-4" : "w-5 h-5";
+  switch (variant) {
+    case "penCircle":
+      return `rounded-full ${sizeClass}`;
+    case "penSquare":
+      return `rounded-none ${sizeClass}`;
+    default:
+      return assertNever(variant);
+  }
+}
+
 /** 消しゴムのインジケータ形状を取得する */
 function getEraserIndicatorClass(variant: EraserVariant): string {
   switch (variant) {
@@ -161,6 +177,8 @@ interface WigglyToolsProps {
   setColorIndex: (colorIndex: number) => void;
   brushWidth: number;
   setBrushWidth: (brushWidth: number) => void;
+  penVariant: PenVariant;
+  setPenVariant: (variant: PenVariant) => void;
   eraserVariant: EraserVariant;
   setEraserVariant: (variant: EraserVariant) => void;
   patternId: BrushPatternId;
@@ -207,6 +225,8 @@ export const WigglyTools = React.forwardRef<
     setColorIndex,
     brushWidth,
     setBrushWidth,
+    penVariant,
+    setPenVariant,
     eraserVariant,
     setEraserVariant,
     patternId,
@@ -240,7 +260,7 @@ export const WigglyTools = React.forwardRef<
 ) {
   // 開いているポップアップを追跡
   const [activePopup, setActivePopup] = useState<
-    "none" | "pattern" | "eraser" | "settings"
+    "none" | "pen" | "pattern" | "eraser" | "settings"
   >("none");
   const currentPattern = useMemo(
     () => getPatternDefinition(patternId),
@@ -316,6 +336,13 @@ export const WigglyTools = React.forwardRef<
           uiSoundManager.play("button-tool", { stopPrevious: true });
         }
         setActivePopup(activePopup === "pattern" ? "none" : "pattern");
+      } else if (t === "pen") {
+        if (activePopup === "pen") {
+          uiSoundManager.play("popup-close", { stopPrevious: true });
+        } else {
+          uiSoundManager.play("button-tool", { stopPrevious: true });
+        }
+        setActivePopup(activePopup === "pen" ? "none" : "pen");
       } else if (t === "eraser") {
         if (activePopup === "eraser") {
           uiSoundManager.play("popup-close", { stopPrevious: true });
@@ -342,6 +369,16 @@ export const WigglyTools = React.forwardRef<
       setActivePopup("none");
     }
   };
+
+  const togglePenPopup = useCallback(() => {
+    if (activePopup === "pen") {
+      uiSoundManager.play("popup-close", { stopPrevious: true });
+    } else {
+      uiSoundManager.play("button-tool", { stopPrevious: true });
+    }
+    setTool("pen");
+    setActivePopup(activePopup === "pen" ? "none" : "pen");
+  }, [activePopup, setTool]);
 
   return (
     <div className="flex flex-col w-full bg-zako-cream select-none text-zako-dark font-sans p-2 gap-2 relative">
@@ -493,11 +530,12 @@ export const WigglyTools = React.forwardRef<
       <div className="h-24 shrink-0 flex flex-col justify-center relative z-30 py-0.5">
         <div className="grid grid-cols-3 gap-2.5 items-center">
           {/* ペン */}
-          <button
-            type="button"
-            onClick={() => handleToolClick("pen")}
-            onKeyDown={handleButtonKeyDown(() => handleToolClick("pen"))}
-            className={`
+          <div className="relative w-full h-full">
+            <button
+              type="button"
+              onClick={() => handleToolClick("pen")}
+              onKeyDown={handleButtonKeyDown(() => handleToolClick("pen"))}
+              className={`
                   relative flex flex-col items-center justify-center p-1.5 transition-all active:scale-[0.98] w-full h-full rounded-[8px] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2
                   ${
                     tool === "pen"
@@ -505,37 +543,82 @@ export const WigglyTools = React.forwardRef<
                       : "bg-zako-cream-soft border-[4px] border-zako-tan shadow-[4px_4px_0_var(--color-zako-tan-30)]"
                   }
             `}
-          >
-            <div
-              className={`absolute top-2 left-2 text-sm font-black z-50 ${tool === "pen" ? "text-black" : "text-zako-brown"}`}
-              style={{
-                WebkitTextStroke:
-                  tool === "pen"
-                    ? "3px var(--color-zako-yellow)"
-                    : "3px var(--color-zako-cream-soft)",
-                paintOrder: "stroke fill",
-              }}
-            >
-              ペン
-            </div>
-            {/* biome-ignore lint/performance/noImgElement: ツールアイコン表示のため */}
-            <img
-              src={
-                tool === "pen" ? "/images/pen_on.png" : "/images/pen_off.png"
-              }
-              alt="ペン"
-              className="w-20 h-20 object-contain drop-shadow-sm"
-              aria-hidden="true"
-            />
-            {/* 角インジケータ（丸） */}
-            <div
-              className={`absolute bottom-1.5 right-1.5 w-9 h-9 border-[3px] rounded-[3px] flex items-center justify-center z-[90] ${tool === "pen" ? "border-black bg-white" : "border-zako-tan bg-white"}`}
             >
               <div
-                className={`w-4 h-4 rounded-full ${tool === "pen" ? "bg-black" : "bg-zako-tan"}`}
+                className={`absolute top-2 left-2 text-sm font-black z-50 ${tool === "pen" ? "text-black" : "text-zako-brown"}`}
+                style={{
+                  WebkitTextStroke:
+                    tool === "pen"
+                      ? "3px var(--color-zako-yellow)"
+                      : "3px var(--color-zako-cream-soft)",
+                  paintOrder: "stroke fill",
+                }}
+              >
+                ペン
+              </div>
+              {/* biome-ignore lint/performance/noImgElement: ツールアイコン表示のため */}
+              <img
+                src={
+                  tool === "pen" ? "/images/pen_on.png" : "/images/pen_off.png"
+                }
+                alt="ペン"
+                className="w-20 h-20 object-contain drop-shadow-sm"
+                aria-hidden="true"
               />
-            </div>
-          </button>
+            </button>
+
+            {/* 角インジケータ */}
+            <button
+              type="button"
+              onClick={togglePenPopup}
+              onKeyDown={handleButtonKeyDown(togglePenPopup)}
+              className={`absolute bottom-1.5 right-1.5 w-9 h-9 border-[3px] rounded-[3px] flex items-center justify-center transition-all hover:scale-105 active:scale-95 z-[90] focus:outline-none focus-visible:ring-2 focus-visible:ring-black cursor-pointer ${tool === "pen" ? "border-black bg-white" : "border-zako-tan bg-white"}`}
+            >
+              <div
+                className={`${getPenShapeClass(penVariant, "indicator")} ${tool === "pen" ? "bg-black" : "bg-zako-tan"}`}
+              />
+            </button>
+
+            {/* 小さなポップアップ: ペン形状 */}
+            {activePopup === "pen" && (
+              <div
+                className="absolute bg-white border-[3px] border-black p-0.5 grid grid-cols-2 gap-0.5 shadow-[8px_8px_0_var(--color-zako-black-20)] z-[150] h-fit rounded-[4px]"
+                style={{
+                  top: "calc(100% - 54px)",
+                  left: "calc(100% - 54px)",
+                  width: "100px",
+                }}
+              >
+                {penVariants.map((v) => {
+                  return (
+                    <button
+                      type="button"
+                      key={v.id}
+                      onClick={() => {
+                        uiSoundManager.play("pen-variant-select", {
+                          stopPrevious: true,
+                        });
+                        setTool("pen");
+                        setPenVariant(v.id);
+                        setActivePopup("none");
+                      }}
+                        className={`relative border-[2px] w-9 h-9 flex items-center justify-center transition-all rounded-[2px] cursor-pointer
+                                    ${
+                                      penVariant === v.id
+                                        ? "border-black bg-zako-yellow-strong-30"
+                                        : "border-zako-tan-light bg-white"
+                                    }`}
+                      aria-label={`ペン: ${v.label}`}
+                    >
+                      <div
+                        className={`${getPenShapeClass(v.id, "grid")} bg-black ${penVariant === v.id ? "border-black" : "border-zako-brown"} border-[1.5px]`}
+                      />
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
 
           {/* ペイント / パターン */}
           <div className="relative w-full h-full">
@@ -757,7 +840,7 @@ export const WigglyTools = React.forwardRef<
                       className={`relative border-[2px] w-9 h-9 flex items-center justify-center transition-all rounded-[2px] cursor-pointer
                                     ${
                                       eraserVariant === v.id
-                                        ? "border-black bg-slate-100"
+                                        ? "border-black bg-zako-yellow-strong-30"
                                         : "border-zako-tan-light bg-white"
                                     }`}
                     >
