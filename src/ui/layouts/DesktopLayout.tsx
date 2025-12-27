@@ -26,10 +26,10 @@ interface LayoutProps {
 /** デスクトップ向けの本体レイアウト */
 export function DesktopLayout({ canvas, tools, dsButtons }: LayoutProps) {
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-[var(--color-zako-dark)] p-4 overflow-hidden font-sans text-slate-900">
+    <div className="min-h-screen w-full flex items-center justify-center bg-zako-dark p-4 overflow-hidden font-sans text-slate-900">
       {/* テーブル面 */}
       <div
-        className="absolute inset-0 bg-[var(--color-zako-charcoal-soft)] opacity-40 pointer-events-none"
+        className="absolute inset-0 bg-zako-charcoal-soft opacity-40 pointer-events-none"
         style={{
           backgroundImage:
             "radial-gradient(var(--color-zako-black) 1px, transparent 1px)",
@@ -90,26 +90,26 @@ export function DesktopLayout({ canvas, tools, dsButtons }: LayoutProps) {
           <div className="absolute left-[12%] top-1/2 -translate-y-1/2 flex items-center gap-2 px-3 py-1 bg-black/5 rounded-full border border-white/20">
             <div
               aria-hidden="true"
-              className="w-1.5 h-3 rounded-full bg-[var(--color-zako-led-blue)] shadow-[0_0_5px_var(--color-zako-led-blue-glow)]"
+              className="w-1.5 h-3 rounded-full bg-zako-led-blue shadow-[0_0_5px_var(--color-zako-led-blue-glow)]"
               title="Wireless"
             />
             <div
               aria-hidden="true"
-              className="w-1.5 h-3 rounded-full bg-[var(--color-zako-led-amber)] opacity-20"
+              className="w-1.5 h-3 rounded-full bg-zako-led-amber opacity-20"
               title="Charge"
             />
             <div
               aria-hidden="true"
-              className="w-1.5 h-3 rounded-full bg-[var(--color-zako-led-green)] shadow-[0_0_5px_var(--color-zako-led-green-glow)]"
+              className="w-1.5 h-3 rounded-full bg-zako-led-green shadow-[0_0_5px_var(--color-zako-led-green-glow)]"
               title="Power"
             />
           </div>
 
           {/* 内蔵カメラ */}
-          <div className="w-6 h-6 rounded-full bg-[var(--color-zako-ink)] border-[2px] border-[var(--zako-hinge-border)] shadow-[inset_0_2px_4px_var(--color-zako-black-80)] flex items-center justify-center relative">
-            <div className="w-2 h-2 rounded-full bg-linear-to-tr from-[var(--color-zako-lens-from)] to-[var(--color-zako-lens-to)]" />
+          <div className="w-6 h-6 rounded-full bg-zako-ink border-[2px] border-[var(--zako-hinge-border)] shadow-[inset_0_2px_4px_var(--color-zako-black-80)] flex items-center justify-center relative">
+            <div className="w-2 h-2 rounded-full bg-linear-to-tr from-zako-lens-from to-zako-lens-to" />
             {/* マイク穴（カメラ右隣に配置） */}
-            <div className="absolute left-[calc(100%+6px)] top-1/2 -translate-y-1/2 w-1 h-1 rounded-full bg-[var(--color-zako-gray-600)] shadow-inner" />
+            <div className="absolute left-[calc(100%+6px)] top-1/2 -translate-y-1/2 w-1 h-1 rounded-full bg-zako-gray-600 shadow-inner" />
           </div>
         </div>
 
@@ -140,10 +140,10 @@ export function DesktopLayout({ canvas, tools, dsButtons }: LayoutProps) {
                 {/* 十字キーの装飾 */}
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                   {/* 方向マーク */}
-                  <div className="absolute top-2 w-0 h-0 border-l-4 border-r-4 border-b-6 border-l-transparent border-r-transparent border-b-[var(--color-zako-gray-500)] opacity-60" />
-                  <div className="absolute bottom-2 w-0 h-0 border-l-4 border-r-4 border-t-6 border-l-transparent border-r-transparent border-t-[var(--color-zako-gray-500)] opacity-60" />
-                  <div className="absolute left-2 w-0 h-0 border-t-4 border-b-4 border-r-6 border-t-transparent border-b-transparent border-r-[var(--color-zako-gray-500)] opacity-60" />
-                  <div className="absolute right-2 w-0 h-0 border-t-4 border-b-4 border-l-6 border-t-transparent border-b-transparent border-l-[var(--color-zako-gray-500)] opacity-60" />
+                  <div className="absolute top-2 w-0 h-0 border-l-4 border-r-4 border-b-6 border-l-transparent border-r-transparent border-b-zako-gray-500 opacity-60" />
+                  <div className="absolute bottom-2 w-0 h-0 border-l-4 border-r-4 border-t-6 border-l-transparent border-r-transparent border-t-zako-gray-500 opacity-60" />
+                  <div className="absolute left-2 w-0 h-0 border-t-4 border-b-4 border-r-6 border-t-transparent border-b-transparent border-r-zako-gray-500 opacity-60" />
+                  <div className="absolute right-2 w-0 h-0 border-t-4 border-b-4 border-l-6 border-t-transparent border-b-transparent border-l-zako-gray-500 opacity-60" />
                 </div>
 
                 {/* 十字キーのクリック領域 */}
@@ -176,15 +176,15 @@ export function DesktopLayout({ canvas, tools, dsButtons }: LayoutProps) {
 
             {/* 電源ボタン（装飾） */}
             <div className="flex items-center gap-1.5 -mt-1 pr-1">
-              <span className="text-[7px] font-black text-[var(--color-zako-gray-400)] tracking-[0.1em]">
+              <span className="text-[7px] font-black text-zako-gray-400 tracking-[0.1em]">
                 POWER
               </span>
               <div
                 aria-hidden="true"
                 className="w-5 h-5 rounded-full bg-[var(--zako-button-bg)] border border-[var(--zako-button-border)] shadow-[0_1px_3px_var(--color-zako-black-10),inset_0_1px_2px_var(--color-zako-panel)] active:scale-90 flex items-center justify-center"
               >
-                <div className="w-2 h-2 rounded-full border border-[var(--color-zako-gray-500)] relative">
-                  <div className="absolute top-[-1.5px] left-1/2 -translate-x-1/2 w-0.5 h-0.5 bg-[var(--color-zako-gray-500)]" />
+                <div className="w-2 h-2 rounded-full border border-zako-gray-500 relative">
+                  <div className="absolute top-[-1.5px] left-1/2 -translate-x-1/2 w-0.5 h-0.5 bg-zako-gray-500" />
                 </div>
               </div>
             </div>
@@ -192,7 +192,7 @@ export function DesktopLayout({ canvas, tools, dsButtons }: LayoutProps) {
 
           {/* 中央: 下画面 */}
           <div className="shrink-0 relative w-full max-w-[420px] bg-[var(--zako-bezel-bg)] rounded-sm p-2 shadow-[inset_0_1px_8px_var(--color-zako-black-80)] border-[2px] border-[var(--zako-bezel-border)]">
-            <div className="relative w-full h-full bg-[var(--color-zako-paper)] shadow-[inset_0_2px_10px_var(--color-zako-black-10)] overflow-hidden rounded-[2px]">
+            <div className="relative w-full h-full bg-zako-paper shadow-[inset_0_2px_10px_var(--color-zako-black-10)] overflow-hidden rounded-[2px]">
               {tools}
             </div>
           </div>
@@ -249,7 +249,7 @@ export function DesktopLayout({ canvas, tools, dsButtons }: LayoutProps) {
                   className="w-3.5 h-3.5 rounded-full bg-[var(--zako-button-bg)] border border-[var(--zako-button-border)] shadow-[0_2px_4px_var(--color-zako-black-10)] active:scale-90 cursor-pointer hover:brightness-110 transition-all"
                   aria-label="START"
                 />
-                <span className="text-[6px] font-black text-[var(--color-zako-gray-300)] tracking-tighter">
+                <span className="text-[6px] font-black text-zako-gray-300 tracking-tighter">
                   START
                 </span>
               </div>
@@ -260,7 +260,7 @@ export function DesktopLayout({ canvas, tools, dsButtons }: LayoutProps) {
                   className="w-3.5 h-3.5 rounded-full bg-[var(--zako-button-bg)] border border-[var(--zako-button-border)] shadow-[0_2px_4px_var(--color-zako-black-10)] active:scale-90 cursor-pointer hover:brightness-110 transition-all"
                   aria-label="SELECT"
                 />
-                <span className="text-[6px] font-black text-[var(--color-zako-gray-300)] tracking-tighter">
+                <span className="text-[6px] font-black text-zako-gray-300 tracking-tighter">
                   SELECT
                 </span>
               </div>
