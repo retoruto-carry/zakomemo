@@ -80,8 +80,8 @@ export function ShareButton({
       disabled={isSharing}
       className={`
         bg-black text-white 
-        border-t-[3px] border-l-[3px] border-t-(--color-zako-border) border-l-(--color-zako-border) 
-        border-b-[3px] border-r-[3px] border-b-(--color-zako-black) border-r-(--color-zako-black) 
+        border-t-[3px] border-l-[3px] border-t-[var(--color-zako-border)] border-l-[var(--color-zako-border)] 
+        border-b-[3px] border-r-[3px] border-b-[var(--color-zako-black)] border-r-[var(--color-zako-black)] 
         rounded-[6px] py-2.5 px-4
         flex items-center justify-center gap-2
         active:translate-y-0.5 transition-all 
