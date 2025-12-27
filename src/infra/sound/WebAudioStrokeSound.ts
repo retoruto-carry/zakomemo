@@ -113,6 +113,10 @@ export class WebAudioStrokeSound implements StrokeSound {
     this.setupInteractionResume();
   }
 
+  /**
+   * ストローク開始時に呼ばれる。
+   * ノイズソースを起動し、初期ゲインを設定して描画音を立ち上げる。
+   */
   onStrokeStart(info: StrokeSoundInfo): void {
     const context = this.ensureAudioContext();
     if (!context) return;
@@ -131,6 +135,10 @@ export class WebAudioStrokeSound implements StrokeSound {
     this.applySpeed(info, state, context, true);
   }
 
+  /**
+   * ストローク更新時に呼ばれる。
+   * 速度に応じてゲインとフィルター周波数を更新する。
+   */
   onStrokeUpdate(info: StrokeSoundInfo): void {
     const context = this.ensureAudioContext();
     if (!context) return;
@@ -141,6 +149,10 @@ export class WebAudioStrokeSound implements StrokeSound {
     this.applySpeed(info, state, context, false, instantSpeed);
   }
 
+  /**
+   * ストローク終了時に呼ばれる。
+   * フェードアウト後にノイズソースを停止する。
+   */
   onStrokeEnd(info: StrokeSoundInfo): void {
     const context = this.ensureAudioContext();
     if (!context) return;
@@ -186,6 +198,10 @@ export class WebAudioStrokeSound implements StrokeSound {
     this.scheduleIdleCheck(state, context);
   }
 
+  /**
+   * リソースをクリーンアップする。
+   * ノードとタイマーを停止し、AudioContextを閉じる。
+   */
   destroy(): void {
     for (const { event, handler } of this.interactionHandlers) {
       document.removeEventListener(event, handler);
